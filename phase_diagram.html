@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phase Diagram (P–T) — water &amp; CO₂</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1));
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    border: none; background: var(--surface-2); color: var(--ink);
+    font: inherit; padding: 8px 14px; min-height: 40px; cursor: pointer;
+    border-right: 1px solid var(--line);
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .ca-play-btn {
+    border: none; cursor: pointer; color: #fff;
+    background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a);
+    border-radius: 999px; padding: 10px 18px; min-height: 44px;
+    font: inherit; font-weight: 700;
+    box-shadow: 0 2px 7px rgba(33,48,86,.22);
+    transition: transform .1s ease, filter .15s ease;
+  }
+  .ca-play-btn:active { transform: scale(.93); }
+  .ca-play-btn.ghost { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); box-shadow: none; }
+
+  .canvas-wrap { position: relative; width: 100%; }
+  canvas#pd { width: 100%; height: auto; display: block; border-radius: 10px; touch-action: none; cursor: crosshair; }
+
+  /* readout chips */
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px 10px; text-align: left;
+  }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.05rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+  .kpi.phase .num { text-transform: capitalize; }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow span b { color: var(--ink); }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:middle; margin-right:5px; border:1px solid var(--line); }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Phase Diagram — pressure vs temperature</h1>
+  <p class="viz-sub">Every point is one phase. Drag the marker, or step along the dashed <b>1 atm</b> line to see melting &amp; boiling. Note water's
+    backward-leaning solid–liquid line. <span class="pill">log pressure axis</span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Substance</span>
+      <div class="seg" id="subSeg" role="group" aria-label="substance">
+        <button data-sub="water" class="on" type="button">H₂O (water)</button>
+        <button data-sub="co2" type="button">CO₂</button>
+      </div>
+      <span style="flex:1"></span>
+      <button class="ca-play-btn ghost" id="isobarBtn" type="button" title="Walk the marker up the 1 atm isobar">Trace 1 atm path →</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="canvas-wrap"><canvas id="pd" width="660" height="400" aria-label="phase diagram"></canvas></div>
+    <div class="kpis">
+      <div class="kpi"><div class="lab">Temperature</div><div class="num"><span id="kT">—</span> <small>°C</small></div></div>
+      <div class="kpi"><div class="lab">Pressure</div><div class="num"><span id="kP">—</span> <small>atm</small></div></div>
+      <div class="kpi phase"><div class="lab">Phase here</div><div class="num" id="kPhase">—</div></div>
+    </div>
+    <div class="legendrow" id="legend"></div>
+    <div class="legend-note" id="factNote"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ?theme=&font=&scale=  +  postMessage({theme,font,scale}) → data-* on <html>.
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){
+    var t = (st.theme === null || st.theme === 'default') ? '' : String(st.theme);
+    if (THEMES.indexOf(t) < 0) t = '';
+    root.setAttribute('data-theme', t);
+  }
+  if (st.font !== undefined){
+    var f = String(st.font || 'lexend');
+    if (FONTS.indexOf(f) < 0) f = 'lexend';
+    root.setAttribute('data-font', f);
+  }
+  if (st.scale !== undefined){
+    root.style.setProperty('--viz-scale', String(clampScale(st.scale)));
+  }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){
+  var q = new URLSearchParams(location.search);
+  applyState({ theme: q.get('theme'), font: q.get('font') || 'lexend', scale: q.get('scale') || 1 });
+})();
+window.addEventListener('message', function(e){
+  var d = e && e.data;
+  if (!d || typeof d !== 'object') return;
+  if (!('theme' in d) && !('font' in d) && !('scale' in d)) return;
+  applyState(d);
+});
+
+/* =====================================================================
+   SUBSTANCE DATA (AP-defensible). Temps °C, pressures atm.
+   Boundary curves are built from real anchor points:
+     - sublimation (solid–gas)  : Clausius–Clapeyron through the relevant anchors
+     - vaporization (liquid–gas): C–C piecewise through triple → (normal bp) → critical
+     - fusion (solid–liquid)    : through triple + the high-P trend; water's slope is
+       NEGATIVE (anomalous) — drawn clearly negative (exaggerated for visibility, as
+       textbooks do, since the true slope is ~vertical), CO₂'s is positive.
+   Triple/critical/normal points are exact AP values.
+   ===================================================================== */
+var SUBS = {
+  water: {
+    name: 'H₂O', triple:{T:0.01, P:0.00604}, critical:{T:374, P:217.7},
+    Tmin:-50, Tmax:400, Pmin:0.001, Pmax:1000,
+    normalMP:0.0, normalBP:100.0,                       // °C at 1 atm
+    // vaporization anchors in (T_K, P_atm): triple → normal bp → critical
+    vapAnchors:[[273.16,0.00604],[373.15,1.0],[647.0,217.7]],
+    // sublimation anchors (T_K,P_atm): triple + a colder point from ΔHsub≈51 kJ/mol
+    subAnchors:[[233.15, 0.0000513],[273.16,0.00604]],
+    // fusion: (P_atm → T_°C); negative slope (leans LEFT as P rises)
+    fusAnchors:[[0.00604,0.01],[1.0,0.0],[1000,-14]],
+    labels:[ {ph:'solid',T:-30,P:8}, {ph:'liquid',T:70,P:3}, {ph:'gas',T:260,P:0.02} ],
+    fact:'Water is the famous exception: its solid–liquid line tilts <b>backward</b> (negative slope), so squeezing ice can melt it. Triple point 0.01 °C / 0.006 atm; critical 374 °C / 218 atm.'
+  },
+  co2: {
+    name: 'CO₂', triple:{T:-56.6, P:5.11}, critical:{T:31.0, P:72.9},
+    Tmin:-120, Tmax:70, Pmin:0.1, Pmax:1000,
+    normalMP:null, normalBP:null,                       // no liquid at 1 atm (below triple)
+    sublimationPoint:-78.5,                              // °C, dry-ice sublimes at 1 atm
+    vapAnchors:[[216.55,5.11],[304.15,72.9]],           // triple → critical
+    subAnchors:[[194.65,1.0],[216.55,5.11]],            // normal sublimation (1 atm) → triple
+    fusAnchors:[[5.11,-56.6],[1000,-20]],               // positive slope (leans RIGHT)
+    labels:[ {ph:'solid',T:-100,P:10}, {ph:'liquid',T:5,P:60}, {ph:'gas',T:-20,P:0.4} ],
+    fact:'CO₂\'s solid–liquid line tilts the normal way (positive slope). At 1 atm there is <b>no liquid</b> — dry ice sublimes straight to gas at −78.5 °C. Triple point −56.6 °C / 5.11 atm; critical 31 °C / 72.9 atm.'
+  }
+};
+
+/* ---- Clausius–Clapeyron-style interpolation in (1/T, ln P) over anchors ---- */
+function lnP_at(anchors, TK){
+  // anchors sorted ascending by T_K. Linear interp/extrapolate in (1/T, lnP).
+  var n=anchors.length;
+  var x = 1/TK;
+  // find bracketing pair (use end segments for extrapolation)
+  var i=0;
+  for (i=0; i<n-2; i++){ if (TK <= anchors[i+1][0]) break; }
+  var T1=anchors[i][0], P1=anchors[i][1], T2=anchors[i+1][0], P2=anchors[i+1][1];
+  var x1=1/T1, x2=1/T2, y1=Math.log(P1), y2=Math.log(P2);
+  var f=(x-x1)/(x2-x1);
+  return y1 + f*(y2-y1);
+}
+function curveP(anchors, TC){ return Math.exp(lnP_at(anchors, TC+273.15)); }   // atm at temp °C
+
+/* ---- fusion temperature at pressure P (interp in (log10 P, T_°C)) ---- */
+function fusT(anchors, P){
+  var n=anchors.length, lp=Math.log10(P), i=0;
+  for (i=0;i<n-2;i++){ if (P <= anchors[i+1][0]) break; }
+  var p1=Math.log10(anchors[i][0]), t1=anchors[i][1], p2=Math.log10(anchors[i+1][0]), t2=anchors[i+1][1];
+  var f=(lp-p1)/(p2-p1);
+  return t1 + f*(t2-t1);
+}
+
+/* ---- classify a (T_°C, P_atm) point into a phase ---- */
+function classify(S, TC, P){
+  var Tt=S.triple.T, Pt=S.triple.P, Tc=S.critical.T, Pc=S.critical.P;
+  if (TC > Tc){ return (P >= Pc) ? 'supercritical' : 'gas'; }
+  // gas boundary = sublimation (T≤triple) or vaporization (triple<T≤crit)
+  var boundaryP = (TC <= Tt) ? curveP(S.subAnchors, TC) : curveP(S.vapAnchors, TC);
+  if (P < boundaryP) return 'gas';
+  // condensed: solid (cold side of fusion line) vs liquid (warm side)
+  if (P >= Pt){
+    var tf = fusT(S.fusAnchors, P);
+    return (TC < tf) ? 'solid' : 'liquid';
+  }
+  return (TC < Tt) ? 'solid' : 'liquid';
+}
+
+/* =====================================================================
+   COLOR TOKENS → canvas (parse hex/rgb, blend for soft region fills)
+   ===================================================================== */
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){
+  c=c.trim();
+  if (c[0]==='#'){
+    if (c.length===4) c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3];
+    return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)];
+  }
+  var m=c.match(/rgba?\(([^)]+)\)/);
+  if (m){ var p=m[1].split(',').map(function(s){return parseFloat(s);}); return [p[0],p[1],p[2]]; }
+  return [128,128,128];
+}
+function mix(a,b,t){ // t fraction of a
+  var A=parseColor(a), B=parseColor(b);
+  return 'rgb('+Math.round(A[0]*t+B[0]*(1-t))+','+Math.round(A[1]*t+B[1]*(1-t))+','+Math.round(A[2]*t+B[2]*(1-t))+')';
+}
+
+/* =====================================================================
+   CANVAS + COORD TRANSFORMS
+   ===================================================================== */
+var cv = document.getElementById('pd'), ctx = cv.getContext('2d');
+var W = cv.width, Hh = cv.height;
+var padL=54, padR=120, padT=18, padB=42;     // padR leaves room for region labels/critical text
+var plotW = W-padL-padR, plotH = Hh-padT-padB;
+var cur = 'water';
+var marker = { T: 50, P: 1 };                 // data coords of the draggable point
+var regionCanvas = document.createElement('canvas'); regionCanvas.width=W; regionCanvas.height=Hh;
+
+function S(){ return SUBS[cur]; }
+function xPix(TC){ var s=S(); return padL + (TC - s.Tmin)/(s.Tmax - s.Tmin) * plotW; }
+function yPix(P){ var s=S(); var lo=Math.log10(s.Pmin), hi=Math.log10(s.Pmax);
+                  return padT + (1 - (Math.log10(P)-lo)/(hi-lo)) * plotH; }
+function pixToT(px){ var s=S(); return s.Tmin + (px-padL)/plotW * (s.Tmax - s.Tmin); }
+function pixToP(py){ var s=S(); var lo=Math.log10(s.Pmin), hi=Math.log10(s.Pmax);
+                     return Math.pow(10, lo + (1-(py-padT)/plotH)*(hi-lo)); }
+
+var PHASE_COL = {};   // resolved per theme
+function resolvePhaseColors(){
+  var surface=tok('--surface');
+  PHASE_COL = {
+    solid:        mix(tok('--indigo'),  surface, 0.24),
+    liquid:       mix(tok('--correct'), surface, 0.22),
+    gas:          mix(tok('--amber'),   surface, 0.18),
+    supercritical:mix(tok('--flag'),    surface, 0.22)
+  };
+}
+
+/* ---- rasterize the phase regions ONCE per substance/theme (cached) ---- */
+function rasterRegions(){
+  resolvePhaseColors();
+  var rc = regionCanvas.getContext('2d');
+  rc.clearRect(0,0,W,Hh);
+  var step=3;
+  for (var py=padT; py<padT+plotH; py+=step){
+    for (var px=padL; px<padL+plotW; px+=step){
+      var ph = classify(S(), pixToT(px+step/2), pixToP(py+step/2));
+      rc.fillStyle = PHASE_COL[ph] || PHASE_COL.gas;
+      rc.fillRect(px, py, step, step);
+    }
+  }
+}
+
+/* ---- build a boundary curve as pixel points (sampled across its valid T range) ---- */
+function subCurvePts(){ var s=S(); var pts=[]; for (var T=s.Tmin; T<=s.triple.T; T+= (s.triple.T-s.Tmin)/120){ var P=curveP(s.subAnchors,T); if(P>=s.Pmin&&P<=s.Pmax) pts.push([xPix(T),yPix(P)]); } return pts; }
+function vapCurvePts(){ var s=S(); var pts=[]; for (var T=s.triple.T; T<=s.critical.T; T+=(s.critical.T-s.triple.T)/160){ var P=curveP(s.vapAnchors,T); if(P>=s.Pmin&&P<=s.Pmax) pts.push([xPix(T),yPix(P)]); } return pts; }
+function fusCurvePts(){ var s=S(); var pts=[]; var lo=Math.log10(s.triple.P), hi=Math.log10(s.Pmax);
+  for (var k=0;k<=120;k++){ var P=Math.pow(10, lo+(hi-lo)*k/120); var T=fusT(s.fusAnchors,P); pts.push([xPix(T),yPix(P)]); } return pts; }
+
+function strokePts(pts, color, width, dash){
+  if (!pts.length) return;
+  ctx.save(); ctx.beginPath(); ctx.setLineDash(dash||[]); ctx.lineWidth=width; ctx.strokeStyle=color;
+  ctx.moveTo(pts[0][0],pts[0][1]);
+  for (var i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.stroke(); ctx.restore();
+}
+
+/* =====================================================================
+   DRAW everything (region raster + axes + curves + points + marker)
+   ===================================================================== */
+function draw(){
+  var s=S();
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line'), surface=tok('--surface');
+  var indigo=tok('--indigo'), rose=tok('--rose'), correct=tok('--correct');
+  ctx.clearRect(0,0,W,Hh);
+
+  // plot background + region raster
+  ctx.fillStyle=surface; ctx.fillRect(padL,padT,plotW,plotH);
+  ctx.drawImage(regionCanvas,0,0);
+  // plot frame
+  ctx.strokeStyle=line; ctx.lineWidth=1; ctx.strokeRect(padL,padT,plotW,plotH);
+
+  ctx.font = '11px '+(tok('--app-font')||'sans-serif');
+
+  // --- axes: log-P ticks (powers of 10) ---
+  ctx.fillStyle=muted; ctx.strokeStyle=line;
+  var loE=Math.ceil(Math.log10(s.Pmin)), hiE=Math.floor(Math.log10(s.Pmax));
+  for (var e=loE; e<=hiE; e++){
+    var P=Math.pow(10,e), y=yPix(P);
+    ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+plotW,y); ctx.globalAlpha=0.5; ctx.stroke(); ctx.globalAlpha=1; ctx.setLineDash([]);
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    var lbl = (e<0)? Math.pow(10,e).toString() : (e<=3? Math.pow(10,e).toString() : '1e'+e);
+    ctx.fillText(lbl, padL-6, y);
+  }
+  // --- X ticks ---
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  var tStep = (s.Tmax-s.Tmin)>300?100:50;
+  var t0=Math.ceil(s.Tmin/tStep)*tStep;
+  for (var T=t0; T<=s.Tmax; T+=tStep){
+    var x=xPix(T);
+    ctx.strokeStyle=line; ctx.beginPath(); ctx.moveTo(x,padT+plotH); ctx.lineTo(x,padT+plotH+4); ctx.stroke();
+    ctx.fillStyle=muted; ctx.fillText(T, x, padT+plotH+6);
+  }
+  // axis titles
+  ctx.fillStyle=ink; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText('Temperature (°C)', padL+plotW/2, Hh-6);
+  ctx.save(); ctx.translate(13, padT+plotH/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.fillText('Pressure (atm, log)', 0, 0); ctx.restore();
+
+  // --- 1 atm reference line (dashed) ---
+  var y1=yPix(1.0);
+  strokePts([[padL,y1],[padL+plotW,y1]], muted, 1.5, [6,4]);
+  ctx.fillStyle=muted; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText('1 atm', padL+4, y1-2);
+
+  // --- boundary curves ---
+  strokePts(subCurvePts(), ink, 2);                 // sublimation
+  strokePts(vapCurvePts(), ink, 2);                 // vaporization
+  strokePts(fusCurvePts(), ink, 2);                 // fusion
+
+  // --- region text labels ---
+  ctx.fillStyle=ink; ctx.font='600 12px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='center'; ctx.textBaseline='middle';
+  s.labels.forEach(function(L){ ctx.fillText(L.ph.charAt(0).toUpperCase()+L.ph.slice(1), xPix(L.T), yPix(L.P)); });
+
+  // --- triple + critical points ---
+  function dot(T,P,label,col){
+    var x=xPix(T), y=yPix(P);
+    ctx.beginPath(); ctx.arc(x,y,4.5,0,7); ctx.fillStyle=col; ctx.fill();
+    ctx.strokeStyle=surface; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle=ink; ctx.font='10px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(label, x+7, y);
+  }
+  dot(s.triple.T, s.triple.P, 'triple', rose);
+  dot(s.critical.T, s.critical.P, 'critical', correct);
+
+  // --- normal mp/bp markers where the 1 atm line crosses (water only has both) ---
+  if (s.normalBP!=null){
+    var xb=xPix(s.normalBP);
+    ctx.fillStyle=ink; ctx.beginPath(); ctx.arc(xb,y1,3,0,7); ctx.fill();
+    ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font='9px '+(tok('--app-font')||'sans-serif');
+    ctx.fillText('bp '+s.normalBP+'°', xb, y1-3);
+  }
+  if (s.normalMP!=null){
+    var xm=xPix(s.normalMP);
+    ctx.fillStyle=ink; ctx.beginPath(); ctx.arc(xm,y1,3,0,7); ctx.fill();
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='9px '+(tok('--app-font')||'sans-serif');
+    ctx.fillText('mp '+s.normalMP+'°', xm, y1+3);
+  }
+  if (s.sublimationPoint!=null){
+    var xs=xPix(s.sublimationPoint);
+    ctx.fillStyle=ink; ctx.beginPath(); ctx.arc(xs,y1,3,0,7); ctx.fill();
+    ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font='9px '+(tok('--app-font')||'sans-serif');
+    ctx.fillText('sub '+s.sublimationPoint+'°', xs, y1-3);
+  }
+
+  // --- the draggable marker ---
+  var mx=xPix(marker.T), my=yPix(marker.P);
+  ctx.beginPath(); ctx.arc(mx,my,8,0,7); ctx.fillStyle=indigo; ctx.fill();
+  ctx.lineWidth=2.5; ctx.strokeStyle='#fff'; ctx.stroke();
+  ctx.lineWidth=1; ctx.strokeStyle=indigo;
+  ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(mx,padT); ctx.lineTo(mx,padT+plotH); ctx.moveTo(padL,my); ctx.lineTo(padL+plotW,my); ctx.stroke(); ctx.setLineDash([]);
+
+  updateReadout();
+}
+
+function updateReadout(){
+  var ph = classify(S(), marker.T, marker.P);
+  document.getElementById('kT').textContent = marker.T.toFixed(1);
+  document.getElementById('kP').textContent = (marker.P>=1? marker.P.toFixed(marker.P<10?2:0) : marker.P.toPrecision(2));
+  document.getElementById('kPhase').textContent = ph;
+}
+
+/* =====================================================================
+   LEGEND + fact
+   ===================================================================== */
+function renderLegend(){
+  var L=document.getElementById('legend');
+  L.innerHTML='';
+  [['solid','Solid'],['liquid','Liquid'],['gas','Gas'],['supercritical','Supercritical']].forEach(function(p){
+    var sp=document.createElement('span');
+    sp.innerHTML='<span class="sw" style="background:'+(PHASE_COL[p[0]]||'#888')+'"></span><b>'+p[1]+'</b>';
+    L.appendChild(sp);
+  });
+  document.getElementById('factNote').innerHTML = S().fact;
+}
+
+/* =====================================================================
+   INTERACTION — drag the marker (pointer), and 1-atm trace button
+   ===================================================================== */
+function clampMarker(){
+  var s=S();
+  marker.T = Math.max(s.Tmin, Math.min(s.Tmax, marker.T));
+  marker.P = Math.max(s.Pmin, Math.min(s.Pmax, marker.P));
+}
+function pointerToData(ev){
+  var r=cv.getBoundingClientRect();
+  var sx=W/r.width, sy=Hh/r.height;
+  var px=(ev.clientX-r.left)*sx, py=(ev.clientY-r.top)*sy;
+  px=Math.max(padL,Math.min(padL+plotW,px)); py=Math.max(padT,Math.min(padT+plotH,py));
+  marker.T=pixToT(px); marker.P=pixToP(py); clampMarker(); draw();
+}
+var dragging=false;
+cv.addEventListener('pointerdown', function(ev){ dragging=true; cv.setPointerCapture(ev.pointerId); pointerToData(ev); });
+cv.addEventListener('pointermove', function(ev){ if(dragging) pointerToData(ev); });
+cv.addEventListener('pointerup',   function(ev){ dragging=false; });
+cv.addEventListener('pointercancel', function(){ dragging=false; });
+
+// "Trace 1 atm path" — animate the marker along the 1 atm isobar (left→right)
+var isobarTimer=null;
+document.getElementById('isobarBtn').addEventListener('click', function(){
+  var s=S();
+  if (isobarTimer){ clearInterval(isobarTimer); isobarTimer=null; }
+  marker.P=1.0; marker.T=s.Tmin;
+  var steps=80, i=0;
+  isobarTimer=setInterval(function(){
+    i++; marker.T = s.Tmin + (s.Tmax-s.Tmin)*i/steps; clampMarker(); draw();
+    if (i>=steps){ clearInterval(isobarTimer); isobarTimer=null; }
+  }, 24);
+});
+
+/* =====================================================================
+   SUBSTANCE SWITCH + THEME RE-SKIN
+   ===================================================================== */
+function setSubstance(sub){
+  cur=sub;
+  Array.prototype.forEach.call(document.getElementById('subSeg').children, function(b){ b.classList.toggle('on', b.dataset.sub===sub); });
+  var s=S();
+  // place the marker somewhere sensible (1 atm, mid-range T)
+  marker.P=1.0; marker.T=(s.Tmin+s.Tmax)/2; clampMarker();
+  rasterRegions(); renderLegend(); draw();
+}
+Array.prototype.forEach.call(document.getElementById('subSeg').children, function(b){
+  b.addEventListener('click', function(){ setSubstance(b.dataset.sub); });
+});
+
+window.__onVizTheme = function(){ rasterRegions(); renderLegend(); draw(); };
+
+/* ---- boot ---- */
+setSubstance('water');
+</script>
+</body>
+</html>

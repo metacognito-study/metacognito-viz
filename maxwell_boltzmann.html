@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maxwell–Boltzmann speed distribution</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 330px; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 220px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+  select { appearance: none; font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; }
+
+  .check { display:inline-flex; align-items:center; gap:7px; font-size:.78rem; color:var(--ink); cursor:pointer; user-select:none; }
+  .check input { width:18px; height:18px; accent-color:var(--indigo); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:620px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .62rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.0rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .58rem; color: var(--muted); font-weight: 600; }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .dash { display:inline-block; width:16px; height:0; border-top:2px dashed currentColor; vertical-align:middle; margin-right:5px; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Maxwell–Boltzmann speed distribution</h1>
+  <p class="viz-sub">The fraction of gas molecules at each speed. Heat the gas and the peak <b>moves right and flattens</b> — but the total area always stays exactly 1 (every molecule has some speed). <span class="pill">R = 8.314 J·mol⁻¹·K⁻¹</span></p>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="control">
+        <label for="sT">Temperature T = <b id="lT">300</b> K</label>
+        <input type="range" id="sT" min="100" max="1000" step="5" value="300">
+      </div>
+      <div class="control" style="flex:0 0 auto;min-width:150px">
+        <label for="gas">Gas (molar mass)</label>
+        <select id="gas"></select>
+      </div>
+      <label class="check"><input type="checkbox" id="cmp"> Compare 300 / 600 / 1000 K</label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow">
+      <span style="color:var(--indigo)"><span class="dash"></span><b>v<sub>p</sub> most probable</b> = √(2RT/M)</span>
+      <span style="color:var(--correct)"><span class="dash"></span><b>v<sub>avg</sub> average</b> = √(8RT/πM)</span>
+      <span style="color:var(--rose)"><span class="dash"></span><b>v<sub>rms</sub> root-mean-square</b> = √(3RT/M)</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis" id="kpiBox"></div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   MAXWELL–BOLTZMANN ENGINE (SPEC §6/#4).
+     f(v) = 4π (M/2πRT)^(3/2) · v² · exp(−M v² / 2RT)     [normalised: ∫=1]
+   M in kg/mol, R = 8.314 J/mol·K. Characteristic speeds:
+     v_p   = √(2RT/M)   (peak)        v_avg = √(8RT/πM)
+     v_rms = √(3RT/M)                 (v_p < v_avg < v_rms always)
+   The plot x-range adapts per gas to ~3·v_p(1000 K) so the FULL curve is
+   always shown (light gases like H₂/He would be clipped by a fixed 2500 m/s),
+   keeping ∫f dv ≈ 1 within view. The axis is fixed per gas, so sliding T
+   visibly shifts the peak right + flattens it (constant area).
+   ===================================================================== */
+var R = 8.314;
+var GASES = [
+  { sym:'H₂',  M:0.002 }, { sym:'He', M:0.004 }, { sym:'Ne', M:0.020 },
+  { sym:'N₂',  M:0.028 }, { sym:'O₂', M:0.032 }, { sym:'Ar', M:0.040 }, { sym:'CO₂', M:0.044 }
+];
+function f(v, M, T){ var a = M/(2*Math.PI*R*T); return 4*Math.PI*Math.pow(a,1.5)*v*v*Math.exp(-M*v*v/(2*R*T)); }
+function vP(M,T){ return Math.sqrt(2*R*T/M); }
+function vAvg(M,T){ return Math.sqrt(8*R*T/(Math.PI*M)); }
+function vRms(M,T){ return Math.sqrt(3*R*T/M); }
+// numeric ∫ f dv over [0,vmax] (trapezoid) — used for the area readout
+function integral(M,T,vmax,n){ n=n||2000; var h=vmax/n, s=0; for(var i=0;i<=n;i++){ var v=i*h, w=(i===0||i===n)?0.5:1; s+=w*f(v,M,T); } return s*h; }
+
+var state = { T:300, gasIdx:4 /*O₂*/, cmp:false };
+function gas(){ return GASES[state.gasIdx]; }
+// per-gas fixed x window so the curve always fully fits (3·v_p at the hottest T)
+function xMax(){ var vp1000 = vP(gas().M, 1000); return Math.ceil(3.0*vp1000/250)*250; }
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]; } var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];} return [128,128,128]; }
+function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+
+/* =====================================================================
+   CHART (area-filled MB curve + optional comparison temps + speed markers)
+   ===================================================================== */
+var markerPlugin = {
+  id:'speeds',
+  afterDatasetsDraw:function(c){
+    var m=c.__speeds; if(!m) return;
+    var ctx=c.ctx, xA=c.scales.x, yA=c.scales.y;
+    function vline(v,color,label){
+      if(v>xA.max) return;
+      var x=xA.getPixelForValue(v);
+      ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle=color; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(x,yA.top); ctx.lineTo(x,yA.bottom); ctx.stroke(); ctx.restore();
+      ctx.fillStyle=color; ctx.font='700 9px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(label, x, yA.top+10);
+    }
+    vline(m.vp,  tok('--indigo'),  'v_p');
+    vline(m.vavg,tok('--correct'), 'v_avg');
+    vline(m.vrms,tok('--rose'),    'v_rms');
+  }
+};
+
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'main', data:[], borderWidth:3, pointRadius:0, tension:.2, parsing:false, fill:true },
+    { label:'c1', data:[], borderWidth:1.5, pointRadius:0, tension:.2, parsing:false, fill:false, hidden:true },
+    { label:'c2', data:[], borderWidth:1.5, pointRadius:0, tension:.2, parsing:false, fill:false, hidden:true },
+    { label:'c3', data:[], borderWidth:1.5, pointRadius:0, tension:.2, parsing:false, fill:false, hidden:true }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return c.parsed.x.toFixed(0)+' m/s'; } } } },
+    scales:{ x:{ type:'linear', min:0, title:{display:true,text:'molecular speed v  (m/s)'} },
+             y:{ min:0, title:{display:true,text:'fraction of molecules  f(v)'}, ticks:{display:false} } }
+  },
+  plugins:[markerPlugin]
+});
+
+function buildCurve(T){ var pts=[], xm=xMax(), N=240, M=gas().M; for(var i=0;i<=N;i++){ var v=xm*i/N; pts.push({x:v, y:f(v,M,T)}); } return pts; }
+
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line'), indigo=tok('--indigo'), amber=tok('--amber'), flag=tok('--flag'), correct=tok('--correct');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  var ds=chart.data.datasets;
+  ds[0].borderColor=indigo; ds[0].backgroundColor=rgba('--indigo',0.18);
+  // comparison curves cycle correct→amber→flag
+  ds[1].borderColor=correct; ds[2].borderColor=amber; ds[3].borderColor=flag;
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks=Object.assign({color:muted}, ax==='y'?{display:false}:{}); chart.options.scales[ax].title.color=muted; });
+  chart.update();
+}
+
+function refresh(){
+  document.getElementById('lT').textContent = state.T;
+  var M=gas().M, T=state.T, xm=xMax();
+  chart.options.scales.x.max = xm;
+  chart.data.datasets[0].data = buildCurve(T);
+
+  // comparison temps
+  var cmpTs=[300,600,1000];
+  for(var i=0;i<3;i++){ var d=chart.data.datasets[i+1]; if(state.cmp){ d.hidden=false; d.data=buildCurve(cmpTs[i]); } else { d.hidden=true; d.data=[]; } }
+  // when comparing, fade the main fill so the 3 lines read clearly
+  chart.data.datasets[0].fill = !state.cmp;
+
+  chart.__speeds = { vp:vP(M,T), vavg:vAvg(M,T), vrms:vRms(M,T) };
+  reskinChart();
+
+  var area = integral(M,T,xm);
+  document.getElementById('kpiBox').innerHTML =
+    '<div class="kpi"><div class="lab">v_p most probable</div><div class="num">'+vP(M,T).toFixed(0)+' <small>m/s</small></div></div>'+
+    '<div class="kpi"><div class="lab">v_avg average</div><div class="num">'+vAvg(M,T).toFixed(0)+' <small>m/s</small></div></div>'+
+    '<div class="kpi"><div class="lab">v_rms</div><div class="num">'+vRms(M,T).toFixed(0)+' <small>m/s</small></div></div>'+
+    '<div class="kpi"><div class="lab">∫ f(v) dv (area)</div><div class="num">'+area.toFixed(3)+'</div></div>';
+
+  document.getElementById('explain').innerHTML =
+    'For '+gas().sym+' (M = '+(M*1000).toFixed(0)+' g/mol) at '+T+' K: the curve is skewed right (a long high-speed tail). '+
+    'Raising T shifts the peak to higher speed AND lowers it, because the area under the curve is conserved at exactly 1. '+
+    'Lighter gases (smaller M) sit further right — they move faster at the same temperature. '+
+    'Always v<sub>p</sub> &lt; v<sub>avg</sub> &lt; v<sub>rms</sub>.';
+}
+window.__onVizTheme = function(){ refresh(); };
+
+/* =====================================================================
+   UI build + events
+   ===================================================================== */
+var gasSel=document.getElementById('gas');
+GASES.forEach(function(g,i){ var o=document.createElement('option'); o.value=i; o.textContent=g.sym+'  ('+(g.M*1000).toFixed(0)+' g/mol)'; gasSel.appendChild(o); });
+gasSel.value = state.gasIdx;
+gasSel.addEventListener('change', function(){ state.gasIdx=+this.value; refresh(); });
+document.getElementById('sT').addEventListener('input', function(){ state.T=+this.value; refresh(); });
+document.getElementById('cmp').addEventListener('change', function(){ state.cmp=this.checked; refresh(); });
+
+/* ---- boot (optional ?gas=O2 &T=300) ---- */
+(function(){
+  var q=new URLSearchParams(location.search);
+  var g=q.get('gas'); if(g){ var clean=g.replace(/[0-9₀-₉]/g,'').toUpperCase(); for(var i=0;i<GASES.length;i++){ if(GASES[i].sym.replace(/[0-9₀-₉]/g,'').toUpperCase()===clean){ state.gasIdx=i; gasSel.value=i; break; } } }
+  var T=q.get('T'); if(T && +T>=100 && +T<=1000){ state.T=Math.round(+T/5)*5; document.getElementById('sT').value=state.T; }
+})();
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atomic Emission — Bohr energy levels (H)</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1));
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px){ .grid2 { grid-template-columns: 1fr; } }
+
+  /* ladder + spectrum SVGs scale to container */
+  .ladder-wrap { position: relative; width: 100%; }
+  svg { width: 100%; height: auto; display: block; }
+
+  /* KPI readout cards */
+  .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px 10px; text-align: left;
+  }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.05rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    border: none; background: var(--surface-2); color: var(--ink);
+    font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer;
+    border-right: 1px solid var(--line);
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .ca-play-btn {
+    border: none; cursor: pointer; color: #fff;
+    background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a);
+    border-radius: 999px; padding: 10px 18px; min-height: 44px;
+    font: inherit; font-weight: 700;
+    box-shadow: 0 2px 7px rgba(33,48,86,.22);
+    transition: transform .1s ease, filter .15s ease;
+  }
+  .ca-play-btn:active { transform: scale(.93); }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+  .colorChip { display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:middle; border:1px solid var(--line); margin-right:5px; }
+  .secLabel { font-size:.72rem; color:var(--muted); font-weight:600; margin-bottom:6px; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Atomic Emission — Bohr model of hydrogen</h1>
+  <p class="viz-sub">An excited electron falls from <b>n<sub>i</sub></b> to a lower <b>n<sub>f</sub></b>; the lost energy leaves as one photon.
+    <span class="pill">E<sub>n</sub> = −2.18×10⁻¹⁸ J / n²</span> <span class="pill">λ = hc / |ΔE|</span></p>
+
+  <!-- (1) Series presets + level selectors -->
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px">
+      <span class="secLabel" style="margin:0">Emission series (where the electron lands, n<sub>f</sub>)</span>
+      <span style="flex:1"></span>
+      <div class="seg" id="seriesSeg" role="group" aria-label="emission series">
+        <button data-nf="1" type="button">Lyman (n<sub>f</sub>=1, UV)</button>
+        <button data-nf="2" class="on" type="button">Balmer (n<sub>f</sub>=2, visible)</button>
+        <button data-nf="3" type="button">Paschen (n<sub>f</sub>=3, IR)</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="ni">Initial level n<sub>i</sub> = <b id="niVal">3</b> (excited)</label>
+        <input type="range" id="ni" min="2" max="7" step="1" value="3">
+      </div>
+      <div class="control">
+        <label for="nf">Final level n<sub>f</sub> = <b id="nfVal">2</b> (lands here)</label>
+        <input type="range" id="nf" min="1" max="6" step="1" value="2">
+      </div>
+      <button class="ca-play-btn" id="balmerBtn" type="button" title="Jump to the classic red Balmer line">Hα (3→2)</button>
+    </div>
+    <div class="legend-note" id="warnNote"></div>
+  </div>
+
+  <div class="grid2">
+    <!-- (2) Energy-level ladder -->
+    <div class="panel">
+      <div class="secLabel">Energy-level ladder (levels converge toward 0 J as n→∞)</div>
+      <div class="ladder-wrap"><svg id="ladder" viewBox="0 0 320 360" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Bohr energy level ladder"></svg></div>
+    </div>
+
+    <!-- (3) Photon readout + visible spectrum -->
+    <div class="panel">
+      <div class="secLabel">The emitted photon</div>
+      <div class="kpis">
+        <div class="kpi"><div class="lab">Transition</div><div class="num" id="kTrans">3 → 2</div></div>
+        <div class="kpi"><div class="lab">Photon energy |ΔE|</div><div class="num"><span id="kE">—</span> <small>×10⁻¹⁹ J</small></div></div>
+        <div class="kpi"><div class="lab">Wavelength λ</div><div class="num"><span id="kLam">—</span> <small>nm</small></div></div>
+        <div class="kpi"><div class="lab">Frequency ν</div><div class="num"><span id="kFreq">—</span> <small>×10¹⁴ Hz</small></div></div>
+        <div class="kpi"><div class="lab">Region</div><div class="num"><span id="kRegion">—</span></div></div>
+        <div class="kpi"><div class="lab">Visible colour</div><div class="num"><span class="colorChip" id="kChip"></span><span id="kColor">—</span></div></div>
+      </div>
+      <div class="secLabel" style="margin-top:12px">Visible line spectrum (380–750 nm)</div>
+      <div class="ladder-wrap"><svg id="spectrum" viewBox="0 0 320 90" preserveAspectRatio="none" role="img" aria-label="visible line spectrum"></svg></div>
+      <div class="legend-note" id="specNote"></div>
+    </div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ?theme=&font=&scale=  +  postMessage({theme,font,scale}) → data-* on <html>.
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){
+    var t = (st.theme === null || st.theme === 'default') ? '' : String(st.theme);
+    if (THEMES.indexOf(t) < 0) t = '';
+    root.setAttribute('data-theme', t);
+  }
+  if (st.font !== undefined){
+    var f = String(st.font || 'lexend');
+    if (FONTS.indexOf(f) < 0) f = 'lexend';
+    root.setAttribute('data-font', f);
+  }
+  if (st.scale !== undefined){
+    root.style.setProperty('--viz-scale', String(clampScale(st.scale)));
+  }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){
+  var q = new URLSearchParams(location.search);
+  applyState({ theme: q.get('theme'), font: q.get('font') || 'lexend', scale: q.get('scale') || 1 });
+})();
+window.addEventListener('message', function(e){
+  var d = e && e.data;
+  if (!d || typeof d !== 'object') return;
+  if (!('theme' in d) && !('font' in d) && !('scale' in d)) return;
+  applyState(d);
+});
+
+/* =====================================================================
+   PHYSICS — Bohr model of hydrogen (AP-correct constants & conventions).
+   ---------------------------------------------------------------------
+     E_n   = -2.18e-18 J / n²              (ground state E1 = -2.18e-18 J)
+     ΔE    = E_f - E_i  (emission: n_i > n_f ⇒ ΔE < 0, energy released)
+     E_ph  = |ΔE| = 2.18e-18 (1/n_f² - 1/n_i²)   J   (positive)
+     λ     = h c / E_ph                    (h=6.62607e-34, c=2.99792e8)
+     ν     = c / λ = E_ph / h
+   Visible band 380–750 nm. Balmer (n_f=2) lands the famous Hα..Hδ lines
+   in the visible; Lyman (n_f=1) is UV, Paschen (n_f=3) is IR.
+   ===================================================================== */
+var E1 = -2.18e-18;            // J, ground state
+var H  = 6.62607e-34;          // J·s
+var C  = 2.99792e8;            // m/s
+function En(n){ return E1 / (n*n); }                 // J (negative)
+function photonE(ni, nf){ return Math.abs(En(nf) - En(ni)); }  // J, positive (emission ni>nf)
+function lambdaNm(ni, nf){ return (H * C / photonE(ni, nf)) * 1e9; }  // nm
+function freqHz(ni, nf){ return photonE(ni, nf) / H; }               // Hz
+
+var NMAX = 7;                  // highest n we draw on the ladder
+var VIS_LO = 380, VIS_HI = 750;
+
+// region of the EM spectrum from wavelength (nm)
+function regionOf(lam){
+  if (lam < VIS_LO) return 'Ultraviolet';
+  if (lam > VIS_HI) return 'Infrared';
+  return 'Visible';
+}
+
+/* Approximate visible-wavelength → sRGB (Bruton/Dan Bruton algorithm, common
+   teaching approximation). Returns an rgb() string. Outside 380–750 nm there is
+   no visible colour, so callers fall back to a muted token. This is PHYSICAL
+   colour (a data property of the photon), independent of the app theme. */
+function wavelengthToRGB(lam){
+  var r=0,g=0,b=0;
+  if (lam>=380 && lam<440){ r=-(lam-440)/(440-380); g=0; b=1; }
+  else if (lam>=440 && lam<490){ r=0; g=(lam-440)/(490-440); b=1; }
+  else if (lam>=490 && lam<510){ r=0; g=1; b=-(lam-510)/(510-490); }
+  else if (lam>=510 && lam<580){ r=(lam-510)/(580-510); g=1; b=0; }
+  else if (lam>=580 && lam<645){ r=1; g=-(lam-645)/(645-580); b=0; }
+  else if (lam>=645 && lam<=750){ r=1; g=0; b=0; }
+  // intensity fall-off near the ends of the visible band
+  var f=1;
+  if (lam>=380 && lam<420) f = 0.3 + 0.7*(lam-380)/(420-380);
+  else if (lam>=645 && lam<=750) f = 0.3 + 0.7*(750-lam)/(750-645);
+  var gamma=0.8;
+  function ch(v){ return Math.round(255 * Math.pow(Math.max(0,v)*f, gamma)); }
+  return 'rgb('+ch(r)+','+ch(g)+','+ch(b)+')';
+}
+
+// human colour name for the visible band (teaching label)
+function colorName(lam){
+  if (lam < VIS_LO) return 'none (UV)';
+  if (lam > VIS_HI) return 'none (IR)';
+  if (lam < 450) return 'violet';
+  if (lam < 485) return 'blue';
+  if (lam < 500) return 'cyan';
+  if (lam < 565) return 'green';
+  if (lam < 590) return 'yellow';
+  if (lam < 625) return 'orange';
+  return 'red';
+}
+
+/* =====================================================================
+   STATE + ELEMENTS
+   ===================================================================== */
+var state = { ni: 3, nf: 2 };
+var niEl = document.getElementById('ni'), niVal = document.getElementById('niVal');
+var nfEl = document.getElementById('nf'), nfVal = document.getElementById('nfVal');
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+var SVGNS = 'http://www.w3.org/2000/svg';
+function svg(tag, attrs){ var e=document.createElementNS(SVGNS, tag); for(var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+// Balmer visible reference lines (n_f = 2), for the spectrum strip
+var BALMER = [ {ni:3, name:'Hα'}, {ni:4, name:'Hβ'}, {ni:5, name:'Hγ'}, {ni:6, name:'Hδ'} ];
+
+/* =====================================================================
+   RENDER: energy-level ladder (SVG, fully token-coloured)
+   ===================================================================== */
+function drawLadder(){
+  var s = document.getElementById('ladder');
+  s.innerHTML = '';
+  var W=320, Hh=360, padL=44, padR=14, padT=18, padB=18;
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  var indigo=tok('--indigo'), surface2=tok('--surface-2');
+
+  // y maps energy: E1 (most negative) at the bottom, 0 J at the top.
+  // levels naturally crowd near the top → shows convergence (E_n ∝ -1/n²).
+  function yOf(E){ return padT + (E/E1) * (Hh - padT - padB); }  // E=E1→bottom, E=0→top
+
+  // 0 J reference (ionisation limit)
+  var y0 = yOf(0);
+  s.appendChild(svg('line', {x1:padL, y1:y0, x2:W-padR, y2:y0, stroke:muted, 'stroke-width':1, 'stroke-dasharray':'3 3'}));
+  var t0 = svg('text', {x:W-padR, y:y0-4, fill:muted, 'font-size':9, 'text-anchor':'end'}); t0.textContent='0 J  (n=∞, ionised)'; s.appendChild(t0);
+
+  // each level line + label. Lines sit at TRUE energy (so the convergence to 0
+  // is honest); labels are drawn only where there is vertical room, plus always
+  // for the two active levels — so the crowded upper levels don't overprint.
+  var lastLabelY = -1e9;   // iterate top→bottom (n high→low; y increasing)
+  for (var n=NMAX; n>=1; n--){
+    var y = yOf(En(n));
+    var onPath = (n===state.ni || n===state.nf);
+    s.appendChild(svg('line', {x1:padL, y1:y, x2:W-padR, y2:y, stroke: onPath?indigo:line, 'stroke-width': onPath?2.4:1.4}));
+    var room = (y - lastLabelY) >= 11;
+    if (room || onPath){
+      lastLabelY = y;
+      var lab = svg('text', {x:padL-6, y:y+3, fill: onPath?ink:muted, 'font-size':9, 'text-anchor':'end'});
+      lab.textContent = 'n='+n; s.appendChild(lab);
+      var ev = (En(n)/1.602e-19).toFixed(2);
+      var et = svg('text', {x:W-padR, y:y-3, fill:muted, 'font-size':8, 'text-anchor':'end'}); et.textContent = ev+' eV'; s.appendChild(et);
+    }
+  }
+
+  // the transition arrow (emission: from n_i DOWN to n_f), coloured by the photon
+  var lam = lambdaNm(state.ni, state.nf);
+  var arrowColor = (regionOf(lam)==='Visible') ? wavelengthToRGB(lam) : muted;
+  var yi = yOf(En(state.ni)), yf = yOf(En(state.nf));
+  var ax = padL + (W-padR-padL)*0.5;
+  // arrow shaft
+  s.appendChild(svg('line', {x1:ax, y1:yi, x2:ax, y2:yf, stroke:arrowColor, 'stroke-width':3}));
+  // arrowhead at n_f (pointing down)
+  var head = svg('path', {d:'M '+(ax-5)+' '+(yf-8)+' L '+ax+' '+yf+' L '+(ax+5)+' '+(yf-8)+' Z', fill:arrowColor});
+  s.appendChild(head);
+  // start dot at n_i
+  s.appendChild(svg('circle', {cx:ax, cy:yi, r:3.5, fill:arrowColor}));
+  // photon label beside the arrow
+  var pe = (photonE(state.ni, state.nf)*1e19).toFixed(2);
+  var plt = svg('text', {x:ax+9, y:(yi+yf)/2, fill:ink, 'font-size':9}); plt.textContent='photon '+pe+'×10⁻¹⁹ J'; s.appendChild(plt);
+}
+
+/* =====================================================================
+   RENDER: visible line-spectrum strip (380–750 nm), token chrome.
+   Black/neutral background band with coloured emission lines at their λ.
+   ===================================================================== */
+function drawSpectrum(){
+  var s = document.getElementById('spectrum');
+  s.innerHTML = '';
+  var W=320, Hh=90, padL=6, padR=6, padB=16, top=4;
+  var muted=tok('--muted'), line=tok('--line'), ink=tok('--ink');
+  var bandH = Hh - padB - top;
+
+  function xOf(lam){ return padL + (lam - VIS_LO)/(VIS_HI - VIS_LO) * (W - padL - padR); }
+
+  // neutral dark band so emission lines read like a real spectrum in every theme
+  s.appendChild(svg('rect', {x:padL, y:top, width:W-padL-padR, height:bandH, fill:'#0b0d14', rx:4, stroke:line, 'stroke-width':1}));
+
+  // wavelength axis ticks
+  [400,500,600,700].forEach(function(lam){
+    var x=xOf(lam);
+    s.appendChild(svg('line', {x1:x, y1:top+bandH, x2:x, y2:top+bandH+3, stroke:muted, 'stroke-width':1}));
+    var tx=svg('text', {x:x, y:Hh-3, fill:muted, 'font-size':8, 'text-anchor':'middle'}); tx.textContent=lam; s.appendChild(tx);
+  });
+  var ux=svg('text', {x:W-padR, y:Hh-3, fill:muted, 'font-size':8, 'text-anchor':'end'}); ux.textContent='nm'; s.appendChild(ux);
+
+  // all four Balmer reference lines (always shown, faint), current one bright
+  BALMER.forEach(function(b){
+    var lam = lambdaNm(b.ni, 2);
+    if (lam < VIS_LO || lam > VIS_HI) return;
+    var x = xOf(lam);
+    var col = wavelengthToRGB(lam);
+    var isCur = (state.nf===2 && state.ni===b.ni);
+    s.appendChild(svg('line', {x1:x, y1:top, x2:x, y2:top+bandH, stroke:col, 'stroke-width': isCur?3:1.4, opacity: isCur?1:0.55}));
+    var nm=svg('text', {x:x, y:top+9, fill:'#fff', 'font-size':7, 'text-anchor':'middle', opacity:isCur?1:0.6}); nm.textContent=b.name; s.appendChild(nm);
+  });
+
+  // if the CURRENT transition is visible but NOT a Balmer (e.g. nf≠2 yet in band), draw it too
+  var clam = lambdaNm(state.ni, state.nf);
+  if (clam >= VIS_LO && clam <= VIS_HI && state.nf !== 2){
+    var cx = xOf(clam);
+    s.appendChild(svg('line', {x1:cx, y1:top, x2:cx, y2:top+bandH, stroke:wavelengthToRGB(clam), 'stroke-width':3}));
+  }
+
+  // out-of-band note
+  var note = document.getElementById('specNote');
+  if (clam < VIS_LO) note.textContent = 'This transition is ultraviolet (λ='+clam.toFixed(0)+' nm < 380 nm) — no visible colour. Lyman series lands in the UV.';
+  else if (clam > VIS_HI) note.textContent = 'This transition is infrared (λ='+clam.toFixed(0)+' nm > 750 nm) — no visible colour. Paschen series lands in the IR.';
+  else note.textContent = 'Bright line = the current transition. Faint lines = the other Balmer (n→2) visible lines.';
+}
+
+/* =====================================================================
+   RENDER: KPI readout
+   ===================================================================== */
+function renderReadout(){
+  var lam = lambdaNm(state.ni, state.nf);
+  var pe  = photonE(state.ni, state.nf);
+  var nu  = freqHz(state.ni, state.nf);
+  var reg = regionOf(lam);
+  document.getElementById('kTrans').textContent = state.ni + ' → ' + state.nf;
+  document.getElementById('kE').textContent = (pe*1e19).toFixed(3);
+  document.getElementById('kLam').textContent = lam.toFixed(1);
+  document.getElementById('kFreq').textContent = (nu/1e14).toFixed(3);
+  document.getElementById('kRegion').textContent = reg;
+  var chip = document.getElementById('kChip');
+  if (reg === 'Visible'){ chip.style.background = wavelengthToRGB(lam); document.getElementById('kColor').textContent = colorName(lam); }
+  else { chip.style.background = tok('--muted'); document.getElementById('kColor').textContent = colorName(lam); }
+}
+
+/* =====================================================================
+   FULL REFRESH + guards (n_i must be > n_f for emission)
+   ===================================================================== */
+function refresh(){
+  // guard: emission requires n_i > n_f. Keep sliders consistent.
+  if (state.ni <= state.nf){ state.ni = state.nf + 1; }
+  if (state.ni > NMAX) state.ni = NMAX;
+  niEl.value = state.ni; nfEl.value = state.nf;
+  niVal.textContent = state.ni; nfVal.textContent = state.nf;
+
+  var warn = document.getElementById('warnNote');
+  warn.innerHTML = 'Emission needs the electron to <b>fall</b>: n<sub>i</sub> &gt; n<sub>f</sub>. '
+    + 'Bigger drops (larger n<sub>i</sub>−n<sub>f</sub>, or smaller n<sub>f</sub>) release more energy → shorter λ, bluer/UV.';
+
+  // reflect active series button
+  Array.prototype.forEach.call(document.getElementById('seriesSeg').children, function(b){
+    b.classList.toggle('on', (+b.dataset.nf) === state.nf);
+  });
+
+  drawLadder();
+  drawSpectrum();
+  renderReadout();
+}
+
+window.__onVizTheme = refresh;   // SVGs read tokens fresh on every theme change
+
+/* =====================================================================
+   EVENTS — input-driven redraw (no animation)
+   ===================================================================== */
+niEl.addEventListener('input', function(){ state.ni = +niEl.value; refresh(); });
+nfEl.addEventListener('input', function(){ state.nf = +nfEl.value; refresh(); });
+Array.prototype.forEach.call(document.getElementById('seriesSeg').children, function(b){
+  b.addEventListener('click', function(){
+    state.nf = +b.dataset.nf;
+    if (state.ni <= state.nf) state.ni = state.nf + 1;
+    refresh();
+  });
+});
+document.getElementById('balmerBtn').addEventListener('click', function(){ state.nf=2; state.ni=3; refresh(); });
+
+/* ---- boot ---- */
+refresh();
+</script>
+</body>
+</html>

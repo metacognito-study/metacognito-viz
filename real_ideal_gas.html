@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Real vs Ideal Gas — compressibility factor Z</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 340px; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 220px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  /* gas multi-select = a row of token-coloured toggle chips (overlay any subset) */
+  .gas-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .gchip {
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+    font: inherit; font-weight: 600; font-size: .82rem; cursor: pointer;
+    border-radius: 999px; padding: 7px 13px; min-height: 40px;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: filter .12s ease, transform .1s ease;
+  }
+  .gchip:active { transform: scale(.95); }
+  .gchip .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--gc, var(--muted)); flex: 0 0 auto; }
+  .gchip.on { border-color: var(--gc, var(--indigo)); background: color-mix(in srgb, var(--gc, var(--indigo)) 18%, var(--surface)); }
+  .gchip.on .dot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gc, var(--indigo)) 30%, transparent); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:620px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .62rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.0rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .58rem; color: var(--muted); font-weight: 600; }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:12px; margin-top:10px; font-size:.72rem; color:var(--muted); align-items:center; }
+  .legendrow b { color:var(--ink); }
+  .dash { display:inline-block; width:16px; height:0; border-top:2px dashed currentColor; vertical-align:middle; margin-right:5px; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .legend-note b { color: var(--ink); }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+  .check { display:inline-flex; align-items:center; gap:7px; font-size:.78rem; color:var(--ink); cursor:pointer; user-select:none; }
+  .check input { width:18px; height:18px; accent-color:var(--indigo); }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Real vs Ideal Gas — the compressibility factor Z = PV / nRT</h1>
+  <p class="viz-sub">For an <b>ideal</b> gas Z = 1 at every pressure (flat line). <b>Real</b> gases deviate: at low P, attractions pull molecules together → Z dips <b>below</b> 1; at high P, the finite size of the molecules dominates → Z rises <b>above</b> 1. Curves come from the van der Waals equation. <span class="pill">R = 0.08206 L·atm·mol⁻¹·K⁻¹</span></p>
+
+  <!-- (1) Controls: gas multi-select + temperature -->
+  <div class="panel">
+    <div class="control" style="flex:1 1 100%; min-width:0;">
+      <label>Gases <span style="font-weight:400">(tap to overlay any subset)</span></label>
+      <div class="gas-pick" id="gasPick" role="group" aria-label="gases to overlay"></div>
+    </div>
+    <div class="controls" style="margin-top:14px;">
+      <div class="control">
+        <label for="sT">Temperature T = <b id="lT">350</b> K <span id="tNote" style="font-weight:400"></span></label>
+        <input type="range" id="sT" min="320" max="700" step="5" value="350">
+      </div>
+      <label class="check" style="flex:0 0 auto;align-self:center;"><input type="checkbox" id="logx"> Log pressure axis</label>
+    </div>
+  </div>
+
+  <!-- (2) Z vs P chart -->
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow">
+      <span><span class="dash" style="color:var(--muted)"></span><b>Z = 1</b> ideal-gas reference</span>
+      <span>below 1 = attractions win &nbsp;·&nbsp; above 1 = molecular volume wins</span>
+    </div>
+  </div>
+
+  <!-- (3) Per-gas readout at the current T (Z at a low + a high pressure) -->
+  <div class="panel">
+    <div class="kpis" id="kpiBox"></div>
+    <div class="legend-note" id="explain"></div>
+    <div class="legend-note" id="selfcheck" style="margin-top:8px;"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ?theme=&font=&scale=  +  postMessage({theme,font,scale}) → data-* on <html>.
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   REAL-GAS ENGINE — van der Waals, 1 mol.
+   ---------------------------------------------------------------------
+   vdW (n = 1):  (P + a/V²)(V − b) = R·T
+   For each pressure P we solve this CUBIC-in-V for the gas-phase root V,
+   then the compressibility factor is  Z = P·V / (R·T).
+     • a (L²·atm·mol⁻²) measures intermolecular ATTRACTION (bigger a, deeper dip).
+     • b (L·mol⁻¹)      is the excluded molecular VOLUME (bigger b, steeper rise).
+   Newton's method from the ideal-gas guess V₀ = RT/P converges in a few steps;
+   we guard V > b (V can never be smaller than the molecules' own volume).
+   Limits the curve must show:
+     P → 0   ⇒ Z → 1   (gas becomes ideal as it thins out)
+     low P   ⇒ Z < 1    (a/V² attraction term dominates)
+     high P  ⇒ Z > 1    (the (V − b) excluded-volume term dominates)
+     lower T ⇒ deeper dip (attractions matter more when molecules move slowly)
+   Published constants (CRC-style): a in L²·atm·mol⁻², b in L·mol⁻¹.
+   Below a gas's vdW critical temperature  T_c = 8a/(27Rb)  the cubic has three
+   roots and the single gas phase condenses, so the Z(P) curve is no longer one
+   smooth branch. To keep every overlaid curve a clean single-phase real-gas
+   curve we hold the temperature slider at/above the highest T_c here (CO₂,
+   T_c ≈ 308 K) — min 320 K. We also WARM-START Newton from the previous (lower)
+   pressure's solution while sweeping P upward, which tracks the gas branch
+   continuously near the critical point.
+   ===================================================================== */
+var R = 0.08206;     // L·atm·mol⁻¹·K⁻¹
+
+// token name → each gas gets one series color from the SPEC §9.4 cycle.
+var GASES = [
+  { sym:'He',  a:0.0346, b:0.02380, tok:'--indigo'  },   // tiny, almost no attraction → stays near ideal, Z≥1
+  { sym:'H₂',  a:0.2476, b:0.02661, tok:'--correct' },   // light, weak attraction → near ideal
+  { sym:'N₂',  a:1.370,  b:0.03870, tok:'--amber'   },   // moderate
+  { sym:'CH₄', a:2.283,  b:0.04278, tok:'--flag'    },   // larger, more polarizable
+  { sym:'CO₂', a:3.640,  b:0.04267, tok:'--rose'    }    // strong attraction → deepest dip
+];
+// which gases are overlaid (default: He, N2, CO2 = spans the whole trend)
+var selected = { He:true, 'H₂':false, 'N₂':true, 'CH₄':false, 'CO₂':true };
+var state = { T:350, logx:false };   // matches the slider default; stays above CO₂'s Tc≈308 K so every isotherm is single-phase (no vdW loop artifact)
+
+// solve vdW for molar volume V at pressure P, temperature T (Newton's method).
+// `guess` warm-starts from a neighbouring pressure to stay on the gas branch;
+// when omitted we start from the ideal-gas volume V₀ = RT/P.
+function solveV(P, T, a, b, guess){
+  var V = (guess && isFinite(guess)) ? guess : R*T/P;
+  if (V <= b) V = b*1.05;
+  for (var i=0; i<200; i++){
+    var f  = (P + a/(V*V))*(V - b) - R*T;
+    var df = (P + a/(V*V)) + (V - b)*(-2*a/(V*V*V));   // d/dV
+    var Vn = V - f/df;
+    if (!isFinite(Vn) || Vn <= b) Vn = (V + b)/2 + 1e-9;   // stay above excluded volume
+    if (Math.abs(Vn - V) < 1e-12){ V = Vn; break; }
+    V = Vn;
+  }
+  return V;
+}
+function Z(P, T, a, b, guess){ var V = solveV(P,T,a,b,guess); return P*V/(R*T); }
+// vdW critical temperature — below this the single gas phase no longer exists.
+function critT(a, b){ return 8*a / (27*R*b); }
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function gasColor(g){ return tok(g.tok); }
+
+/* =====================================================================
+   PRESSURE SWEEP — 0..PMAX atm. Start just above 0 so Z→1 limit is visible.
+   ===================================================================== */
+var PMAX = 600;      // atm
+function pGrid(){
+  var pts = [], N = 200;
+  if (state.logx){
+    var lo = Math.log10(0.5), hi = Math.log10(PMAX);
+    for (var i=0;i<=N;i++) pts.push(Math.pow(10, lo + (hi-lo)*i/N));
+  } else {
+    for (var j=0;j<=N;j++) pts.push(0.5 + (PMAX-0.5)*j/N);
+  }
+  return pts;
+}
+
+/* =====================================================================
+   CHART — one dataset per gas + a dashed Z = 1 ideal reference.
+   ===================================================================== */
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[] },
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false, axis:'x' },
+    plugins:{
+      legend:{ display:true, position:'top', labels:{ usePointStyle:true, boxWidth:8, padding:14 } },
+      tooltip:{ callbacks:{ label:function(c){ return c.dataset.label+': Z='+c.parsed.y.toFixed(3)+' at '+c.parsed.x.toFixed(0)+' atm'; } } }
+    },
+    scales:{
+      x:{ type:'linear', min:0, title:{ display:true, text:'pressure P  (atm)' } },
+      y:{ title:{ display:true, text:'compressibility factor  Z = PV / nRT' } }
+    }
+  }
+});
+
+function buildDatasets(){
+  var ds = [];
+  var ps = pGrid();
+  // Z = 1 ideal reference (dashed, muted) — drawn first so gases sit on top.
+  ds.push({
+    label:'ideal (Z = 1)', borderColor: tok('--muted'), backgroundColor:'transparent',
+    borderWidth:1.5, borderDash:[6,5], pointRadius:0, tension:0, parsing:false, order:99,
+    data: ps.map(function(P){ return { x:P, y:1 }; })
+  });
+  GASES.forEach(function(g){
+    if (!selected[g.sym]) return;
+    ds.push({
+      label:g.sym, borderColor: gasColor(g), backgroundColor: gasColor(g),
+      borderWidth:2.5, pointRadius:0, tension:.15, parsing:false, order:1,
+      data: ps.map(function(P){ return { x:P, y: Z(P, state.T, g.a, g.b) }; })
+    });
+  });
+  return ds;
+}
+
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  // re-color existing series by label (cheap re-skin path used by theme changes)
+  chart.data.datasets.forEach(function(d){
+    if (d.label === 'ideal (Z = 1)'){ d.borderColor = muted; return; }
+    var g = GASES.filter(function(x){ return x.sym===d.label; })[0];
+    if (g){ d.borderColor = gasColor(g); d.backgroundColor = gasColor(g); }
+  });
+  ['x','y'].forEach(function(ax){
+    chart.options.scales[ax].grid={color:line, drawBorder:true, borderColor:line};
+    chart.options.scales[ax].ticks=Object.assign({color:muted}, chart.options.scales[ax].ticks||{});
+    chart.options.scales[ax].title.color=muted;
+  });
+  chart.options.plugins.legend.labels.color = ink;
+  chart.update();
+}
+
+/* =====================================================================
+   FULL REFRESH — rebuild series for current T + selection, render readouts.
+   ===================================================================== */
+function refresh(){
+  document.getElementById('lT').textContent = state.T;
+  document.getElementById('tNote').textContent = state.T <= 220 ? '(cold → deeper dips)' : (state.T >= 550 ? '(hot → nearer ideal)' : '');
+
+  chart.options.scales.x.type = state.logx ? 'logarithmic' : 'linear';
+  chart.options.scales.x.min  = state.logx ? 0.5 : 0;
+  chart.options.scales.x.max  = PMAX;
+  chart.data.datasets = buildDatasets();
+  reskinChart();
+
+  // KPI cards: for each selected gas, Z at a representative low P (10 atm) + high P (400 atm).
+  var Plo = 10, Phi = 400, html = '';
+  GASES.forEach(function(g){
+    if (!selected[g.sym]) return;
+    var zl = Z(Plo, state.T, g.a, g.b), zh = Z(Phi, state.T, g.a, g.b);
+    html += '<div class="kpi" style="border-left:4px solid '+gasColor(g)+'">'+
+              '<div class="lab">'+g.sym+' &nbsp; a='+g.a+', b='+g.b+'</div>'+
+              '<div class="num">Z('+Plo+') = '+zl.toFixed(3)+'</div>'+
+              '<div class="num" style="font-size:.82rem;color:var(--muted)">Z('+Phi+') = '+zh.toFixed(3)+'</div>'+
+            '</div>';
+  });
+  if (!html) html = '<div class="kpi"><div class="lab">No gas selected</div><div class="num">tap a chip above</div></div>';
+  document.getElementById('kpiBox').innerHTML = html;
+
+  document.getElementById('explain').innerHTML =
+    'At T = '+state.T+' K each real-gas curve <b>dips below Z = 1</b> first (intermolecular attractions make the real volume smaller than ideal), then <b>climbs above 1</b> at high pressure (the molecules’ own finite volume can’t be squeezed away, so PV exceeds nRT). '+
+    '<b>CO₂</b> (largest a) dips deepest; <b>He</b> and <b>H₂</b> (tiny a) barely dip and rise almost from the start — they behave most ideally. '+
+    'Lower the temperature and the dips deepen; raise it and every curve hugs Z = 1.';
+
+  // numeric self-check shown to the student (and verifiable on screen)
+  var co2 = GASES.filter(function(x){return x.sym==='CO₂';})[0];
+  var zc_1 = Z(1, 273, co2.a, co2.b), zc_0 = Z(0.05, 273, co2.a, co2.b);
+  document.getElementById('selfcheck').innerHTML =
+    '<b>Self-check (van der Waals, CO₂):</b> '+
+    'Z(P=0.05 atm, 273 K) = '+zc_0.toFixed(4)+' ≈ 1 (ideal limit) &nbsp;·&nbsp; '+
+    'Z(P=1 atm, 273 K) = '+zc_1.toFixed(4)+' (slightly below 1, as expected). '+
+    '<span class="pill">'+ (Math.abs(zc_0-1)<0.005 && zc_1<1 && zc_1>0.98 ? 'limits verified ✓' : 'check') +'</span>';
+}
+window.__onVizTheme = function(){ refresh(); };
+
+/* =====================================================================
+   UI build + events
+   ===================================================================== */
+var pick = document.getElementById('gasPick');
+GASES.forEach(function(g){
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'gchip' + (selected[g.sym] ? ' on' : '');
+  b.dataset.sym = g.sym;
+  b.style.setProperty('--gc', gasColor(g));
+  b.innerHTML = '<span class="dot"></span>'+g.sym;
+  b.setAttribute('aria-pressed', selected[g.sym] ? 'true' : 'false');
+  b.addEventListener('click', function(){
+    selected[g.sym] = !selected[g.sym];
+    b.classList.toggle('on', selected[g.sym]);
+    b.setAttribute('aria-pressed', selected[g.sym] ? 'true' : 'false');
+    refresh();
+  });
+  pick.appendChild(b);
+});
+document.getElementById('sT').addEventListener('input', function(){ state.T=+this.value; refresh(); });
+document.getElementById('logx').addEventListener('change', function(){ state.logx=this.checked; refresh(); });
+
+/* keep chip --gc colors in step with theme changes (re-read tokens after re-skin) */
+var _onTheme = window.__onVizTheme;
+window.__onVizTheme = function(){
+  Array.prototype.forEach.call(pick.children, function(b){
+    var g = GASES.filter(function(x){return x.sym===b.dataset.sym;})[0];
+    if (g) b.style.setProperty('--gc', gasColor(g));
+  });
+  _onTheme();
+};
+
+/* ---- boot ---- */
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solubility &amp; K_sp</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 330px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+  .seg button:active { transform: scale(.93); }
+  .lbl { font-size:.78rem; color:var(--muted); font-weight:600; }
+  select { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; font: inherit; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 240px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .expr { background: var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-top:8px; font-size:.92rem; color:var(--ink); text-align:center; }
+  .expr small { color: var(--muted); font-size:.72rem; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .62rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.0rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+  .kpi.hero .num { color: var(--indigo); }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:middle; margin-right:5px; border:1px solid var(--line); }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Solubility &amp; the solubility product K<sub>sp</sub></h1>
+  <p class="viz-sub">For a slightly-soluble salt, the dissolved-ion concentrations sit on the saturation curve Q = K<sub>sp</sub>. Below it the solution is unsaturated; above it the salt precipitates. Add a common ion to suppress the molar solubility <i>s</i>. <span class="pill">25 °C</span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span class="lbl">Salt</span>
+      <div class="seg" id="saltSeg" role="group" aria-label="salt"></div>
+    </div>
+    <div class="expr" id="expr">—</div>
+    <div class="controls">
+      <div class="control">
+        <span class="lbl" style="margin-bottom:2px">Common ion to add</span>
+        <select id="ionSel"></select>
+      </div>
+      <div class="control">
+        <label for="sC">Added common-ion concentration = <b id="lC">0.000</b> M</label>
+        <input type="range" id="sC" min="0" max="0.20" step="0.002" value="0">
+      </div>
+    </div>
+    <div class="legend-note" id="hint"></div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow">
+      <span style="color:var(--indigo)"><span class="sw" style="background:var(--indigo)"></span><b>Saturation curve Q = K<sub>sp</sub></b></span>
+      <span><span class="sw" style="background:color-mix(in srgb,var(--rose) 22%, transparent)"></span><b>Supersaturated → precipitate (Q &gt; K<sub>sp</sub>)</b></span>
+      <span><span class="sw" style="background:color-mix(in srgb,var(--correct) 18%, transparent)"></span><b>Unsaturated (Q &lt; K<sub>sp</sub>)</b></span>
+      <span style="color:var(--amber)"><span class="sw" style="background:var(--amber)"></span><b>Equilibrium point</b></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis">
+      <div class="kpi"><div class="lab">K<sub>sp</sub></div><div class="num" id="kKsp" style="font-size:.9rem">—</div></div>
+      <div class="kpi hero"><div class="lab">Molar solubility <i>s</i> (pure water)</div><div class="num" id="kS" style="font-size:.9rem">—</div></div>
+      <div class="kpi"><div class="lab">Solubility <i>s′</i> with common ion</div><div class="num" id="kSp" style="font-size:.9rem">—</div></div>
+      <div class="kpi"><div class="lab">Suppression <i>s</i>/<i>s′</i></div><div class="num" id="kSupp">—</div></div>
+    </div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   SOLUBILITY / Ksp ENGINE  (SPEC §6/#12).
+   ---------------------------------------------------------------------
+   Salt  M_a X_b (s)  ⇌  a M^(z+)  +  b X^(z-)
+     At equilibrium in pure water with molar solubility s:
+        [M] = a·s,   [X] = b·s
+        Ksp = [M]^a · [X]^b = (a·s)^a (b·s)^b = a^a · b^b · s^(a+b)
+        ⇒  s = ( Ksp / (a^a · b^b) )^(1/(a+b))          ← the stoichiometry trap
+   Common-ion effect: add concentration C of either M or X from a soluble salt.
+     If C of the cation M is added:  [M] = C + a·s',  [X] = b·s'
+        Ksp = (C + a·s')^a · (b·s')^b   → solve for s' (bisection; s' < s).
+     (symmetric if the anion X is the added common ion).
+   Saturation curve plotted in ([X], [M]) space:  [M] = (Ksp/[X]^b)^(1/a).
+     A point ABOVE the curve ⇒ Q > Ksp (precipitate); BELOW ⇒ unsaturated.
+   Ksp values are standard AP/textbook constants (flag for Elena's review).
+   ===================================================================== */
+var SALTS = [
+  // a = cation count, b = anion count
+  { id:'agcl',  name:'AgCl',     cat:'Ag⁺',   an:'Cl⁻',   a:1, b:1, Ksp:1.8e-10 },
+  { id:'baso4', name:'BaSO₄',    cat:'Ba²⁺',  an:'SO₄²⁻', a:1, b:1, Ksp:1.1e-10 },
+  { id:'pbi2',  name:'PbI₂',     cat:'Pb²⁺',  an:'I⁻',    a:1, b:2, Ksp:7.1e-9  },
+  { id:'caf2',  name:'CaF₂',     cat:'Ca²⁺',  an:'F⁻',    a:1, b:2, Ksp:3.9e-11 },
+  { id:'mgoh2', name:'Mg(OH)₂',  cat:'Mg²⁺',  an:'OH⁻',   a:1, b:2, Ksp:5.6e-12 },
+  { id:'ag2cro4',name:'Ag₂CrO₄', cat:'Ag⁺',   an:'CrO₄²⁻',a:2, b:1, Ksp:1.1e-12 }
+];
+function saltById(id){ for(var i=0;i<SALTS.length;i++) if(SALTS[i].id===id) return SALTS[i]; return SALTS[0]; }
+
+var state = { salt:'pbi2', addTo:'cat', C:0 };   // addTo: 'cat' (add cation) | 'an' (add anion)
+
+// molar solubility in pure water
+function sPure(salt){ return Math.pow(salt.Ksp / (Math.pow(salt.a,salt.a)*Math.pow(salt.b,salt.b)), 1/(salt.a+salt.b)); }
+// molar solubility with C of a common ion added (bisection on s')
+function sCommon(salt, addTo, C){
+  if (C<=0) return sPure(salt);
+  var a=salt.a, b=salt.b, Ksp=salt.Ksp;
+  function Q(s){
+    var M = (addTo==='cat') ? (C + a*s) : (a*s);
+    var X = (addTo==='an')  ? (C + b*s) : (b*s);
+    return Math.pow(M,a)*Math.pow(X,b);
+  }
+  var lo=0, hi=sPure(salt);   // common ion can only reduce s, so s' ∈ [0, sPure]
+  for (var i=0;i<80;i++){ var mid=(lo+hi)/2; if (Q(mid) > Ksp) hi=mid; else lo=mid; }
+  return (lo+hi)/2;
+}
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]; } var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];} return [128,128,128]; }
+function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+function sci(v){ if(v===0) return '0'; var e=Math.floor(Math.log10(Math.abs(v))); var m=v/Math.pow(10,e); return m.toFixed(2)+'×10'+sup(e); }
+function sup(n){ var s={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'}; return String(n).split('').map(function(c){return s[c]||c;}).join(''); }
+
+/* =====================================================================
+   CHART — saturation curve [M] = (Ksp/[X]^b)^(1/a) over [X];
+   region shading (precipitate above / unsaturated below) + the eq point.
+   ===================================================================== */
+var regionPlugin = {
+  id:'regions',
+  beforeDatasetsDraw: function(c){
+    var meta=c.__sat; if(!meta) return;
+    var ctx=c.ctx, xA=c.scales.x, yA=c.scales.y;
+    // build the saturation polyline in pixels, then fill above (rose) / below (correct)
+    var pts=meta.curvePx;
+    if(!pts.length) return;
+    // below the curve = unsaturated
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xA.left, yA.bottom);
+    pts.forEach(function(p){ ctx.lineTo(p.x, p.y); });
+    ctx.lineTo(xA.right, yA.bottom);
+    ctx.closePath();
+    ctx.fillStyle = rgba('--correct', 0.14); ctx.fill();
+    // above the curve = supersaturated / precipitate
+    ctx.beginPath();
+    ctx.moveTo(xA.left, yA.top);
+    pts.forEach(function(p){ ctx.lineTo(p.x, p.y); });
+    ctx.lineTo(xA.right, yA.top);
+    ctx.closePath();
+    ctx.fillStyle = rgba('--rose', 0.16); ctx.fill();
+    // labels
+    ctx.fillStyle = tok('--muted'); ctx.font='700 10px '+(tok('--app-font')||'sans-serif');
+    ctx.textAlign='right'; ctx.textBaseline='top';   ctx.fillText('supersaturated → precipitate', xA.right-8, yA.top+6);
+    ctx.textAlign='left';  ctx.textBaseline='bottom';ctx.fillText('unsaturated', xA.left+8, yA.bottom-6);
+    ctx.restore();
+  }
+};
+
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'saturation', data:[], borderWidth:3, pointRadius:0, tension:0, parsing:false },
+    { label:'equilibrium', data:[], pointRadius:7, pointHoverRadius:9, showLine:false, parsing:false }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return '['+'anion]='+c.parsed.x.toExponential(2)+',  [cation]='+c.parsed.y.toExponential(2); } } } },
+    scales:{
+      x:{ type:'linear', min:0, title:{display:true,text:''} },
+      y:{ type:'linear', min:0, title:{display:true,text:''} }
+    }
+  },
+  plugins:[regionPlugin]
+});
+
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line'), indigo=tok('--indigo'), amber=tok('--amber');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  chart.data.datasets[0].borderColor=indigo; chart.data.datasets[0].backgroundColor='transparent';
+  chart.data.datasets[1].pointBackgroundColor=amber; chart.data.datasets[1].pointBorderColor=amber;
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks={color:muted}; chart.options.scales[ax].title.color=muted; });
+  chart.update();
+}
+
+/* =====================================================================
+   REFRESH
+   ===================================================================== */
+function refresh(){
+  var salt = saltById(state.salt);
+  document.getElementById('lC').textContent = state.C.toFixed(3);
+
+  // Ksp expression string
+  var aExp = salt.a>1 ? sup(salt.a) : '', bExp = salt.b>1 ? sup(salt.b) : '';
+  var dissoc = salt.name+'(s) ⇌ '+(salt.a>1?salt.a:'')+salt.cat+' + '+(salt.b>1?salt.b:'')+salt.an;
+  document.getElementById('expr').innerHTML =
+    dissoc+'<br><b>K<sub>sp</sub> = ['+salt.cat+']'+aExp+'['+salt.an+']'+bExp+' = '
+    +'('+(salt.a>1?salt.a:'')+'s)'+aExp+'('+(salt.b>1?salt.b:'')+'s)'+bExp+' = '
+    +(salt.a===1&&salt.b===1?'s²':(Math.pow(salt.a,salt.a)*Math.pow(salt.b,salt.b))+'s'+sup(salt.a+salt.b))+'</b> '
+    +'<small>= '+sci(salt.Ksp)+'</small>';
+
+  var s = sPure(salt);
+  var sp = sCommon(salt, state.addTo, state.C);
+
+  // build saturation curve in [X] (anion) vs [M] (cation) space
+  // choose an [X] window that frames the equilibrium nicely
+  var Xeq = salt.b*s, Yeq = salt.a*s;
+  var xmax = Xeq*4, ymax = Yeq*4;
+  var pts=[], N=180;
+  for (var i=1;i<=N;i++){
+    var X = xmax*(i/N);
+    var Mc = Math.pow(salt.Ksp/Math.pow(X,salt.b), 1/salt.a);   // [M] on the curve
+    if (Mc>ymax*1.4) continue;
+    pts.push({x:X, y:Mc});
+  }
+  chart.data.datasets[0].data = pts;
+  chart.options.scales.x.max = xmax;
+  chart.options.scales.y.max = ymax;
+  chart.options.scales.x.title.text = '['+salt.an+']  (M)';
+  chart.options.scales.y.title.text = '['+salt.cat+']  (M)';
+
+  // equilibrium point(s): pure-water eq + common-ion eq if C>0
+  var eqPts = [{x:Xeq, y:Yeq}];
+  if (state.C>0){
+    var Mc2 = (state.addTo==='cat') ? (state.C + salt.a*sp) : (salt.a*sp);
+    var Xc2 = (state.addTo==='an')  ? (state.C + salt.b*sp) : (salt.b*sp);
+    eqPts.push({x:Xc2, y:Mc2});
+    // widen window if the common-ion point falls outside
+    chart.options.scales.x.max = Math.max(xmax, Xc2*1.3);
+    chart.options.scales.y.max = Math.max(ymax, Mc2*1.3);
+  }
+  chart.data.datasets[1].data = eqPts;
+
+  // precompute pixel polyline for the region plugin (after layout)
+  chart.__sat = { curvePx: [] };
+  reskinChart();
+  // now scales are laid out — convert curve to pixels for the shaded regions
+  var xA=chart.scales.x, yA=chart.scales.y;
+  chart.__sat.curvePx = pts.map(function(p){ return { x:xA.getPixelForValue(p.x), y:yA.getPixelForValue(Math.min(p.y, yA.max)) }; });
+  chart.update();
+
+  // KPIs
+  document.getElementById('kKsp').textContent = sci(salt.Ksp);
+  document.getElementById('kS').textContent  = sci(s)+' M';
+  document.getElementById('kSp').textContent = sci(sp)+' M';
+  document.getElementById('kSupp').textContent = state.C>0 ? (s/sp).toFixed(0)+'×' : '1×';
+
+  // hint + explanation
+  document.getElementById('hint').innerHTML =
+    'Molar solubility <b>s</b> = how many moles of '+salt.name+' dissolve per litre. '
+    +'Because every formula unit releases '+salt.a+' '+salt.cat+' and '+salt.b+' '+salt.an+', '
+    +'the exponents in K<sub>sp</sub> are '+salt.a+' and '+salt.b+' — and the coefficients ('+salt.a+', '+salt.b+') ride inside the powers, giving K<sub>sp</sub> = '
+    +(salt.a===1&&salt.b===1?'s²':(Math.pow(salt.a,salt.a)*Math.pow(salt.b,salt.b))+'·s'+sup(salt.a+salt.b))+'.';
+  document.getElementById('explain').innerHTML = state.C>0
+    ? 'Adding '+state.C.toFixed(3)+' M of a common '+(state.addTo==='cat'?salt.cat:salt.an)+' ion (Le Châtelier) pushes the equilibrium back toward the solid: solubility drops from '+sci(s)+' M to <b>'+sci(sp)+' M</b> ('+(s/sp).toFixed(0)+'× less). K<sub>sp</sub> itself is unchanged — only the position on the curve moves.'
+    : 'In pure water the dissolved ions sit exactly on the curve (Q = K<sub>sp</sub>). Add a common ion to slide the point along the curve and suppress s.';
+
+  // active salt button + common-ion options
+  Array.prototype.forEach.call(document.getElementById('saltSeg').children, function(b){ b.classList.toggle('on', b.dataset.salt===state.salt); });
+}
+window.__onVizTheme = reskinChart;
+
+/* =====================================================================
+   POPULATE CONTROLS + EVENTS
+   ===================================================================== */
+(function fillSalts(){
+  var seg=document.getElementById('saltSeg');
+  SALTS.forEach(function(s){ var b=document.createElement('button'); b.type='button'; b.dataset.salt=s.id; b.innerHTML=s.name; if(s.id===state.salt)b.className='on'; seg.appendChild(b); });
+  Array.prototype.forEach.call(seg.children, function(b){ b.addEventListener('click', function(){ state.salt=b.dataset.salt; rebuildIonSel(); state.C=0; document.getElementById('sC').value=0; refresh(); }); });
+})();
+function rebuildIonSel(){
+  var salt=saltById(state.salt), sel=document.getElementById('ionSel'); sel.innerHTML='';
+  var oc=document.createElement('option'); oc.value='cat'; oc.textContent=salt.cat+' (cation)'; sel.appendChild(oc);
+  var oa=document.createElement('option'); oa.value='an';  oa.textContent=salt.an+' (anion)';   sel.appendChild(oa);
+  sel.value = state.addTo;
+}
+rebuildIonSel();
+document.getElementById('ionSel').addEventListener('change', function(){ state.addTo=this.value; refresh(); });
+document.getElementById('sC').addEventListener('input', function(){ state.C=+this.value; refresh(); });
+
+/* ---- boot (optional ?salt= deep-link) ---- */
+(function(){
+  var q = new URLSearchParams(location.search).get('salt');
+  if (q && saltById(q).id===q){ state.salt=q; rebuildIonSel(); }
+})();
+refresh();
+</script>
+</body>
+</html>

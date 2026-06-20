@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vapor pressure vs temperature — Clausius–Clapeyron</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; line-height:1.4; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 360px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 14px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+  .seg button:active { transform: scale(.93); }
+
+  .liquids { display:flex; flex-wrap:wrap; gap:8px; }
+  .lqchip { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); border-radius:999px; padding:7px 13px; min-height:40px; cursor:pointer; font:inherit; font-weight:600; }
+  .lqchip:active { transform: scale(.95); }
+  .lqchip.on { box-shadow: inset 0 0 0 2px currentColor; }
+  .lqchip .dot { width:11px; height:11px; border-radius:50%; background:currentColor; }
+  .lqchip .nm { color: var(--ink); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 240px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.02rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .dash { display:inline-block; width:16px; height:0; border-top:2px solid currentColor; vertical-align:middle; margin-right:5px; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; line-height:1.45; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Vapor pressure vs temperature — Clausius–Clapeyron</h1>
+  <p class="viz-sub">Every liquid's vapor pressure climbs exponentially with temperature. A liquid <b>boils</b> when its vapor pressure equals the external pressure — so the curve's crossing of the pressure line is the boiling point. Drag the <b>external-pressure</b> line and watch each boiling point shift. <span class="pill">P = 760 torr at the normal boiling point</span></p>
+
+  <div class="panel">
+    <div class="row" style="justify-content:space-between">
+      <div class="liquids" id="liquids" role="group" aria-label="liquids"></div>
+      <div class="seg" id="viewSeg" role="group" aria-label="view">
+        <button data-view="pt" class="on" type="button">P vs T</button>
+        <button data-view="ln" type="button">ln P vs 1/T (linearized)</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control" style="flex:1 1 320px">
+        <label for="sP">External pressure P<sub>ext</sub> = <b id="lP">760</b> torr <span id="lPenv" style="color:var(--muted);font-weight:600"></span></label>
+        <input type="range" id="sP" min="100" max="900" step="5" value="760">
+      </div>
+    </div>
+    <div class="legend-note" id="hint"></div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow" id="legendrow"></div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis" id="kpis"></div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   CLAUSIUS–CLAPEYRON ENGINE — Chapter 10 (vapor pressure / boiling).
+   ---------------------------------------------------------------------
+   Each liquid's vapor pressure curve is anchored so that P = 760 torr at
+   its NORMAL boiling point Tb (K). The two-point Clausius–Clapeyron form:
+
+       ln(P / 760) = -(ΔHvap / R) · (1/T - 1/Tb)
+   =>  P(T) = 760 · exp[ -(ΔHvap/R) · (1/T - 1/Tb) ]
+
+   Linearized:  ln P = ln(760) - (ΔHvap/R)·(1/T - 1/Tb)
+   so a plot of ln P vs 1/T is a straight line of slope -ΔHvap/R.
+
+   To FIND the boiling point at a chosen external pressure Pext, invert:
+       1/Tboil = 1/Tb - (R/ΔHvap)·ln(Pext / 760)
+   (lower Pext -> ln<0 -> 1/Tboil > 1/Tb -> Tboil < Tb : altitude effect.)
+
+   R = 8.314 J/mol·K ; ΔHvap entered in kJ/mol (×1000 inside).
+   AP trend baked in: weaker IMF -> smaller ΔHvap & lower Tb -> higher P
+   at any given T (diethyl ether sits far above water).
+   ===================================================================== */
+var R = 8.314;            // J/mol·K
+var K = 273.15;           // °C -> K offset
+
+// Real liquids: normal boiling point (°C) + molar enthalpy of vaporization (kJ/mol).
+// Order roughly weakest->strongest IMF (ether highest vapor pressure -> water lowest).
+var LIQUIDS = [
+  { id:'ether',   name:'Diethyl ether', TbC:34.6, Hvap:26.5, color:'--rose'    },
+  { id:'acetone', name:'Acetone',       TbC:56.0, Hvap:29.1, color:'--amber'   },
+  { id:'ethanol', name:'Ethanol',       TbC:78.4, Hvap:38.6, color:'--correct' },
+  { id:'water',   name:'Water',         TbC:100.0,Hvap:40.7, color:'--indigo'  }
+];
+LIQUIDS.forEach(function(L){ L.TbK = L.TbC + K; });
+
+var state = { view:'pt', Pext:760, picked:{ ether:true, acetone:true, ethanol:true, water:true } };
+
+// vapor pressure (torr) of liquid L at temperature T (K)
+function pAt(L, Tk){ return 760 * Math.exp( -(L.Hvap*1000/R) * (1/Tk - 1/L.TbK) ); }
+// boiling point (K) of liquid L under external pressure Pext (torr)
+function tBoil(L, Pext){
+  var invT = 1/L.TbK - (R/(L.Hvap*1000)) * Math.log(Pext/760);
+  return 1/invT;
+}
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]; } var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];} return [128,128,128]; }
+function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+
+/* =====================================================================
+   CHART — two views share one canvas.
+     view "pt": P (torr) vs T (°C); horizontal Pext line; crossing markers.
+     view "ln": ln P vs 1/T (1/K); straight lines, slope -ΔHvap/R.
+   A plugin draws the external-pressure line + boiling-point dots/labels
+   (P vs T view only), and lets the student DRAG the Pext line.
+   ===================================================================== */
+var TMIN_C = 0, TMAX_C = 120;     // °C range for the P vs T view sampling
+var SAMPLES = 130;
+
+var pextPlugin = {
+  id:'pextline',
+  afterDatasetsDraw: function(c){
+    if (state.view !== 'pt') return;
+    var ctx=c.ctx, xA=c.scales.x, yA=c.scales.y;
+    var yPix = yA.getPixelForValue(state.Pext);
+    // the draggable horizontal external-pressure line
+    ctx.save();
+    ctx.setLineDash([7,5]); ctx.strokeStyle=tok('--muted'); ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(xA.left, yPix); ctx.lineTo(xA.right, yPix); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=tok('--ink'); ctx.font='700 11px '+(tok('--app-font')||'sans-serif');
+    ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillText('P_ext = '+Math.round(state.Pext)+' torr  ↕ drag', xA.left+6, yPix-4);
+    // a small grab handle on the right edge
+    ctx.fillStyle=tok('--muted');
+    ctx.fillRect(xA.right-10, yPix-7, 8, 14);
+    ctx.restore();
+    c.__pextY = yPix;   // cache for hit-testing the drag
+
+    // boiling-point marker where each shown curve crosses Pext
+    LIQUIDS.forEach(function(L){
+      if(!state.picked[L.id]) return;
+      var TbC = tBoil(L, state.Pext) - K;
+      if (TbC < TMIN_C || TbC > TMAX_C) return;
+      var xPix = xA.getPixelForValue(TbC);
+      ctx.save();
+      ctx.fillStyle=tok(L.color);
+      ctx.beginPath(); ctx.arc(xPix, yPix, 5, 0, 2*Math.PI); ctx.fill();
+      ctx.strokeStyle=tok('--surface'); ctx.lineWidth=1.5; ctx.stroke();
+      // drop line to the axis + temperature label
+      ctx.setLineDash([3,3]); ctx.strokeStyle=rgba(L.color,.6); ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(xPix, yPix); ctx.lineTo(xPix, yA.bottom); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=tok(L.color); ctx.font='700 10px '+(tok('--app-font')||'sans-serif');
+      ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(TbC.toFixed(1)+' °C', xPix, yA.bottom-2);
+      ctx.restore();
+    });
+  }
+};
+
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[] },
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false },
+    plugins:{
+      legend:{display:false},
+      tooltip:{ callbacks:{ label:function(c){
+        if(state.view==='ln') return c.dataset.label+':  1/T='+c.parsed.x.toExponential(3)+' 1/K,  ln P='+c.parsed.y.toFixed(3);
+        return c.dataset.label+':  T='+c.parsed.x.toFixed(1)+' °C,  P='+c.parsed.y.toFixed(1)+' torr';
+      } } }
+    },
+    scales:{
+      x:{ type:'linear', title:{display:true,text:''} },
+      y:{ type:'linear', title:{display:true,text:''} }
+    }
+  },
+  plugins:[pextPlugin]
+});
+
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  chart.data.datasets.forEach(function(ds){
+    var L = ds.__liquid; if(L){ ds.borderColor=tok(L.color); ds.backgroundColor='transparent'; ds.pointBackgroundColor=tok(L.color); }
+  });
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks={color:muted}; chart.options.scales[ax].title.color=muted; });
+  chart.update();
+}
+
+/* =====================================================================
+   BUILD DATASETS for the active view.
+   ===================================================================== */
+function buildDatasets(){
+  var ds=[];
+  LIQUIDS.forEach(function(L){
+    if(!state.picked[L.id]) return;
+    var pts=[];
+    for (var i=0;i<=SAMPLES;i++){
+      var TC = TMIN_C + (TMAX_C-TMIN_C)*i/SAMPLES;
+      var Tk = TC + K;
+      var P  = pAt(L, Tk);
+      if (state.view==='ln'){
+        pts.push({ x: 1/Tk, y: Math.log(P) });
+      } else {
+        pts.push({ x: TC, y: P });
+      }
+    }
+    ds.push({ label:L.name, data:pts, borderWidth:2.5, pointRadius:0, pointHoverRadius:4, tension:0, parsing:false, __liquid:L });
+  });
+  return ds;
+}
+
+/* =====================================================================
+   REFRESH
+   ===================================================================== */
+function refresh(){
+  document.getElementById('lP').textContent = Math.round(state.Pext);
+  var env = state.Pext>=755 && state.Pext<=765 ? '(sea level, 1 atm)'
+          : state.Pext<500 ? '(high altitude / partial vacuum)'
+          : state.Pext<755 ? '(elevation / reduced pressure)'
+          : '(above 1 atm)';
+  document.getElementById('lPenv').textContent = env;
+
+  chart.data.datasets = buildDatasets();
+
+  if (state.view==='ln'){
+    chart.options.scales.x.title.text = '1 / T   (1/K)';
+    chart.options.scales.y.title.text = 'ln P   (P in torr)';
+    chart.options.scales.x.min = undefined; chart.options.scales.x.max = undefined;
+    chart.options.scales.y.min = undefined; chart.options.scales.y.max = undefined;
+  } else {
+    chart.options.scales.x.title.text = 'Temperature  (°C)';
+    chart.options.scales.y.title.text = 'Vapor pressure  P (torr)';
+    chart.options.scales.x.min = TMIN_C; chart.options.scales.x.max = TMAX_C;
+    chart.options.scales.y.min = 0; chart.options.scales.y.max = 1000;
+  }
+  reskinChart();
+
+  // active view button
+  Array.prototype.forEach.call(document.getElementById('viewSeg').children, function(b){ b.classList.toggle('on', b.dataset.view===state.view); });
+
+  // KPIs: boiling point of each shown liquid at the current Pext
+  var kp = document.getElementById('kpis'); kp.innerHTML='';
+  LIQUIDS.forEach(function(L){
+    if(!state.picked[L.id]) return;
+    var TbC = tBoil(L, state.Pext) - K;
+    var d=document.createElement('div'); d.className='kpi';
+    d.innerHTML='<div class="lab" style="color:'+tok(L.color)+'">'+L.name+' — boils at</div>'
+      +'<div class="num">'+TbC.toFixed(1)+' <small>°C</small></div>'
+      +'<div class="lab">ΔH<sub>vap</sub> = '+L.Hvap.toFixed(1)+' kJ/mol · slope −ΔH/R = '+(-L.Hvap*1000/R).toFixed(0)+'</div>';
+    kp.appendChild(d);
+  });
+
+  // legend row (one chip per shown liquid)
+  var lr=document.getElementById('legendrow'); lr.innerHTML='';
+  LIQUIDS.forEach(function(L){
+    if(!state.picked[L.id]) return;
+    var s=document.createElement('span'); s.style.color=tok(L.color);
+    s.innerHTML='<span class="dash"></span><b>'+L.name+'</b>';
+    lr.appendChild(s);
+  });
+  var sx=document.createElement('span'); sx.style.color='var(--muted)';
+  sx.innerHTML='<span class="dash" style="border-top-style:dashed"></span>External pressure'+(state.view==='ln'?' (n/a in this view)':'');
+  if(state.view==='pt') lr.appendChild(sx);
+
+  // hint + explanation
+  if (state.view==='ln'){
+    document.getElementById('hint').innerHTML='Taking ln of both sides straightens every curve: <b>ln P = ln 760 − (ΔH<sub>vap</sub>/R)(1/T − 1/T<sub>b</sub>)</b>. Each line’s slope is <b>−ΔH<sub>vap</sub>/R</b>, so the <b>steepest</b> line (most negative slope) is the liquid with the strongest IMF — water.';
+  } else {
+    document.getElementById('hint').innerHTML='Where a curve crosses the dashed external-pressure line is that liquid’s boiling point at that pressure. <b>Drag the line down</b> (lower pressure, e.g. on a mountain) and every boiling point drops; raise it and they rise.';
+  }
+  document.getElementById('explain').innerHTML=
+    'At any fixed temperature, <b>diethyl ether</b> (weak London forces, ΔH<sub>vap</sub>=26.5 kJ/mol) has the <b>highest</b> vapor pressure and so the <b>lowest</b> boiling point, while <b>water</b> (strong hydrogen bonding, ΔH<sub>vap</sub>=40.7 kJ/mol) sits lowest and boils highest. '
+    +'Weaker IMF ⇒ molecules escape the liquid more easily ⇒ higher vapor pressure ⇒ less heating needed to reach the external pressure. '
+    +'Lowering P<sub>ext</sub> (altitude) lowers every boiling point — water boils below 100 °C on a mountain.';
+}
+window.__onVizTheme = function(){ refresh(); };   // full rebuild so per-view scales + DOM colors track the theme
+
+/* =====================================================================
+   LIQUID CHIPS
+   ===================================================================== */
+(function(){
+  var box=document.getElementById('liquids');
+  LIQUIDS.forEach(function(L){
+    var b=document.createElement('button'); b.className='lqchip'+(state.picked[L.id]?' on':''); b.type='button';
+    b.style.color=tok(L.color); b.dataset.id=L.id;
+    b.innerHTML='<span class="dot"></span><span class="nm">'+L.name+'</span>';
+    b.addEventListener('click', function(){
+      // keep at least one liquid shown
+      var n=0; for(var k in state.picked) if(state.picked[k]) n++;
+      if (state.picked[L.id] && n<=1) return;
+      state.picked[L.id]=!state.picked[L.id];
+      b.classList.toggle('on', state.picked[L.id]);
+      refresh();
+    });
+    box.appendChild(b);
+  });
+})();
+
+/* =====================================================================
+   DRAG the external-pressure line (P vs T view).
+   ===================================================================== */
+(function(){
+  var canvas=document.getElementById('chart'), dragging=false;
+  function pextFromEvent(clientY){
+    var yA=chart.scales.y; if(!yA) return;
+    var rect=canvas.getBoundingClientRect();
+    var yPix=(clientY-rect.top)*(canvas.height/rect.height);   // device px (Chart uses device px internally? use value mapping)
+    // Chart.js getValueForPixel expects CSS pixels relative to canvas; recompute in CSS space:
+    var yCss=clientY-rect.top;
+    var val=yA.getValueForPixel(yCss);
+    val=Math.max(parseFloat(document.getElementById('sP').min), Math.min(parseFloat(document.getElementById('sP').max), val));
+    state.Pext=Math.round(val/5)*5;
+    document.getElementById('sP').value=state.Pext;
+    refresh();
+  }
+  function near(clientY){
+    if(state.view!=='pt'||chart.__pextY==null) return false;
+    var rect=canvas.getBoundingClientRect();
+    var yCss=clientY-rect.top;
+    var yA=chart.scales.y; var lineCss=yA.getPixelForValue(state.Pext);
+    return Math.abs(yCss-lineCss)<=18;
+  }
+  function down(e){ var cy=e.touches?e.touches[0].clientY:e.clientY; if(near(cy)){ dragging=true; pextFromEvent(cy); e.preventDefault(); } }
+  function move(e){ if(!dragging)return; var cy=e.touches?e.touches[0].clientY:e.clientY; pextFromEvent(cy); e.preventDefault(); }
+  function up(){ dragging=false; }
+  canvas.addEventListener('mousedown',down); window.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
+  canvas.addEventListener('touchstart',down,{passive:false}); window.addEventListener('touchmove',move,{passive:false}); window.addEventListener('touchend',up);
+  canvas.addEventListener('mousemove',function(e){ canvas.style.cursor = near(e.clientY)?'ns-resize':'default'; });
+})();
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+document.getElementById('sP').addEventListener('input', function(){ state.Pext=+this.value; refresh(); });
+Array.prototype.forEach.call(document.getElementById('viewSeg').children, function(b){
+  b.addEventListener('click', function(){ state.view=b.dataset.view; refresh(); });
+});
+
+/* ---- boot (optional ?view= deep-link: pt | ln) ---- */
+(function(){
+  var v = new URLSearchParams(location.search).get('view');
+  if (v && ['pt','ln'].indexOf(v)>=0) state.view = v;
+})();
+refresh();
+
+/* =====================================================================
+   NUMERIC SELF-CHECKS (logged to console; Elena gate).
+     1. P(Tb) === 760 torr for every liquid.
+     2. Water at 25 °C ≈ 23.8 torr (textbook ~24 torr).
+     3. Boiling point falls when Pext < 760 (altitude).
+   ===================================================================== */
+(function selfCheck(){
+  var log=['Clausius–Clapeyron self-checks:'];
+  LIQUIDS.forEach(function(L){
+    var pTb = pAt(L, L.TbK);
+    log.push('  '+L.name+'  P(Tb='+L.TbC+'°C) = '+pTb.toFixed(2)+' torr  (expect 760.00)  '+(Math.abs(pTb-760)<0.01?'OK':'FAIL'));
+  });
+  var W = LIQUIDS.filter(function(L){return L.id==='water';})[0];
+  var p25 = pAt(W, 25+K);
+  log.push('  Water P(25°C) = '+p25.toFixed(2)+' torr  (expect ~24)  '+(p25>21 && p25<27?'OK':'CHECK'));
+  var TbLow = tBoil(W, 525) - K;   // ~ Denver-ish reduced pressure
+  log.push('  Water boils at Pext=525 torr -> '+TbLow.toFixed(1)+'°C  (expect <100, altitude)  '+(TbLow<100?'OK':'FAIL'));
+  // ether vs water vapor pressure at 25 °C (weak IMF -> much higher P)
+  var E = LIQUIDS.filter(function(L){return L.id==='ether';})[0];
+  var pE25 = pAt(E, 25+K);
+  log.push('  Diethyl ether P(25°C) = '+pE25.toFixed(0)+' torr  >> water '+p25.toFixed(0)+' torr (weaker IMF -> higher P)  '+(pE25>p25?'OK':'FAIL'));
+  console.log(log.join('\n'));
+  window.__vizSelfCheck = log.join('\n');
+})();
+</script>
+</body>
+</html>

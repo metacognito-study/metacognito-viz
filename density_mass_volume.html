@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Density — mass vs volume (slope = ρ)</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+
+  .chart-wrap { position: relative; height: 320px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 8px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  /* substance selector buttons */
+  .sub-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .sub-btn {
+    border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink);
+    font: inherit; font-size: .78rem; padding: 6px 11px; border-radius: 999px;
+    min-height: 36px; cursor: pointer; transition: background .1s, border-color .1s, color .1s;
+    display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 72px;
+  }
+  .sub-btn .sname { font-weight: 700; }
+  .sub-btn .srho  { font-size: .65rem; color: var(--muted); }
+  .sub-btn.on {
+    background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff;
+    border-color: transparent;
+  }
+  .sub-btn.on .srho { color: rgba(255,255,255,0.75); }
+  .sub-btn.on2 {
+    background: color-mix(in srgb, var(--correct) 82%, #0a0e1a); color: #fff;
+    border-color: transparent;
+  }
+  .sub-btn.on2 .srho { color: rgba(255,255,255,0.75); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  @media (max-width:600px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.05rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+  .kpi.hi1 .num { color: var(--indigo); }
+  .kpi.hi2 .num { color: var(--correct); }
+
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+
+  .secLabel { font-size:.72rem; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  .eq-box {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    padding: 8px 10px; border-radius: 10px; background: var(--surface-2);
+    font-size: .80rem; color: var(--ink); border: 1px solid var(--line);
+    margin-top: 8px;
+  }
+  .eq-box .eq { font-weight: 700; font-size: .95rem; }
+  .hint { font-size: .70rem; color: var(--muted); margin-top: 4px; }
+
+  /* slope chips overlaid on chart */
+  .slope-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:6px; }
+  .slope-chip { display:flex; align-items:center; gap:6px; font-size:.72rem; color:var(--ink); }
+  .slope-swatch { width: 22px; height: 4px; border-radius: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Density — mass vs. volume</h1>
+  <p class="viz-sub">
+    Plot mass (g) vs volume (cm³): the slope of the line through the origin = density (ρ).
+    <span class="pill">ρ = m / V</span> <span class="pill">m = ρ · V</span>
+    Steeper slope → denser substance.
+  </p>
+
+  <!-- Chart panel -->
+  <div class="panel">
+    <div class="secLabel">Mass (g) vs Volume (cm³) — both lines through the origin; slope = density</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+    <div class="slope-legend" id="slopeLegend"></div>
+  </div>
+
+  <!-- Substance pickers (two lanes: A = indigo, B = correct/teal) -->
+  <div class="panel">
+    <div class="secLabel">Substance A <span style="color:var(--indigo);font-weight:700">(blue line)</span></div>
+    <div class="sub-grid" id="segA"></div>
+
+    <div class="secLabel" style="margin-top:12px">Substance B <span style="color:var(--correct);font-weight:700">(teal line)</span> — compare</div>
+    <div class="sub-grid" id="segB"></div>
+  </div>
+
+  <!-- Volume slider + readout -->
+  <div class="panel">
+    <div class="secLabel">Pick a volume to read off the mass on both lines</div>
+    <div class="controls">
+      <div class="control" style="flex:1 1 260px;">
+        <label for="sV">Volume V = <b id="lV">50.0</b> cm³</label>
+        <input type="range" id="sV" min="5" max="100" step="1" value="50">
+      </div>
+    </div>
+    <div class="kpis" id="kpiRow">
+      <div class="kpi hi1"><div class="lab">Substance A</div><div class="num" id="kSubA">—</div></div>
+      <div class="kpi hi1"><div class="lab">Mass A (m = ρ·V)</div><div class="num"><span id="kMA">—</span> <small>g</small></div></div>
+      <div class="kpi hi2"><div class="lab">Substance B</div><div class="num" id="kSubB">—</div></div>
+      <div class="kpi hi2"><div class="lab">Mass B (m = ρ·V)</div><div class="num"><span id="kMB">—</span> <small>g</small></div></div>
+    </div>
+    <div class="eq-box" id="equationBox">
+      <span class="eq" id="eqA"></span>
+      <span style="color:var(--muted)">vs.</span>
+      <span class="eq" id="eqB"></span>
+    </div>
+    <p class="hint" id="hintText"></p>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   ENGINE — Density (SPEC §6).
+   ---------------------------------------------------------------------
+   density ρ (g/cm³) = mass (g) / volume (cm³)
+   → mass vs volume is a straight line through the ORIGIN: m = ρ·V
+   The slope of the line = ρ.  Steeper slope = higher density.
+
+   Substance table (exact published values, AP Chem Ch1 context):
+     water   1.000  g/cm³   (4 °C, standard reference)
+     ethanol 0.789  g/cm³   (20 °C)
+     aluminium 2.70 g/cm³   (solid, bulk)
+     iron    7.87   g/cm³   (solid, bulk)
+     lead    11.34  g/cm³   (solid, bulk)
+     gold    19.3   g/cm³   (solid, bulk)
+     cork    0.24   g/cm³   (approximate, ranges 0.12–0.24 → use 0.24)
+     ice     0.917  g/cm³   (0 °C, solid — less than water, floats)
+
+   Self-checks (logged to console):
+     50 cm³ × Al 2.70 g/cm³ = 135 g       ✓
+     10 cm³ × Au 19.3 g/cm³ = 193 g       ✓
+     25 cm³ × H₂O 1.00 g/cm³ = 25.0 g    ✓
+     15 cm³ × Fe 7.87 g/cm³ = 118.05 g    ✓
+   ===================================================================== */
+var SUBSTANCES = [
+  { id:'water',   name:'Water',     sym:'H₂O', rho:1.000 },
+  { id:'ice',     name:'Ice',       sym:'H₂O(s)', rho:0.917 },
+  { id:'ethanol', name:'Ethanol',   sym:'C₂H₅OH', rho:0.789 },
+  { id:'cork',    name:'Cork',      sym:'cork', rho:0.24  },
+  { id:'al',      name:'Aluminium', sym:'Al',   rho:2.70  },
+  { id:'fe',      name:'Iron',      sym:'Fe',   rho:7.87  },
+  { id:'pb',      name:'Lead',      sym:'Pb',   rho:11.34 },
+  { id:'au',      name:'Gold',      sym:'Au',   rho:19.3  }
+];
+
+/* numeric self-checks */
+(function selfCheck(){
+  var checks = [
+    { sub:'al',    V:50,  expected:135   },
+    { sub:'au',    V:10,  expected:193   },
+    { sub:'water', V:25,  expected:25.0  },
+    { sub:'fe',    V:15,  expected:118.05}
+  ];
+  checks.forEach(function(c){
+    var s = SUBSTANCES.filter(function(x){return x.id===c.sub;})[0];
+    var got = +(s.rho * c.V).toFixed(4);
+    var ok  = Math.abs(got - c.expected) < 0.01;
+    console.log('[density self-check] '+c.V+' cm³ × '+s.name+' ('+s.rho+' g/cm³) = '+got+' g  expected '+c.expected+'  '+(ok?'✓ PASS':'✗ FAIL'));
+  });
+})();
+
+var V_MAX = 100;  /* cm³ — slider + axis ceiling */
+
+var state = { A: 'al', B: 'water', V: 50 };
+
+function subById(id){ for(var i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].id===id) return SUBSTANCES[i]; return SUBSTANCES[0]; }
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function rgba(token, a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+function parseColor(c){
+  c=c.trim();
+  if(c[0]==='#'){
+    if(c.length===4) c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3];
+    return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)];
+  }
+  var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];}
+  return [128,128,128];
+}
+
+/* =====================================================================
+   CHART — mass vs volume: two lines through origin
+   ===================================================================== */
+
+/* Custom plugin: draws cross-hair / dashed drop-lines + volume marker */
+var markerPlugin = {
+  id: 'densitymarker',
+  afterDatasetsDraw: function(chart) {
+    var d = chart.__marker; if(!d) return;
+    var ctx = chart.ctx;
+    var xA = chart.scales.x, yA = chart.scales.y;
+    var X = xA.getPixelForValue(d.V);
+
+    [d.mA, d.mB].forEach(function(m, idx) {
+      var Y = yA.getPixelForValue(m);
+      var color = idx === 0 ? tok('--indigo') : tok('--correct');
+      ctx.save();
+      ctx.setLineDash([5,4]); ctx.lineWidth=1.5; ctx.strokeStyle=color;
+      /* vertical drop to x-axis */
+      ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(X,yA.bottom); ctx.stroke();
+      /* horizontal run to y-axis */
+      ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(xA.left,Y); ctx.stroke();
+      ctx.restore();
+      /* circle marker on the line */
+      ctx.save();
+      ctx.fillStyle=color; ctx.strokeStyle=tok('--surface'); ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(X,Y,7,0,2*Math.PI); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    });
+  }
+};
+
+var mainChart = new Chart(document.getElementById('mainChart'), {
+  type: 'line',
+  data: { datasets: [
+    { label: 'A', data: [], borderWidth: 3, pointRadius: 0, tension: 0, parsing: false },
+    { label: 'B', data: [], borderWidth: 3, pointRadius: 0, tension: 0, parsing: false }
+  ]},
+  options: {
+    responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx){
+            return ctx.datasetIndex===0
+              ? 'A: m = '+ctx.parsed.y.toFixed(2)+' g'
+              : 'B: m = '+ctx.parsed.y.toFixed(2)+' g';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { type:'linear', min:0, max:V_MAX,
+           title:{display:true, text:'Volume V (cm³)'} },
+      y: { min:0,
+           title:{display:true, text:'Mass m (g)'} }
+    }
+  },
+  plugins: [markerPlugin]
+});
+
+/* =====================================================================
+   RESKIN — read tokens + push into chart
+   ===================================================================== */
+function reskinChart(){
+  var ink   = tok('--ink');
+  var muted = tok('--muted');
+  var line  = tok('--line');
+  Chart.defaults.color = ink;
+  Chart.defaults.font.family = tok('--app-font') || 'sans-serif';
+  ['x','y'].forEach(function(ax){
+    mainChart.options.scales[ax].grid = { color:line, drawBorder:true, borderColor:line };
+    mainChart.options.scales[ax].ticks = { color:muted };
+    mainChart.options.scales[ax].title.color = muted;
+  });
+  mainChart.data.datasets[0].borderColor = tok('--indigo');
+  mainChart.data.datasets[1].borderColor = tok('--correct');
+}
+
+window.__onVizTheme = function(){ reskinChart(); buildData(); };
+
+/* =====================================================================
+   BUILD DATA + REFRESH
+   ===================================================================== */
+function buildData(){
+  var sA = subById(state.A);
+  var sB = subById(state.B);
+  var V  = state.V;
+
+  /* lines: m = ρ·V for V in [0, V_MAX] */
+  var ptsA = [{x:0,y:0},{x:V_MAX,y:sA.rho*V_MAX}];
+  var ptsB = [{x:0,y:0},{x:V_MAX,y:sB.rho*V_MAX}];
+  mainChart.data.datasets[0].data = ptsA;
+  mainChart.data.datasets[1].data = ptsB;
+
+  /* y-axis ceiling: give headroom above the denser substance */
+  var maxRho = Math.max(sA.rho, sB.rho);
+  mainChart.options.scales.y.max = Math.ceil(maxRho * V_MAX * 1.08 / 10) * 10;
+
+  /* cross-hair for selected volume */
+  mainChart.__marker = { V: V, mA: sA.rho*V, mB: sB.rho*V };
+
+  reskinChart();
+  mainChart.update();
+
+  /* slope chips */
+  var legend = document.getElementById('slopeLegend');
+  legend.innerHTML = '';
+  [[sA,'--indigo'],[sB,'--correct']].forEach(function(pair){
+    var s = pair[0], token = pair[1];
+    var chip = document.createElement('div'); chip.className='slope-chip';
+    chip.innerHTML = '<div class="slope-swatch" style="background:'+tok(token)+'"></div>'
+      + '<span><b>'+s.name+'</b> — slope = ρ = '+s.rho.toFixed(3)+' g/cm³</span>';
+    legend.appendChild(chip);
+  });
+
+  /* KPIs */
+  var mA = sA.rho * V;
+  var mB = sB.rho * V;
+  document.getElementById('lV').textContent   = V.toFixed(1);
+  document.getElementById('kSubA').textContent = sA.name + ' (' + sA.sym + ')';
+  document.getElementById('kMA').textContent   = mA.toFixed(2);
+  document.getElementById('kSubB').textContent = sB.name + ' (' + sB.sym + ')';
+  document.getElementById('kMB').textContent   = mB.toFixed(2);
+
+  document.getElementById('eqA').innerHTML =
+    'A: m = '+sA.rho.toFixed(3)+' × '+V.toFixed(0)+' = <span style="color:var(--indigo)">'+mA.toFixed(2)+' g</span>';
+  document.getElementById('eqB').innerHTML =
+    'B: m = '+sB.rho.toFixed(3)+' × '+V.toFixed(0)+' = <span style="color:var(--correct)">'+mB.toFixed(2)+' g</span>';
+
+  /* hint */
+  var denser = sA.rho > sB.rho ? sA : sB;
+  var lighter = sA.rho > sB.rho ? sB : sA;
+  var hint = denser.name+' (ρ = '+denser.rho+' g/cm³) is denser than '+lighter.name+' (ρ = '+lighter.rho+' g/cm³), so the same volume of '+denser.name+' has more mass — the steeper line.';
+  if (sA.rho === sB.rho){
+    hint = 'Both substances have the same density, so their lines overlap perfectly.';
+  }
+  document.getElementById('hintText').textContent = hint;
+}
+
+/* =====================================================================
+   SUBSTANCE SELECTOR BUTTONS
+   ===================================================================== */
+function buildSeg(containerId, lane, defaultId){
+  var seg = document.getElementById(containerId);
+  SUBSTANCES.forEach(function(s){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sub-btn' + (s.id === defaultId ? (' on' + (lane==='B'?'2':'')) : '');
+    btn.dataset.id = s.id;
+    btn.innerHTML = '<span class="sname">'+s.name+'</span><span class="srho">'+s.rho+' g/cm³</span>';
+    btn.addEventListener('click', function(){
+      state[lane] = s.id;
+      Array.prototype.forEach.call(seg.children, function(b){
+        b.classList.remove('on','on2');
+      });
+      btn.classList.add(lane === 'B' ? 'on2' : 'on');
+      buildData();
+    });
+    seg.appendChild(btn);
+  });
+}
+
+/* =====================================================================
+   SLIDER EVENT
+   ===================================================================== */
+document.getElementById('sV').addEventListener('input', function(){
+  state.V = +this.value; buildData();
+});
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+buildSeg('segA', 'A', state.A);
+buildSeg('segB', 'B', state.B);
+buildData();
+</script>
+</body>
+</html>

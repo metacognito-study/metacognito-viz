@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reaction Coordinate / Activation Energy</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  canvas#rc { width: 100%; height: auto; display: block; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 8px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 220px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+  .check { display:inline-flex; align-items:center; gap:7px; font-size:.80rem; color:var(--ink); cursor:pointer; user-select:none; }
+  .check input { width:18px; height:18px; accent-color:var(--correct); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:620px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .62rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.0rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .58rem; color: var(--muted); font-weight: 600; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Reaction Coordinate — activation energy &amp; ΔH</h1>
+  <p class="viz-sub">Potential energy along the reaction path: reactants climb over the transition state, then drop to products. <span class="pill" id="typePill">exothermic</span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Energy change</span>
+      <div class="seg" id="typeSeg" role="group" aria-label="reaction type">
+        <button data-type="exo" class="on" type="button">Exothermic (ΔH &lt; 0)</button>
+        <button data-type="endo" type="button">Endothermic (ΔH &gt; 0)</button>
+      </div>
+      <span style="flex:1"></span>
+      <label class="check"><input type="checkbox" id="cat"> Add a catalyst</label>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="sEa">Activation energy E<sub>a</sub> (forward) = <b id="lEa">150</b> kJ/mol</label>
+        <input type="range" id="sEa" min="40" max="300" step="5" value="150">
+      </div>
+      <div class="control">
+        <label for="sdH">|ΔH| = <b id="ldH">80</b> kJ/mol</label>
+        <input type="range" id="sdH" min="0" max="200" step="5" value="80">
+      </div>
+    </div>
+    <div class="legend-note" id="clamp"></div>
+  </div>
+
+  <div class="panel">
+    <canvas id="rc" width="680" height="420" aria-label="reaction coordinate diagram"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="kpis" id="kpiBox"></div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   ENERGY MODEL (SPEC §6/#13).
+   Reactants at Hr = 0 (reference). Products at Hp = ΔH (exo:<0, endo:>0).
+   Transition state peak = Hr + Ea_fwd. A physical barrier must sit ABOVE both
+   reactants AND products, so the peak is clamped to ≥ Hp + 15 kJ/mol (you can't
+   have a TS below the products). Then:
+     Ea(forward) = peak − Hr ;  Ea(reverse) = peak − Hp = Ea(forward) − ΔH.
+   A catalyst lowers the barrier (≈55%) but NEVER changes ΔH (same reactants/products).
+   Smooth single-barrier curve via cosine segments (flat tangents at R, TS, P).
+   ===================================================================== */
+var state = { type:'exo', Ea:150, dHmag:80, cat:false };
+function dH(){ return state.type==='exo' ? -state.dHmag : state.dHmag; }
+var MIN_MARGIN = 15;   // kJ/mol the TS must clear the higher of reactants/products
+function peakOf(EaForward){
+  var Hr=0, Hp=dH();
+  return Math.max(Hr+EaForward, Math.max(Hr,Hp)+MIN_MARGIN);
+}
+function PEcurve(peak){
+  var Hr=0, Hp=dH(), pts=[], N=200;
+  for(var i=0;i<=N;i++){
+    var x=i/N, y;
+    if(x<=0.5) y = Hr + (peak-Hr)*(1-Math.cos(Math.PI*x/0.5))/2;
+    else       y = peak + (Hp-peak)*(1-Math.cos(Math.PI*(x-0.5)/0.5))/2;
+    pts.push([x,y]);
+  }
+  return pts;
+}
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+var cv=document.getElementById('rc'), ctx=cv.getContext('2d');
+var W=cv.width, Hh=cv.height, padL=58, padR=20, padT=24, padB=40;
+var plotW=W-padL-padR, plotH=Hh-padT-padB;
+
+function draw(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line'), surface=tok('--surface');
+  var indigo=tok('--indigo'), correct=tok('--correct'), rose=tok('--rose'), amber=tok('--amber');
+  ctx.clearRect(0,0,W,Hh);
+
+  var Hr=0, Hp=dH();
+  var peak = peakOf(state.Ea);
+  var peakCat = peakOf(state.Ea*0.55);
+  // y-range
+  var ymin = Math.min(Hr,Hp) - 30;
+  var ymax = peak + 35;
+  function X(x){ return padL + x*plotW; }
+  function Y(v){ return padT + (1-(v-ymin)/(ymax-ymin))*plotH; }
+
+  // axes
+  ctx.strokeStyle=line; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+plotH); ctx.lineTo(padL+plotW,padT+plotH); ctx.stroke();
+  // y gridlines + labels (every 50 kJ)
+  ctx.fillStyle=muted; ctx.font='10px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='right'; ctx.textBaseline='middle';
+  var g0=Math.ceil(ymin/50)*50;
+  for(var g=g0; g<=ymax; g+=50){ var y=Y(g); ctx.strokeStyle=line; ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+plotW,y); ctx.stroke(); ctx.globalAlpha=1; ctx.fillStyle=muted; ctx.fillText(g, padL-6, y); }
+  // axis titles
+  ctx.fillStyle=ink; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText('Reaction progress →', padL+plotW/2, Hh-8);
+  ctx.save(); ctx.translate(15,padT+plotH/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.fillText('Potential energy (kJ/mol)',0,0); ctx.restore();
+
+  // dashed reference levels for reactants & products
+  function level(v,label,colr){ var y=Y(v); ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle=colr; ctx.globalAlpha=.7; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+plotW,y); ctx.stroke(); ctx.restore(); }
+  level(Hr,'reactants',muted); level(Hp,'products',muted);
+
+  function plot(pts,color,width,dash){ ctx.save(); ctx.setLineDash(dash||[]); ctx.lineWidth=width; ctx.strokeStyle=color; ctx.beginPath(); pts.forEach(function(p,i){ var px=X(p[0]),py=Y(p[1]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }); ctx.stroke(); ctx.restore(); }
+
+  // catalysed path first (under), then main
+  if(state.cat) plot(PEcurve(peakCat), correct, 2.5, [7,5]);
+  plot(PEcurve(peak), indigo, 3.5);
+
+  // labels: reactants / TS / products
+  ctx.fillStyle=ink; ctx.font='600 11px '+(tok('--app-font')||'sans-serif');
+  ctx.textAlign='left';  ctx.textBaseline='bottom'; ctx.fillText('Reactants', X(0.02), Y(Hr)-6);
+  ctx.textAlign='right'; ctx.fillText('Products',  X(0.98), Y(Hp)-6);
+  ctx.textAlign='center'; ctx.fillText('Transition state', X(0.5), Y(peak)-8);
+  if(state.cat){ ctx.fillStyle=correct; ctx.fillText('catalysed', X(0.5), Y(peakCat)-6); }
+
+  /* arrows: Ea(fwd), Ea(rev), ΔH */
+  function vArrow(x, yTop, yBot, color, label){
+    var px=X(x), pt=Y(yTop), pb=Y(yBot);
+    ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=1.8;
+    ctx.beginPath(); ctx.moveTo(px,pt); ctx.lineTo(px,pb); ctx.stroke();
+    function head(y,dir){ ctx.beginPath(); ctx.moveTo(px-4,y+dir*6); ctx.lineTo(px,y); ctx.lineTo(px+4,y+dir*6); ctx.closePath(); ctx.fill(); }
+    head(pt,1); head(pb,-1);
+    ctx.font='700 10px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(label, px+6, (pt+pb)/2);
+    ctx.restore();
+  }
+  // Ea forward: reactants → peak (left of centre)
+  vArrow(0.30, peak, Hr, rose, 'Eₐ(fwd) '+(peak-Hr).toFixed(0));
+  // Ea reverse: products → peak (right of centre)
+  vArrow(0.70, peak, Hp, amber, 'Eₐ(rev) '+(peak-Hp).toFixed(0));
+  // ΔH: reactants → products (far right)
+  vArrow(0.93, Hr, Hp, ink, 'ΔH '+(Hp-Hr>0?'+':'')+(Hp-Hr).toFixed(0));
+}
+
+function refresh(){
+  document.getElementById('lEa').textContent = state.Ea;
+  document.getElementById('ldH').textContent = state.dHmag;
+  document.getElementById('typePill').textContent = state.type==='exo'?'exothermic':'endothermic';
+  Array.prototype.forEach.call(document.getElementById('typeSeg').children, function(b){ b.classList.toggle('on', b.dataset.type===state.type); });
+
+  var Hp=dH(), peak=peakOf(state.Ea), peakCat=peakOf(state.Ea*0.55);
+  var EaF=peak-0, EaR=peak-Hp;
+  var EaFcat=peakCat-0, EaRcat=peakCat-Hp;
+  draw();
+
+  document.getElementById('kpiBox').innerHTML =
+    '<div class="kpi"><div class="lab">E<sub>a</sub> forward</div><div class="num">'+EaF.toFixed(0)+' <small>kJ/mol</small></div></div>'+
+    '<div class="kpi"><div class="lab">E<sub>a</sub> reverse</div><div class="num">'+EaR.toFixed(0)+' <small>kJ/mol</small></div></div>'+
+    '<div class="kpi"><div class="lab">ΔH (reaction)</div><div class="num">'+(Hp>0?'+':'')+Hp.toFixed(0)+' <small>kJ/mol</small></div></div>'+
+    '<div class="kpi"><div class="lab">'+(state.cat?'E<sub>a</sub> with catalyst':'Catalyst')+'</div><div class="num">'+(state.cat?EaFcat.toFixed(0)+' <small>kJ/mol</small>':'off')+'</div></div>';
+
+  // clamp note
+  var clamped = (0 + state.Ea) < (Math.max(0,Hp)+MIN_MARGIN);
+  document.getElementById('clamp').innerHTML = clamped
+    ? '⚠ Barrier auto-raised: the transition state must sit above the products, so E<sub>a</sub>(forward) cannot be smaller than ΔH. Showing the smallest physical barrier.'
+    : 'E<sub>a</sub>(reverse) = E<sub>a</sub>(forward) − ΔH = '+EaF.toFixed(0)+' − ('+(Hp>0?'+':'')+Hp.toFixed(0)+') = '+EaR.toFixed(0)+' kJ/mol.';
+
+  var exo = state.type==='exo';
+  document.getElementById('explain').innerHTML =
+    '<b>'+(exo?'Exothermic':'Endothermic')+':</b> products are '+(exo?'lower':'higher')+' than reactants, so the reaction '+(exo?'releases':'absorbs')+' '+Math.abs(Hp).toFixed(0)+' kJ/mol. '+
+    'The forward barrier is '+EaF.toFixed(0)+' kJ/mol; the reverse barrier is '+EaR.toFixed(0)+' kJ/mol '+(exo?'(larger — the uphill direction)':'(smaller — the downhill direction)')+'. '+
+    (state.cat ? 'A catalyst provides a lower-energy path: E<sub>a</sub> drops to '+EaFcat.toFixed(0)+' kJ/mol, speeding BOTH directions — but ΔH is unchanged ('+(Hp>0?'+':'')+Hp.toFixed(0)+' kJ/mol). It can\'t shift the equilibrium position.'
+                : 'Add a catalyst to see the barrier drop while ΔH stays put.');
+}
+window.__onVizTheme = function(){ refresh(); };
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+document.getElementById('sEa').addEventListener('input', function(){ state.Ea=+this.value; refresh(); });
+document.getElementById('sdH').addEventListener('input', function(){ state.dHmag=+this.value; refresh(); });
+document.getElementById('cat').addEventListener('change', function(){ state.cat=this.checked; refresh(); });
+Array.prototype.forEach.call(document.getElementById('typeSeg').children, function(b){ b.addEventListener('click', function(){ state.type=b.dataset.type; refresh(); }); });
+
+/* ---- boot (optional ?type=exo|endo &cat=1) ---- */
+(function(){ var q=new URLSearchParams(location.search); var t=q.get('type'); if(t&&['exo','endo'].indexOf(t)>=0) state.type=t; if(q.get('cat')==='1'){ state.cat=true; document.getElementById('cat').checked=true; } })();
+refresh();
+</script>
+</body>
+</html>

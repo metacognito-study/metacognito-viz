@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chemical Kinetics — integrated rate laws</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 320px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 8px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.02rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+
+  .badge { display:inline-block; padding:3px 9px; border-radius:999px; font-size:.72rem; font-weight:700; }
+  .badge.linear { background: color-mix(in srgb, var(--correct) 22%, var(--surface)); color: var(--ink); }
+  .badge.curved { background: color-mix(in srgb, var(--amber) 22%, var(--surface)); color: var(--ink); }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Chemical Kinetics — integrated rate laws</h1>
+  <p class="viz-sub">Watch [A] fall over time, then switch the y-axis: the plot that turns into a <b>straight line</b> tells you the reaction order. <span class="pill" id="lawPill">1st order</span></p>
+
+  <div class="panel">
+    <div class="row" style="margin-bottom:6px">
+      <div class="seg" id="tabSeg" role="group" aria-label="view">
+        <button data-tab="conc" class="on" type="button">Concentration vs time</button>
+        <button data-tab="arr" type="button">Arrhenius (k vs T)</button>
+      </div>
+    </div>
+
+    <!-- conc-time controls -->
+    <div id="concCtl">
+      <div class="row">
+        <span style="font-size:.78rem;color:var(--muted);font-weight:600">Reaction order</span>
+        <div class="seg" id="orderSeg" role="group" aria-label="order">
+          <button data-order="0" type="button">Zero order</button>
+          <button data-order="1" class="on" type="button">First order</button>
+          <button data-order="2" type="button">Second order</button>
+        </div>
+        <span style="flex:1"></span>
+        <span style="font-size:.78rem;color:var(--muted);font-weight:600">Y-axis</span>
+        <div class="seg" id="plotSeg" role="group" aria-label="plot type">
+          <button data-plot="conc" class="on" type="button">[A]</button>
+          <button data-plot="ln" type="button">ln[A]</button>
+          <button data-plot="inv" type="button">1/[A]</button>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="control">
+          <label for="sk">Rate constant k = <b id="lk">0.020</b> <span id="kunit">s⁻¹</span></label>
+          <input type="range" id="sk" min="0.001" max="0.100" step="0.001" value="0.020">
+        </div>
+        <div class="control">
+          <label for="sA0">Initial [A]₀ = <b id="lA0">1.00</b> M</label>
+          <input type="range" id="sA0" min="0.10" max="2.00" step="0.05" value="1.00">
+        </div>
+      </div>
+    </div>
+
+    <!-- arrhenius controls -->
+    <div id="arrCtl" style="display:none">
+      <div class="controls">
+        <div class="control">
+          <label for="sEa">Activation energy E<sub>a</sub> = <b id="lEa">75</b> kJ/mol</label>
+          <input type="range" id="sEa" min="20" max="250" step="1" value="75">
+        </div>
+        <div class="control">
+          <label for="sApre">Pre-exponential A = <b id="lApre">1.0×10¹³</b> s⁻¹</label>
+          <input type="range" id="sApre" min="9" max="15" step="1" value="13">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legend-note" id="chartNote"></div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis" id="kpiBox"></div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   KINETICS ENGINE (SPEC §6/#5). t 0→300 s (clamped: prevents float artifacts).
+     0th: [A] = max(0, A0 − k·t)              k in M/s   ; [A] vs t is LINEAR
+     1st: [A] = A0·e^(−k·t)                   k in s⁻¹   ; ln[A] vs t is LINEAR
+     2nd: [A] = A0/(1 + k·t·A0)               k in M⁻¹s⁻¹; 1/[A] vs t is LINEAR
+   Half-life: 0th A0/2k ; 1st ln2/k (constant) ; 2nd 1/(k·A0).
+   Arrhenius (SPEC §8/#22): k = A·e^(−Ea/RT) → ln k = ln A − Ea/R · (1/T),
+   so ln k vs 1/T is a straight line of slope −Ea/R.
+   ===================================================================== */
+var TMAX=300, R=8.314;
+function conc(order,A0,k,t){
+  if(order===0) return Math.max(0, A0 - k*t);
+  if(order===1) return A0*Math.exp(-k*t);
+  return A0/(1 + k*t*A0);
+}
+var state = { tab:'conc', order:1, k:0.020, A0:1.00, Ea:75, lnApre:13 };
+var KUNIT = { 0:'M·s⁻¹', 1:'s⁻¹', 2:'M⁻¹s⁻¹' };
+var LINEAR_PLOT = { 0:'conc', 1:'ln', 2:'inv' };  // which y-transform is straight for each order
+var plotType = 'conc';
+
+function halfLife(){
+  if(state.order===0) return state.A0/(2*state.k);
+  if(state.order===1) return Math.LN2/state.k;
+  return 1/(state.k*state.A0);
+}
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+/* =====================================================================
+   CHART
+   ===================================================================== */
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'series', data:[], borderWidth:3, pointRadius:0, tension:0, parsing:false },
+    { label:'halflife', data:[], pointRadius:5, showLine:false, parsing:false }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return '('+c.parsed.x.toFixed(1)+', '+c.parsed.y.toFixed(3)+')'; } } } },
+    scales:{ x:{ type:'linear', min:0, max:TMAX, title:{display:true,text:'time (s)'} }, y:{ title:{display:true,text:''} } }
+  }
+});
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line'), indigo=tok('--indigo'), correct=tok('--correct'), amber=tok('--amber');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  // colour the main series: green if the current plot is the LINEAR one, indigo otherwise
+  var isLinearView = (state.tab==='conc' && plotType===LINEAR_PLOT[state.order]) || state.tab==='arr';
+  chart.data.datasets[0].borderColor = isLinearView ? correct : indigo;
+  chart.data.datasets[0].backgroundColor='transparent';
+  chart.data.datasets[1].pointBackgroundColor=amber; chart.data.datasets[1].pointBorderColor=amber;
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks={color:muted}; chart.options.scales[ax].title.color=muted; });
+  chart.update();
+}
+
+/* =====================================================================
+   BUILD conc-time series for the active plot type
+   ===================================================================== */
+function buildConc(){
+  var pts=[], N=200;
+  for(var i=0;i<=N;i++){
+    var t=TMAX*i/N, A=conc(state.order,state.A0,state.k,t), y;
+    if(plotType==='conc') y=A;
+    else if(plotType==='ln'){ if(A<=1e-6) continue; y=Math.log(A); }
+    else { if(A<=1e-6) continue; y=1/A; }
+    pts.push({x:t,y:y});
+  }
+  return pts;
+}
+
+function refresh(){
+  document.getElementById('concCtl').style.display = state.tab==='conc'?'':'none';
+  document.getElementById('arrCtl').style.display  = state.tab==='arr'?'':'none';
+
+  if(state.tab==='conc'){
+    // labels
+    document.getElementById('lk').textContent = state.k.toFixed(3);
+    document.getElementById('kunit').textContent = KUNIT[state.order];
+    document.getElementById('lA0').textContent = state.A0.toFixed(2);
+    document.getElementById('lawPill').textContent = ['Zero order','First order','Second order'][state.order];
+
+    var pts=buildConc();
+    chart.data.datasets[0].data = pts;
+    chart.options.scales.x.max = TMAX;
+    chart.options.scales.x.title.text = 'time (s)';
+    var yTitle = plotType==='conc'?'[A]  (M)' : (plotType==='ln'?'ln [A]':'1 / [A]  (M⁻¹)');
+    chart.options.scales.y.title.text = yTitle;
+
+    // half-life marker (only meaningful on the [A] view)
+    var th=halfLife();
+    if(plotType==='conc' && th<=TMAX){ chart.data.datasets[1].data=[{x:th, y:state.A0/2}]; }
+    else chart.data.datasets[1].data=[];
+
+    reskinChart();
+
+    var isLinear = (plotType===LINEAR_PLOT[state.order]);
+    var badge = isLinear ? '<span class="badge linear">STRAIGHT LINE — this is the giveaway for '+['zero','first','second'][state.order]+' order</span>'
+                         : '<span class="badge curved">curved — try another y-axis to find the straight line</span>';
+    document.getElementById('chartNote').innerHTML = badge;
+
+    // KPIs
+    var slopeTxt = state.order===0 ? '−k' : (state.order===1?'−k':'+k');
+    document.getElementById('kpiBox').innerHTML =
+      '<div class="kpi"><div class="lab">Half-life t½</div><div class="num">'+halfLife().toFixed(1)+' <small>s</small></div></div>'+
+      '<div class="kpi"><div class="lab">Linear plot</div><div class="num" style="font-size:.86rem">'+({conc:'[A] vs t',ln:'ln[A] vs t',inv:'1/[A] vs t'})[LINEAR_PLOT[state.order]]+'</div></div>'+
+      '<div class="kpi"><div class="lab">Slope of linear plot</div><div class="num">'+slopeTxt+'</div></div>';
+
+    var hl = state.order===1 ? 'For first order the half-life is <b>constant</b> ('+halfLife().toFixed(1)+' s) — it never depends on concentration.'
+           : state.order===0 ? 'For zero order the half-life <b>shrinks</b> as the reaction proceeds (depends on [A]₀).'
+           : 'For second order the half-life <b>grows</b> as [A] falls (depends on [A]₀).';
+    document.getElementById('explain').innerHTML =
+      'Plot '+yTitle+' against time. It is straight only for <b>'+['zero','first','second'][state.order]+' order</b> (slope '+slopeTxt+'). '+hl;
+
+    // active buttons
+    Array.prototype.forEach.call(document.getElementById('orderSeg').children, function(b){ b.classList.toggle('on', +b.dataset.order===state.order); });
+    Array.prototype.forEach.call(document.getElementById('plotSeg').children, function(b){ b.classList.toggle('on', b.dataset.plot===plotType); });
+
+  } else {
+    refreshArr();
+  }
+  Array.prototype.forEach.call(document.getElementById('tabSeg').children, function(b){ b.classList.toggle('on', b.dataset.tab===state.tab); });
+}
+
+/* =====================================================================
+   ARRHENIUS tab — ln k vs 1/T, slope = −Ea/R
+   ===================================================================== */
+function refreshArr(){
+  document.getElementById('lEa').textContent = state.Ea;
+  document.getElementById('lApre').innerHTML = '1.0×10'+sup(Math.round(state.lnApre));
+  var Apre = Math.pow(10, state.lnApre), EaJ = state.Ea*1000;
+  var pts=[]; var N=120;
+  var Tlo=250, Thi=500;
+  for(var i=0;i<=N;i++){
+    var T=Tlo+(Thi-Tlo)*i/N;
+    var k=Apre*Math.exp(-EaJ/(R*T));
+    pts.push({ x:1/T, y:Math.log(k) });
+  }
+  chart.data.datasets[0].data=pts;
+  chart.data.datasets[1].data=[];
+  chart.options.scales.x.min = 1/Thi; chart.options.scales.x.max = 1/Tlo;
+  chart.options.scales.x.title.text = '1 / T   (K⁻¹)';
+  chart.options.scales.y.title.text = 'ln k';
+  reskinChart();
+
+  var slope = -EaJ/R;                     // exact slope of ln k vs 1/T
+  var k298 = Apre*Math.exp(-EaJ/(R*298));
+  document.getElementById('chartNote').innerHTML = '<span class="badge linear">Always straight: ln k = ln A − (E<sub>a</sub>/R)·(1/T)</span>';
+  document.getElementById('kpiBox').innerHTML =
+    '<div class="kpi"><div class="lab">Slope (−E<sub>a</sub>/R)</div><div class="num">'+slope.toFixed(0)+' <small>K</small></div></div>'+
+    '<div class="kpi"><div class="lab">E<sub>a</sub> from slope</div><div class="num">'+(-slope*R/1000).toFixed(0)+' <small>kJ/mol</small></div></div>'+
+    '<div class="kpi"><div class="lab">k at 298 K</div><div class="num">'+k298.toExponential(2)+' <small>s⁻¹</small></div></div>';
+  document.getElementById('explain').innerHTML =
+    'Taking ln of k = A·e^(−E<sub>a</sub>/RT) gives a straight line of <b>slope −E<sub>a</sub>/R</b> and intercept ln A. A higher E<sub>a</sub> → steeper (more negative) slope → k rises faster as you heat the reaction. Recovered E<sub>a</sub> = −slope×R = <b>'+(-slope*R/1000).toFixed(0)+' kJ/mol</b>.';
+}
+function sup(n){ var m={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'}; return String(n).split('').map(function(c){return m[c]||c;}).join(''); }
+
+window.__onVizTheme = function(){ refresh(); };
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+document.getElementById('sk').addEventListener('input', function(){ state.k=+this.value; refresh(); });
+document.getElementById('sA0').addEventListener('input', function(){ state.A0=+this.value; refresh(); });
+document.getElementById('sEa').addEventListener('input', function(){ state.Ea=+this.value; refresh(); });
+document.getElementById('sApre').addEventListener('input', function(){ state.lnApre=+this.value; refresh(); });
+Array.prototype.forEach.call(document.getElementById('orderSeg').children, function(b){ b.addEventListener('click', function(){ state.order=+b.dataset.order; refresh(); }); });
+Array.prototype.forEach.call(document.getElementById('plotSeg').children, function(b){ b.addEventListener('click', function(){ plotType=b.dataset.plot; refresh(); }); });
+Array.prototype.forEach.call(document.getElementById('tabSeg').children, function(b){ b.addEventListener('click', function(){ state.tab=b.dataset.tab; refresh(); }); });
+
+/* ---- boot (optional deep-links: ?tab=conc|arr &order=0|1|2 &plot=conc|ln|inv) ---- */
+(function(){
+  var q=new URLSearchParams(location.search);
+  var tb=q.get('tab'); if(tb&&['conc','arr'].indexOf(tb)>=0) state.tab=tb;
+  var o=q.get('order'); if(o!=null&&['0','1','2'].indexOf(o)>=0) state.order=+o;
+  var pl=q.get('plot'); if(pl&&['conc','ln','inv'].indexOf(pl)>=0) plotType=pl;
+})();
+refresh();
+</script>
+</body>
+</html>

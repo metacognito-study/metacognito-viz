@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VSEPR — molecular geometry (3D)</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1));
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; }
+  @media (max-width: 680px){ .grid2 { grid-template-columns: 1fr; } }
+
+  /* molecule chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+    font: inherit; font-size: .8rem; padding: 7px 11px; min-height: 40px; border-radius: 999px; cursor: pointer;
+    transition: transform .08s ease;
+  }
+  .chip:active { transform: scale(.93); }
+  .chip.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; border-color: transparent; }
+  .chip small { opacity: .8; font-weight: 500; }
+
+  canvas#mol { width: 100%; height: auto; display: block; touch-action: none; cursor: grab; }
+  canvas#mol:active { cursor: grabbing; }
+
+  .kpis { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .kpi {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 9px 11px; text-align: left;
+  }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.0rem; font-weight: 700; color: var(--ink); line-height: 1.25; }
+  .kpi .num small { font-size: .62rem; color: var(--muted); font-weight: 600; }
+
+  .axe {
+    display:inline-flex; gap:8px; align-items:center; font-size:.84rem; color:var(--ink);
+    background: var(--indigo-soft); border-radius:10px; padding:6px 10px; margin-top:2px;
+  }
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .dotk { display:inline-block; width:12px; height:12px; border-radius:50%; vertical-align:middle; margin-right:5px; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px; }
+  .ca-play-btn {
+    border: none; cursor: pointer; color: #fff;
+    background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a);
+    border-radius: 999px; padding: 9px 16px; min-height: 44px;
+    font: inherit; font-weight: 700;
+    box-shadow: 0 2px 7px rgba(33,48,86,.22);
+    transition: transform .1s ease, filter .15s ease;
+  }
+  .ca-play-btn:active { transform: scale(.93); }
+  .ca-play-btn.ghost { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); box-shadow: none; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">VSEPR — electron domains set the 3D shape</h1>
+  <p class="viz-sub">Electron domains (bonds + lone pairs) repel to get as far apart as possible. Lone pairs are invisible in the final shape but still push the bonds. Drag the model to rotate.</p>
+
+  <div class="panel">
+    <div style="font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:8px">Pick a molecule</div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <canvas id="mol" width="520" height="440" aria-label="3D molecular geometry"></canvas>
+      <div class="controls">
+        <button class="ca-play-btn ghost" id="spinBtn" type="button">Spin: off</button>
+        <button class="ca-play-btn ghost" id="resetBtn" type="button">Reset view</button>
+        <span class="legend-note" style="margin:0">Drag to rotate in 3D.</span>
+      </div>
+      <div class="legendrow">
+        <span><span class="dotk" id="kc"></span><b>Central atom</b></span>
+        <span><span class="dotk" id="kb"></span><b>Bonded atom</b></span>
+        <span><span class="dotk" id="kl"></span><b>Lone pair</b></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="kpis">
+        <div class="kpi"><div class="lab">Molecule</div><div class="num" id="kMol">—</div></div>
+        <div class="kpi"><div class="lab">AXₘEₙ notation</div><div class="num"><span class="axe" id="kAxe">—</span></div></div>
+        <div class="kpi"><div class="lab">Electron-domain geometry</div><div class="num" id="kEgeom">—</div></div>
+        <div class="kpi"><div class="lab">Molecular shape</div><div class="num" id="kMgeom">—</div></div>
+        <div class="kpi"><div class="lab">Bond angle(s)</div><div class="num" id="kAngle">—</div></div>
+      </div>
+      <div class="legend-note" id="noteLine"></div>
+    </div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ?theme=&font=&scale=  +  postMessage({theme,font,scale}) → data-* on <html>.
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){
+    var t = (st.theme === null || st.theme === 'default') ? '' : String(st.theme);
+    if (THEMES.indexOf(t) < 0) t = '';
+    root.setAttribute('data-theme', t);
+  }
+  if (st.font !== undefined){
+    var f = String(st.font || 'lexend');
+    if (FONTS.indexOf(f) < 0) f = 'lexend';
+    root.setAttribute('data-font', f);
+  }
+  if (st.scale !== undefined){
+    root.style.setProperty('--viz-scale', String(clampScale(st.scale)));
+  }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){
+  var q = new URLSearchParams(location.search);
+  applyState({ theme: q.get('theme'), font: q.get('font') || 'lexend', scale: q.get('scale') || 1 });
+})();
+window.addEventListener('message', function(e){
+  var d = e && e.data;
+  if (!d || typeof d !== 'object') return;
+  if (!('theme' in d) && !('font' in d) && !('scale' in d)) return;
+  applyState(d);
+});
+
+/* =====================================================================
+   VSEPR DATA (AP-correct). Electron-domain geometries provide the ideal
+   domain directions; lone pairs occupy specific domains (equatorial first
+   for SN5; trans for SN6 square planar). The molecular SHAPE is the bonded
+   atoms only — but lone pairs still set their positions (shown faintly).
+   Ideal angles are the electron-geometry angles; where lone-pair repulsion
+   compresses the real angle (NH₃ 107°, H₂O 104.5°), the real value is given.
+   ===================================================================== */
+var R3 = Math.sqrt(3);
+var GEOM = {
+  2: [[1,0,0],[-1,0,0]],
+  3: [[1,0,0],[-0.5, 0.8660254,0],[-0.5,-0.8660254,0]],
+  4: [[1/R3,1/R3,1/R3],[1/R3,-1/R3,-1/R3],[-1/R3,1/R3,-1/R3],[-1/R3,-1/R3,1/R3]],
+  5: [[1,0,0],[-0.5,0.8660254,0],[-0.5,-0.8660254,0],[0,0,1],[0,0,-1]],
+  6: [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]
+};
+// each case: sn, lpIdx (indices in GEOM[sn] that are lone pairs)
+var CASES = [
+  {id:'CO2',  formula:'CO₂',  sn:2, lpIdx:[],     X:2,E:0, eGeom:'Linear',               mGeom:'Linear',              angle:'180°',          note:'2 domains push to opposite ends — a straight line.'},
+  {id:'BF3',  formula:'BF₃',  sn:3, lpIdx:[],     X:3,E:0, eGeom:'Trigonal planar',       mGeom:'Trigonal planar',     angle:'120°',          note:'3 bonding domains spread 120° apart in one flat plane.'},
+  {id:'SO2',  formula:'SO₂',  sn:3, lpIdx:[1],    X:2,E:1, eGeom:'Trigonal planar',       mGeom:'Bent',                angle:'≈119° (<120°)', note:'One domain is a lone pair → only 2 atoms show → bent. The lone pair squeezes the angle just under 120°.'},
+  {id:'CH4',  formula:'CH₄',  sn:4, lpIdx:[],     X:4,E:0, eGeom:'Tetrahedral',           mGeom:'Tetrahedral',         angle:'109.5°',        note:'4 bonding domains point to the corners of a tetrahedron.'},
+  {id:'NH3',  formula:'NH₃',  sn:4, lpIdx:[3],    X:3,E:1, eGeom:'Tetrahedral',           mGeom:'Trigonal pyramidal',  angle:'≈107°',         note:'1 lone pair on a tetrahedral vertex → the 3 bonds form a pyramid. Lone-pair repulsion compresses 109.5° → ~107°.'},
+  {id:'H2O',  formula:'H₂O',  sn:4, lpIdx:[2,3],  X:2,E:2, eGeom:'Tetrahedral',           mGeom:'Bent',                angle:'≈104.5°',       note:'2 lone pairs → only 2 bonds show → bent. Two lone pairs compress the angle to ~104.5°.'},
+  {id:'PCl5', formula:'PCl₅', sn:5, lpIdx:[],     X:5,E:0, eGeom:'Trigonal bipyramidal',  mGeom:'Trigonal bipyramidal',angle:'90° & 120°',    note:'3 equatorial (120° apart) + 2 axial (90° to the plane). Two different angles.'},
+  {id:'SF4',  formula:'SF₄',  sn:5, lpIdx:[0],    X:4,E:1, eGeom:'Trigonal bipyramidal',  mGeom:'Seesaw',              angle:'≈90° & ≈120° (≤)',note:'The lone pair takes an EQUATORIAL spot (most room) → seesaw shape.'},
+  {id:'ClF3', formula:'ClF₃', sn:5, lpIdx:[0,1],  X:3,E:2, eGeom:'Trigonal bipyramidal',  mGeom:'T-shaped',            angle:'≈90°',          note:'2 lone pairs take equatorial spots → the 3 bonds make a T.'},
+  {id:'XeF2', formula:'XeF₂', sn:5, lpIdx:[0,1,2],X:2,E:3, eGeom:'Trigonal bipyramidal',  mGeom:'Linear',              angle:'180°',          note:'All 3 equatorial spots are lone pairs → the 2 bonds are axial → linear.'},
+  {id:'SF6',  formula:'SF₆',  sn:6, lpIdx:[],     X:6,E:0, eGeom:'Octahedral',            mGeom:'Octahedral',          angle:'90°',           note:'6 bonding domains at the corners of an octahedron, all 90°.'},
+  {id:'BrF5', formula:'BrF₅', sn:6, lpIdx:[5],    X:5,E:1, eGeom:'Octahedral',            mGeom:'Square pyramidal',    angle:'≈90°',          note:'1 lone pair removes one octahedral vertex → square pyramid.'},
+  {id:'XeF4', formula:'XeF₄', sn:6, lpIdx:[4,5],  X:4,E:2, eGeom:'Octahedral',            mGeom:'Square planar',       angle:'90°',           note:'2 lone pairs sit TRANS (opposite) → the 4 bonds are a flat square.'}
+];
+function caseById(id){ for (var i=0;i<CASES.length;i++) if (CASES[i].id===id) return CASES[i]; return CASES[0]; }
+
+/* =====================================================================
+   CANVAS 3D — rotate domain vectors, project with perspective, painter's sort.
+   All colours pulled from CSS tokens each frame (theme-native).
+   ===================================================================== */
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+var cv = document.getElementById('mol'), ctx = cv.getContext('2d');
+var W = cv.width, Hh = cv.height;
+var ax = -0.45, ay = 0.6;            // view rotation (radians) — isometric-ish start
+var cur = CASES[0];
+var spinning = false, spinRAF = null;
+
+function rotate(p){
+  var x=p[0], y=p[1], z=p[2];
+  // rotate about Y
+  var x1 = x*Math.cos(ay) + z*Math.sin(ay);
+  var z1 = -x*Math.sin(ay) + z*Math.cos(ay);
+  var y1 = y;
+  // rotate about X
+  var y2 = y1*Math.cos(ax) - z1*Math.sin(ax);
+  var z2 = y1*Math.sin(ax) + z1*Math.cos(ax);
+  return [x1, y2, z2];
+}
+function project(p){
+  var r = rotate(p);
+  var focal = 3.4;
+  var s = focal / (focal - r[2]);     // perspective: nearer (z big) → larger
+  return { x: W/2 + r[0]*BOND*s, y: Hh/2 - r[1]*BOND*s, z: r[2], s: s };
+}
+var BOND = 130;                        // bond length in px
+
+function shade(hex, k){                 // lighten(k>0)/darken(k<0) a token color for depth cue
+  var c=hex.trim(), r,g,b;
+  if (c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; r=parseInt(c.substr(1,2),16);g=parseInt(c.substr(3,2),16);b=parseInt(c.substr(5,2),16); }
+  else { var m=c.match(/rgba?\(([^)]+)\)/); var p=m?m[1].split(',').map(parseFloat):[128,128,128]; r=p[0];g=p[1];b=p[2]; }
+  function ch(v){ v = k>=0 ? v+(255-v)*k : v*(1+k); return Math.max(0,Math.min(255,Math.round(v))); }
+  return 'rgb('+ch(r)+','+ch(g)+','+ch(b)+')';
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,Hh);
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  var cCol=tok('--indigo'), bCol=tok('--correct'), lCol=tok('--flag');
+
+  // build render nodes for each domain
+  var V = GEOM[cur.sn];
+  var nodes = V.map(function(v, i){
+    var isLp = cur.lpIdx.indexOf(i) >= 0;
+    var len = isLp ? 0.62 : 1.0;                 // lone pairs drawn a bit closer
+    var p = project([v[0]*len, v[1]*len, v[2]*len]);
+    return { p:p, isLp:isLp, v:v };
+  });
+  // center
+  var c0 = project([0,0,0]);
+
+  // sort by depth (z): far first
+  var order = nodes.map(function(_,i){return i;}).sort(function(a,b){ return nodes[a].p.z - nodes[b].p.z; });
+
+  function drawBond(n){
+    ctx.beginPath(); ctx.moveTo(c0.x,c0.y); ctx.lineTo(n.p.x,n.p.y);
+    ctx.lineWidth = 4 * n.p.s * 0.6; ctx.strokeStyle = shade(line, 0.0);
+    ctx.strokeStyle = ink; ctx.globalAlpha = n.isLp ? 0.0 : 0.55; ctx.stroke(); ctx.globalAlpha=1;
+  }
+  function drawNode(n){
+    if (n.isLp){
+      // lone pair = translucent lobe (ellipse) + two electron dots, in --flag
+      var rr = 26 * n.p.s;
+      ctx.save(); ctx.translate(n.p.x, n.p.y);
+      var ang = Math.atan2(n.p.y - c0.y, n.p.x - c0.x);
+      ctx.rotate(ang);
+      ctx.globalAlpha = 0.30; ctx.fillStyle = lCol;
+      ctx.beginPath(); ctx.ellipse(0,0, rr*0.95, rr*0.6, 0, 0, 7); ctx.fill();
+      ctx.globalAlpha = 1; ctx.fillStyle = lCol;
+      ctx.beginPath(); ctx.arc(-rr*0.30,0, 2.4*n.p.s,0,7); ctx.fill();
+      ctx.beginPath(); ctx.arc( rr*0.30,0, 2.4*n.p.s,0,7); ctx.fill();
+      ctx.restore();
+    } else {
+      var r = 16 * n.p.s;
+      var g = ctx.createRadialGradient(n.p.x-r*0.3, n.p.y-r*0.3, r*0.2, n.p.x, n.p.y, r);
+      g.addColorStop(0, shade(bCol, 0.35)); g.addColorStop(1, shade(bCol, -0.12));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(n.p.x,n.p.y, r,0,7); ctx.fill();
+      ctx.lineWidth=1; ctx.strokeStyle=shade(bCol,-0.3); ctx.stroke();
+    }
+  }
+  function drawCenter(){
+    var r = 22 * c0.s;
+    var g = ctx.createRadialGradient(c0.x-r*0.3, c0.y-r*0.3, r*0.2, c0.x, c0.y, r);
+    g.addColorStop(0, shade(cCol, 0.4)); g.addColorStop(1, shade(cCol, -0.15));
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(c0.x,c0.y,r,0,7); ctx.fill();
+    ctx.lineWidth=1.5; ctx.strokeStyle=shade(cCol,-0.35); ctx.stroke();
+  }
+
+  // draw bonds first (behind), then nodes back-to-front with the centre in the middle
+  order.forEach(function(i){ if(!nodes[i].isLp) drawBond(nodes[i]); });
+  // back half
+  order.forEach(function(i){ if (nodes[i].p.z < 0) drawNode(nodes[i]); });
+  drawCenter();
+  order.forEach(function(i){ if (nodes[i].p.z >= 0) drawNode(nodes[i]); });
+
+  // shape caption
+  ctx.fillStyle = muted; ctx.font='12px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='center';
+  ctx.fillText(cur.formula+'  ·  '+cur.mGeom, W/2, Hh-10);
+}
+
+/* =====================================================================
+   READOUT + legend
+   ===================================================================== */
+function renderReadout(){
+  document.getElementById('kMol').textContent = cur.formula;
+  document.getElementById('kAxe').textContent = 'AX'+cur.X + (cur.E? 'E'+cur.E : '') + '  ('+cur.X+' bond'+(cur.X!==1?'s':'')+', '+cur.E+' lone pair'+(cur.E!==1?'s':'')+')';
+  document.getElementById('kEgeom').textContent = cur.eGeom;
+  document.getElementById('kMgeom').textContent = cur.mGeom;
+  document.getElementById('kAngle').textContent = cur.angle;
+  document.getElementById('noteLine').innerHTML = cur.note;
+  // legend swatches
+  document.getElementById('kc').style.background = tok('--indigo');
+  document.getElementById('kb').style.background = tok('--correct');
+  document.getElementById('kl').style.background = tok('--flag');
+  // active chip
+  Array.prototype.forEach.call(document.getElementById('chips').children, function(ch){ ch.classList.toggle('on', ch.dataset.id===cur.id); });
+}
+
+/* ---- build molecule chips ---- */
+var chipsEl = document.getElementById('chips');
+CASES.forEach(function(c){
+  var b=document.createElement('button'); b.type='button'; b.className='chip'; b.dataset.id=c.id;
+  b.innerHTML = c.formula + ' <small>'+c.mGeom+'</small>';
+  b.addEventListener('click', function(){ cur=c; renderReadout(); draw(); });
+  chipsEl.appendChild(b);
+});
+
+/* =====================================================================
+   INTERACTION — drag to rotate; spin toggle; reset
+   ===================================================================== */
+var dragging=false, lastX=0, lastY=0;
+cv.addEventListener('pointerdown', function(e){ dragging=true; lastX=e.clientX; lastY=e.clientY; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', function(e){
+  if(!dragging) return;
+  ay += (e.clientX-lastX)*0.01; ax += (e.clientY-lastY)*0.01;
+  ax = Math.max(-1.4, Math.min(1.4, ax));
+  lastX=e.clientX; lastY=e.clientY; draw();
+});
+cv.addEventListener('pointerup', function(){ dragging=false; });
+cv.addEventListener('pointercancel', function(){ dragging=false; });
+
+document.getElementById('resetBtn').addEventListener('click', function(){ ax=-0.45; ay=0.6; draw(); });
+document.getElementById('spinBtn').addEventListener('click', function(){
+  spinning=!spinning; this.textContent='Spin: '+(spinning?'on':'off');
+  if (spinning){ var step=function(){ if(!spinning) return; ay+=0.012; draw(); spinRAF=requestAnimationFrame(step); }; step(); }
+  else if (spinRAF){ cancelAnimationFrame(spinRAF); spinRAF=null; }
+});
+
+window.__onVizTheme = function(){ renderReadout(); draw(); };
+
+/* ---- boot (optional ?mol= deep-link, e.g. for the parent registry) ---- */
+(function(){
+  var m = new URLSearchParams(location.search).get('mol');
+  if (m){ var c = CASES.filter(function(x){ return x.id.toLowerCase()===String(m).toLowerCase(); })[0]; if (c) cur = c; }
+})();
+renderReadout();
+draw();
+</script>
+</body>
+</html>

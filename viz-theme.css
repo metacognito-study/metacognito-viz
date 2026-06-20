@@ -1,0 +1,117 @@
+/* ============================================================================
+   viz-theme.css — SINGLE SOURCE OF TRUTH for visualizer theming.
+   ----------------------------------------------------------------------------
+   Tokens extracted VERBATIM from the student app
+   (_optimized_build/metacognito-app/Index.html, :root + every [data-theme] +
+   every [data-font] block). DO NOT hand-edit values here — re-extract from the
+   app if the app's tokens change, so visualizers stay pixel-identical to the app.
+
+   Every visualizer iframe links this file. It re-themes by toggling
+   data-theme / data-font on its OWN <html> (the shell harness does this from
+   ?theme=&font=&scale= + postMessage). Charts read these tokens via
+   getComputedStyle — never hardcode a color/font in a viz.
+
+   NOTE on the html-vs-body difference: the app sets data-theme/data-font on
+   <body>. The selectors below are attribute selectors ([data-theme=...]) so
+   they apply equally whether set on <html> or <body>. The shell sets them on
+   <html> (document.documentElement). The one body-scoped rule in the app
+   (body[data-theme="metallic"] radial gradient) is re-expressed here as a
+   :root[data-theme="metallic"] background on <html> so the metallic glow still
+   appears inside the iframe.
+   ============================================================================ */
+
+/* --- App fonts (same Google Fonts request the app issues in ensureFontsLoaded). --- */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Quicksand:wght@400;500;600;700&family=Comfortaa:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Shantell+Sans:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap');
+
+/* ============================== DEFAULT (light) ============================== */
+/* Verbatim from app :root { ... } */
+:root {
+  --peer: #6366f1;
+  --app-font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --chrome-font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --ink: #18213a;
+  --muted: #606b84;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --shell: rgba(255, 255, 255, 0.85);
+  --page: #f6f8fc;
+  --line: #e5eaf2;
+  --indigo: #5545e8;
+  --indigo-soft: #eef0ff;
+  --green: #12ba83;
+  --green-soft: #effcf7;
+  --amber: #f5b526;
+  --amber-soft: #fffaf0;
+  --rose: #f43f61;
+  --rose-aa: color-mix(in srgb, var(--rose) 72%, var(--ink));   /* B20-496 R171: WCAG-AA small-text rose; derives per theme via --ink (verified by wcag_audit across all 8 themes) */
+  --rose-soft: #fff7f8;
+  --correct: #0e8f86;
+  --flag: #9b3bd4;
+  --cue: var(--amber);   /* P1: example-cue invitation (same value as --amber; own name so channels can diverge) */
+  --teal: var(--correct);   /* P1: unlock / forward-connection accent */
+  --bottom-nav-height: 64px;
+  --scrubber-height: 0px;   /* B20-192 scrubber removed */
+  --shadow: 0 10px 30px rgba(33, 48, 86, 0.08);
+  --banner: linear-gradient(135deg, #2e287a, #181d3c);
+
+  /* viz-only: font-scale token the shell drives from ?scale / postMessage.
+     App range is 0.85–1.4 (UI_SCALE_MIN..UI_SCALE_MAX). Visualizer bodies use
+     font-size: calc(1rem * var(--viz-scale)) so controls + chart text scale. */
+  --viz-scale: 1;
+}
+
+/* ============================== THEMES (verbatim) ============================== */
+[data-theme="dark"] {
+  --ink: #edf0f5; --muted: #aab2c0; --surface: #1d212a; --surface-2: #272c36;
+  --shell: rgba(12, 14, 18, 0.98); --page: #0d0f13; --line: #343a45;
+  --indigo: #8f84ff; --indigo-soft: #262a52;
+  --green-soft: #112a20; --amber-soft: #2b2410; --rose-soft: #2d1620;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+[data-theme="pink"] {
+  --page: #fdf2f8; --surface-2: #fbeaf2; --indigo: #db2777; --indigo-soft: #fce7f3;
+  --shell: rgba(255, 255, 255, 0.80); --banner: linear-gradient(135deg, #a3286e, #6d1c4b);
+}
+[data-theme="blue"] {
+  --page: #eef6ff; --surface-2: #e6f1ff; --indigo: #2563eb; --indigo-soft: #dbeafe;
+  --shell: rgba(255, 255, 255, 0.80); --banner: linear-gradient(135deg, #2552b0, #16306e);
+}
+[data-theme="mint"] {
+  --page: #eafaf3; --surface-2: #dcf5ea; --indigo: #0e9e76; --indigo-soft: #d3f3e6;
+  --shell: rgba(255, 255, 255, 0.78); --banner: linear-gradient(135deg, #097053, #054539);   /* B20-207 deepened for AA white text */
+}
+[data-theme="purple"] {
+  --page: #f7f1ff; --surface-2: #efe6ff; --indigo: #7c3aed; --indigo-soft: #ece2ff;
+  --shell: rgba(255, 255, 255, 0.80); --banner: linear-gradient(135deg, #6d28d9, #3a1d8f);
+}
+[data-theme="mango"] {
+  --page: #fff6e9; --surface-2: #ffedd6; --indigo: #e2690f; --indigo-soft: #ffe3c4;
+  --shell: rgba(255, 255, 255, 0.82); --banner: linear-gradient(135deg, #9c4408, #6f3105);   /* B20-207 deepened for AA white text */
+}
+[data-theme="metallic"] {
+  --ink: #eef1f8; --muted: #a7b0c5; --surface: #161a26; --surface-2: #1e2435;
+  --shell: rgba(16, 20, 32, 0.78); --page: #0a0e1a; --line: #2c3346;
+  --indigo: #7a68ee; --indigo-soft: #241f47;
+  --green-soft: #0f2a22; --amber-soft: #2b2410; --rose-soft: #2d1620;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --banner: linear-gradient(135deg, #6d28d9, #1e3a8a 55%, #0e7490);
+}
+/* Re-express the app's body[data-theme="metallic"] glow on <html> for the iframe.
+   (App rule was body-scoped; the shell sets data-theme on <html>, so scope it there.) */
+:root[data-theme="metallic"], body[data-theme="metallic"] {
+  background:
+    radial-gradient(1100px 560px at 12% -8%, rgba(139, 92, 246, 0.34), transparent 60%),
+    radial-gradient(950px 520px at 112% 6%, rgba(34, 211, 238, 0.26), transparent 56%),
+    radial-gradient(820px 680px at 50% 118%, rgba(16, 185, 129, 0.20), transparent 60%),
+    var(--page);
+  background-attachment: fixed;
+}
+
+/* ============================== FONTS (verbatim) ============================== */
+[data-font="lexend"]    { --app-font: 'Lexend', ui-sans-serif, system-ui, sans-serif; }
+[data-font="quicksand"] { --app-font: 'Quicksand', ui-rounded, system-ui, sans-serif; }
+[data-font="comfortaa"] { --app-font: 'Comfortaa', ui-rounded, system-ui, sans-serif; }
+[data-font="lora"]      { --app-font: 'Lora', Georgia, 'Times New Roman', serif; }
+[data-font="shantell"]  { --app-font: 'Shantell Sans', ui-rounded, system-ui, sans-serif; }
+[data-font="caveat"]    { --app-font: 'Caveat', 'Segoe Print', cursive; }
+[data-font="gaegu"]     { --app-font: 'Gaegu', 'Comic Sans MS', cursive; }

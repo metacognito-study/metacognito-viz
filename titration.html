@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Acid–Base Titration curve</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 320px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 4px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.02rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .dash { display:inline-block; width:16px; height:0; border-top:2px dashed currentColor; vertical-align:middle; margin-right:5px; }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:middle; margin-right:5px; border:1px solid var(--line); }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Acid–Base Titration curve</h1>
+  <p class="viz-sub">50.0 mL of analyte in the flask, titrant from the burette. The volume is solved from a full charge balance (never pH from V), so the curve stays smooth at the extremes. <span class="pill">25 °C, K_w = 1.0×10⁻¹⁴</span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Titration type</span>
+      <div class="seg" id="modeSeg" role="group" aria-label="titration type">
+        <button data-mode="sasb" class="on" type="button">Strong acid + strong base</button>
+        <button data-mode="wasb" type="button">Weak acid + strong base</button>
+        <button data-mode="wbsa" type="button">Weak base + strong acid</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="sCa">Analyte conc C<sub>a</sub> = <b id="lCa">0.10</b> M</label>
+        <input type="range" id="sCa" min="0.01" max="0.50" step="0.01" value="0.10">
+      </div>
+      <div class="control">
+        <label for="sCb">Titrant conc C<sub>t</sub> = <b id="lCb">0.10</b> M</label>
+        <input type="range" id="sCb" min="0.01" max="0.50" step="0.01" value="0.10">
+      </div>
+      <div class="control" id="cK">
+        <label for="sK"><span id="kName">K<sub>a</sub></span> = <b id="lK">1.0×10⁻⁵</b> &nbsp;(<span id="pkName">pK<sub>a</sub></span> <b id="lpK">5.0</b>)</label>
+        <input type="range" id="sK" min="-11" max="-1" step="0.1" value="-5">
+      </div>
+    </div>
+    <div class="legend-note" id="kHint"></div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow">
+      <span style="color:var(--rose)"><span class="dash"></span><b>Equivalence point</b></span>
+      <span style="color:var(--amber)"><span class="dash"></span><b id="halfLeg">Half-equivalence (pH = pK<sub>a</sub>)</b></span>
+      <span id="bufLeg" style="color:var(--indigo)"><span class="sw" style="background:var(--indigo-soft)"></span><b>Buffer region</b></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis">
+      <div class="kpi"><div class="lab">Equivalence volume</div><div class="num"><span id="kVeq">—</span> <small>mL</small></div></div>
+      <div class="kpi"><div class="lab">Equivalence pH</div><div class="num" id="kpHeq">—</div></div>
+      <div class="kpi"><div class="lab">Best indicator</div><div class="num" id="kInd" style="font-size:.86rem">—</div></div>
+    </div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   TITRATION ENGINE — solve VOLUME from pH via charge balance (SPEC §6/#1).
+   ---------------------------------------------------------------------
+   Weak acid HA (Ca, Va) titrated with strong base (Cb):
+     Vb = Va·( Ca·Ka/([H+]+Ka) + Kw/[H+] − [H+] ) / ( Cb + [H+] − Kw/[H+] )
+   Strong acid = same formula with Ka → ∞ (α = Ka/([H+]+Ka) → 1).
+   Weak base (Kb, Ca, Va) titrated with strong acid (Cb): by H+/OH- symmetry,
+     Vacid = Va·( Ca·Kb/([OH-]+Kb) + Kw/[OH-] − [OH-] ) / ( Cb + [OH-] − Kw/[OH-] )
+   loop pOH, pH = 14 − pOH. Equivalence volume Veq = Ca·Va/Cb (stoichiometric).
+   Loop the driving variable 1.00→13.00 step 0.05, discard V<0 or V>100, drop
+   non-finite — this never blows up at the asymptotes (the reason we solve V, not pH).
+   ===================================================================== */
+var Kw = 1e-14, Va = 50.0;        // mL analyte
+var SA_K = 1e3;                    // "infinite" Ka/Kb for strong species
+
+var state = { mode:'sasb', Ca:0.10, Cb:0.10, K:1e-5 };
+
+function curve(){
+  var Ca=state.Ca, Cb=state.Cb, K=state.K, pts=[];
+  var baseMode = (state.mode==='wbsa');
+  var strong   = (state.mode==='sasb');
+  var Keff = strong ? SA_K : K;
+  for (var p=1.00; p<=13.0001; p+=0.05){
+    var V, pH;
+    if (!baseMode){
+      var H = Math.pow(10,-p);
+      V = Va*( Ca*Keff/(H+Keff) + Kw/H - H ) / ( Cb + H - Kw/H );
+      pH = p;
+    } else {
+      var pOH = p, OH = Math.pow(10,-pOH);
+      V = Va*( Ca*Keff/(OH+Keff) + Kw/OH - OH ) / ( Cb + OH - Kw/OH );
+      pH = 14 - pOH;
+    }
+    if (!isFinite(V) || V<0 || V>100) continue;
+    pts.push({ x:V, y:pH });
+  }
+  pts.sort(function(a,b){ return a.x-b.x; });
+  return pts;
+}
+function Veq(){ return state.Ca*Va/state.Cb; }          // mL
+// interpolate pH on the curve at a given volume
+function pHatV(pts, V){
+  if (!pts.length) return null;
+  for (var i=1;i<pts.length;i++){ if (pts[i].x>=V){ var a=pts[i-1],b=pts[i]; var f=(V-a.x)/((b.x-a.x)||1); return a.y+f*(b.y-a.y); } }
+  return pts[pts.length-1].y;
+}
+
+/* indicator transition ranges (low→high pH) — classic AP set */
+var INDICATORS = [
+  { name:'Methyl orange',   lo:3.1, hi:4.4 },
+  { name:'Methyl red',      lo:4.4, hi:6.2 },
+  { name:'Bromothymol blue',lo:6.0, hi:7.6 },
+  { name:'Phenolphthalein', lo:8.2, hi:10.0 }
+];
+function bestIndicator(pHeq){
+  // prefer an indicator whose range brackets the equivalence pH; else nearest midpoint
+  var inRange = INDICATORS.filter(function(ind){ return pHeq>=ind.lo && pHeq<=ind.hi; });
+  if (inRange.length) return inRange[0];
+  var best=INDICATORS[0], bd=1e9;
+  INDICATORS.forEach(function(ind){ var d=Math.abs((ind.lo+ind.hi)/2 - pHeq); if(d<bd){bd=d;best=ind;} });
+  return best;
+}
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]; } var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];} return [128,128,128]; }
+function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+
+/* =====================================================================
+   CHART — pH (0–14) vs titrant volume; custom plugin shades indicator
+   bands + buffer region + draws equivalence / half-equivalence lines.
+   ===================================================================== */
+var bandPlugin = {
+  id:'bands',
+  beforeDatasetsDraw: function(c){
+    var meta = c.__bands; if(!meta) return;
+    var ctx=c.ctx, xA=c.scales.x, yA=c.scales.y;
+    // indicator horizontal bands
+    var palette=['--amber','--rose','--correct','--flag'];
+    INDICATORS.forEach(function(ind,i){
+      var y1=yA.getPixelForValue(ind.hi), y0=yA.getPixelForValue(ind.lo);
+      var isBest = meta.bestName===ind.name;
+      ctx.fillStyle = rgba(palette[i%palette.length], isBest?0.22:0.07);
+      ctx.fillRect(xA.left, y1, xA.right-xA.left, y0-y1);
+      ctx.fillStyle = isBest ? tok('--ink') : tok('--muted');
+      ctx.font = (isBest?'700 ':'')+'9px '+(tok('--app-font')||'sans-serif');
+      ctx.textAlign='right'; ctx.textBaseline='middle';
+      ctx.fillText(ind.name+(isBest?'  ◀ best':''), xA.right-4, (y0+y1)/2);
+    });
+    // buffer region (weak modes): V in [0.1,0.9]·Veq
+    if (meta.buffer){
+      var bx0=xA.getPixelForValue(meta.buffer[0]), bx1=xA.getPixelForValue(meta.buffer[1]);
+      ctx.fillStyle = rgba('--indigo', 0.12);
+      ctx.fillRect(bx0, yA.top, bx1-bx0, yA.bottom-yA.top);
+      ctx.fillStyle = tok('--muted'); ctx.font='9px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText('buffer region', (bx0+bx1)/2, yA.top+2);
+    }
+    // equivalence + half-equivalence vertical lines
+    function vline(V,color){ var x=xA.getPixelForValue(V); ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x,yA.top); ctx.lineTo(x,yA.bottom); ctx.stroke(); ctx.restore(); }
+    if (meta.veq!=null && meta.veq<=xA.max) vline(meta.veq, tok('--rose'));
+    if (meta.half!=null && meta.showHalf && meta.half<=xA.max) vline(meta.half, tok('--amber'));
+  }
+};
+
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'pH', data:[], borderWidth:3, pointRadius:0, tension:0, parsing:false },
+    { label:'equivalence', data:[], pointRadius:6, pointHoverRadius:8, showLine:false, parsing:false },
+    { label:'half-equiv', data:[], pointRadius:5, pointHoverRadius:7, showLine:false, parsing:false }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return 'V='+c.parsed.x.toFixed(1)+' mL,  pH='+c.parsed.y.toFixed(2); } } } },
+    scales:{
+      x:{ type:'linear', min:0, title:{display:true,text:'Titrant volume added (mL)'} },
+      y:{ min:0, max:14, title:{display:true,text:'pH'} }
+    }
+  },
+  plugins:[bandPlugin]
+});
+
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line'), indigo=tok('--indigo'), rose=tok('--rose'), amber=tok('--amber');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  chart.data.datasets[0].borderColor=indigo; chart.data.datasets[0].backgroundColor='transparent';
+  chart.data.datasets[1].pointBackgroundColor=rose; chart.data.datasets[1].pointBorderColor=rose;
+  chart.data.datasets[2].pointBackgroundColor=amber; chart.data.datasets[2].pointBorderColor=amber;
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks={color:muted}; chart.options.scales[ax].title.color=muted; });
+  chart.update();
+}
+
+/* =====================================================================
+   REFRESH
+   ===================================================================== */
+function refresh(){
+  // labels
+  document.getElementById('lCa').textContent = state.Ca.toFixed(2);
+  document.getElementById('lCb').textContent = state.Cb.toFixed(2);
+  var weak = (state.mode!=='sasb');
+  var baseMode = (state.mode==='wbsa');
+  document.getElementById('cK').style.display = weak ? '' : 'none';
+  document.getElementById('kName').innerHTML = baseMode?'K<sub>b</sub>':'K<sub>a</sub>';
+  document.getElementById('pkName').innerHTML = baseMode?'pK<sub>b</sub>':'pK<sub>a</sub>';
+  document.getElementById('lK').innerHTML = state.K.toExponential(1).replace('e','×10<sup>')+'</sup>';
+  document.getElementById('lpK').textContent = (-Math.log10(state.K)).toFixed(1);
+
+  var pts = curve();
+  var veq = Veq(), half = veq/2;
+  var pHeq = pHatV(pts, veq);
+  var pHhalf = pHatV(pts, half);
+
+  // x-axis fit so equivalence is visible (cap 100 per spec discard rule)
+  chart.options.scales.x.max = Math.max(20, Math.min(100, veq*1.6));
+
+  chart.data.datasets[0].data = pts;
+  chart.data.datasets[1].data = (pHeq!=null && veq<=chart.options.scales.x.max) ? [{x:veq,y:pHeq}] : [];
+  chart.data.datasets[2].data = (weak && pHhalf!=null && half<=chart.options.scales.x.max) ? [{x:half,y:pHhalf}] : [];
+
+  var best = bestIndicator(pHeq!=null?pHeq:7);
+  chart.__bands = {
+    bestName: best.name,
+    veq: veq, half: half, showHalf: weak,
+    buffer: weak ? [0.1*veq, 0.9*veq] : null
+  };
+  reskinChart();
+
+  // KPIs
+  document.getElementById('kVeq').textContent = veq.toFixed(1);
+  document.getElementById('kpHeq').textContent = pHeq!=null ? pHeq.toFixed(2) : '—';
+  document.getElementById('kInd').textContent = best.name+' ('+best.lo.toFixed(1)+'–'+best.hi.toFixed(1)+')';
+
+  // explanation
+  var pKa = (-Math.log10(state.K)).toFixed(1);
+  var msg='';
+  if (state.mode==='sasb') msg='Strong + strong → equivalence at <b>pH 7.00</b> (neutral salt). The jump is huge and vertical, so almost any indicator near pH 7 works.';
+  else if (state.mode==='wasb') msg='Weak acid → equivalence is <b>basic (pH &gt; 7)</b>: the conjugate base hydrolyses. At half-equivalence pH = pK<sub>a</sub> ('+pKa+'), the centre of the buffer region. Use an indicator that changes in the basic range (e.g. phenolphthalein).';
+  else msg='Weak base → equivalence is <b>acidic (pH &lt; 7)</b>: the conjugate acid hydrolyses. At half-equivalence pOH = pK<sub>b</sub> (pH = '+(14-(-Math.log10(state.K))).toFixed(1)+'). Use an indicator that changes in the acidic range (e.g. methyl red / methyl orange).';
+  document.getElementById('explain').innerHTML = msg;
+  document.getElementById('bufLeg').style.display = weak ? '' : 'none';
+  // half-equivalence chip: weak-only, and mode-aware (weak base half-eq is pOH=pKb, not pH=pKa)
+  document.getElementById('halfLeg').parentNode.style.display = weak ? '' : 'none';
+  document.getElementById('halfLeg').innerHTML = (state.mode==='wbsa') ? 'Half-equivalence (pOH = pK<sub>b</sub>)' : 'Half-equivalence (pH = pK<sub>a</sub>)';
+
+  // active mode button + K hint
+  Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){ b.classList.toggle('on', b.dataset.mode===state.mode); });
+  document.getElementById('kHint').innerHTML = weak
+    ? 'Drag '+(baseMode?'K<sub>b</sub>':'K<sub>a</sub>')+' to change the strength: a weaker '+(baseMode?'base':'acid')+' makes the buffer flatter and the jump at equivalence smaller.'
+    : 'Strong acid &amp; strong base are fully ionised — no K needed.';
+}
+window.__onVizTheme = reskinChart;
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+document.getElementById('sCa').addEventListener('input', function(){ state.Ca=+this.value; refresh(); });
+document.getElementById('sCb').addEventListener('input', function(){ state.Cb=+this.value; refresh(); });
+document.getElementById('sK').addEventListener('input', function(){ state.K=Math.pow(10, +this.value); refresh(); });
+Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){
+  b.addEventListener('click', function(){ state.mode=b.dataset.mode; refresh(); });
+});
+
+/* ---- boot (optional ?mode= deep-link: sasb | wasb | wbsa) ---- */
+(function(){
+  var m = new URLSearchParams(location.search).get('mode');
+  if (m && ['sasb','wasb','wbsa'].indexOf(m)>=0) state.mode = m;
+})();
+refresh();
+</script>
+</body>
+</html>

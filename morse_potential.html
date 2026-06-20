@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bond Potential-Energy (Morse) Curve</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  canvas#mp { width: 100%; height: auto; display: block; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .pickrow { display:flex; flex-wrap:wrap; gap:14px; }
+  .pickcol { flex:1 1 240px; min-width:200px; }
+  .pickcol .hd { font-size:.74rem; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:7px; }
+  .swatch { width:14px; height:14px; border-radius:3px; display:inline-block; }
+
+  /* bond chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+    font: inherit; font-size: .8rem; padding: 7px 11px; min-height: 40px; border-radius: 999px; cursor: pointer;
+    transition: transform .08s ease;
+  }
+  .chip:active { transform: scale(.93); }
+  .chip.on1 { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; border-color: transparent; }
+  .chip.on2 { background: color-mix(in srgb, var(--correct) 82%, #0a0e1a); color: #fff; font-weight: 700; border-color: transparent; }
+  .chip small { opacity: .8; font-weight: 500; }
+
+  .check { display:inline-flex; align-items:center; gap:7px; font-size:.80rem; color:var(--ink); cursor:pointer; user-select:none; }
+  .check input { width:18px; height:18px; accent-color:var(--correct); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:620px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .62rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.0rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .58rem; color: var(--muted); font-weight: 600; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+  .verdict { font-size:.78rem; color:var(--ink); margin-top:8px; }
+  .verdict b { color: var(--indigo); }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Bond Potential-Energy (Morse) Curve</h1>
+  <p class="viz-sub">Potential energy of two atoms vs. how far apart they are. The dip is the bond: its position is the <b>bond length</b>, its depth is the <b>bond energy</b>. <span class="pill" id="cmpPill">compare two bonds</span></p>
+
+  <div class="panel">
+    <div class="pickrow">
+      <div class="pickcol">
+        <div class="hd"><span class="swatch" id="sw1" style="background:var(--indigo)"></span>Bond&nbsp;A</div>
+        <div class="chips" id="picker1" role="group" aria-label="bond A"></div>
+      </div>
+      <div class="pickcol">
+        <div class="hd"><span class="swatch" id="sw2" style="background:var(--correct)"></span>Bond&nbsp;B (overlay)</div>
+        <div class="chips" id="picker2" role="group" aria-label="bond B"></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="check"><input type="checkbox" id="cmp" checked> Overlay a second bond to compare</label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <canvas id="mp" width="680" height="440" aria-label="bond potential energy (Morse) curve"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="kpis" id="kpiBox"></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="legend-note" id="caption"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   BOND DATA (real AP-table values). r0 in pm, D (bond dissociation energy)
+   in kJ/mol. order = bond order (for the AP trend narrative).
+   ===================================================================== */
+var BONDS = [
+  { id:'HH',  label:'H–H',  r0:74,  D:436, order:1 },
+  { id:'CC',  label:'C–C',  r0:154, D:346, order:1 },
+  { id:'CCd', label:'C=C',  r0:134, D:614, order:2 },
+  { id:'CCt', label:'C≡C',  r0:120, D:839, order:3 },
+  { id:'OO',  label:'O=O',  r0:121, D:498, order:2 },
+  { id:'NN',  label:'N≡N',  r0:110, D:945, order:3 }
+];
+function bondById(id){ for(var i=0;i<BONDS.length;i++) if(BONDS[i].id===id) return BONDS[i]; return BONDS[0]; }
+
+/* Morse potential: V(r) = D·(1 − e^(−a(r−r0)))² − D.
+   V(r0) = −D (bottom of the well), V(∞) → 0 (separated atoms / dissociation).
+   Width parameter `a` (per pm) controls steepness. We tie it loosely to D and r0
+   so stiffer (deeper, shorter) bonds also read as NARROWER wells — matching the
+   AP "deeper AND narrower" intuition — while staying a clean physical Morse form.
+   a ≈ sqrt(k/(2D)); we approximate the relative force constant from D/r0 so the
+   ordering is faithful without overstating curvature. */
+function morseA(b){
+  // relative stiffness ~ D / r0  (kJ/mol per pm), normalized to a sensible a-scale
+  var stiff = b.D / b.r0;                 // larger for deep, short bonds
+  return 0.018 + 0.00055 * stiff;         // per pm; monotonic in stiffness
+}
+function V(b, r){
+  var a = morseA(b);
+  var e = 1 - Math.exp(-a * (r - b.r0));
+  return b.D * e * e - b.D;               // kJ/mol; min = −D at r0, → 0 as r→∞
+}
+
+/* =====================================================================
+   STATE + DRAW
+   ===================================================================== */
+var state = { a:'CC', b:'CCt', cmp:true };
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+var cv=document.getElementById('mp'), ctx=cv.getContext('2d');
+var W=cv.width, Hh=cv.height, padL=58, padR=22, padT=22, padB=64;
+var plotW=W-padL-padR, plotH=Hh-padT-padB;
+
+// fixed plot window so curves are comparable on one set of axes
+var RMIN=60, RMAX=260;            // pm
+var EMAX=120;                     // top of y-axis (kJ/mol) — a little above the 0 line
+var EMIN=-1000;                   // bottom of y-axis (kJ/mol); deepest well (N≡N) is −945
+
+function draw(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  var indigo=tok('--indigo'), correct=tok('--correct'), rose=tok('--rose'), amber=tok('--amber');
+  ctx.clearRect(0,0,W,Hh);
+
+  function X(r){ return padL + (r-RMIN)/(RMAX-RMIN)*plotW; }
+  function Y(v){ return padT + (1-(v-EMIN)/(EMAX-EMIN))*plotH; }
+
+  // axes frame
+  ctx.strokeStyle=line; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+plotH); ctx.lineTo(padL+plotW,padT+plotH); ctx.stroke();
+
+  // y gridlines + labels (every 200 kJ/mol)
+  ctx.font='10px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(var g=Math.ceil(EMIN/200)*200; g<=EMAX; g+=200){
+    var y=Y(g);
+    ctx.strokeStyle=line; ctx.globalAlpha=.45; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+plotW,y); ctx.stroke(); ctx.globalAlpha=1;
+    ctx.fillStyle=muted; ctx.fillText(g, padL-6, y);
+  }
+  // x gridlines + labels (every 40 pm)
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(var rr=Math.ceil(RMIN/40)*40; rr<=RMAX; rr+=40){
+    var x=X(rr);
+    ctx.strokeStyle=line; ctx.globalAlpha=.3; ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,padT+plotH); ctx.stroke(); ctx.globalAlpha=1;
+    ctx.fillStyle=muted; ctx.fillText(rr, x, padT+plotH+5);
+  }
+
+  // zero line = "separated atoms" (dissociation asymptote)
+  var yz=Y(0);
+  ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle=muted; ctx.globalAlpha=.85; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(padL,yz); ctx.lineTo(padL+plotW,yz); ctx.stroke(); ctx.restore();
+  ctx.fillStyle=muted; ctx.font='600 10px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='right'; ctx.textBaseline='bottom';
+  ctx.fillText('separated atoms  (V = 0)', padL+plotW, yz-3);
+
+  // axis titles
+  ctx.fillStyle=ink; ctx.font='11px '+(tok('--app-font')||'sans-serif'); ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText('Internuclear distance  r  (pm) →', padL+plotW/2, Hh-8);
+  ctx.save(); ctx.translate(14,padT+plotH/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.fillText('Potential energy  V(r)  (kJ/mol)',0,0); ctx.restore();
+
+  // clip the curves to the plot box (the repulsive wall shoots up fast)
+  function curve(b, color, width){
+    ctx.save();
+    ctx.beginPath(); ctx.rect(padL,padT,plotW,plotH); ctx.clip();
+    ctx.lineWidth=width; ctx.strokeStyle=color; ctx.beginPath();
+    var started=false;
+    for(var r=RMIN; r<=RMAX; r+=0.5){
+      var v=V(b,r); if(v>EMAX+400) continue;     // skip the part far above the top
+      var px=X(r), py=Y(v);
+      if(!started){ ctx.moveTo(px,py); started=true; } else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // marker: well bottom (bond length) + vertical depth bar (bond energy) up to V=0
+  // `lrow` = 0 or 1 staggers the r₀ caption onto two rows so two close bonds don't collide.
+  function marker(b, color, side, lrow){
+    var px=X(b.r0), pyMin=Y(-b.D), pyZero=Y(0);
+    // vertical depth bar (bond energy D) from minimum up to the dissociation line
+    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1.6; ctx.globalAlpha=.9; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(px,pyMin); ctx.lineTo(px,pyZero); ctx.stroke(); ctx.restore();
+    // arrowheads top & bottom of the depth bar
+    ctx.save(); ctx.fillStyle=color;
+    ctx.beginPath(); ctx.moveTo(px-4,pyZero+6); ctx.lineTo(px,pyZero); ctx.lineTo(px+4,pyZero+6); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(px-4,pyMin-6); ctx.lineTo(px,pyMin); ctx.lineTo(px+4,pyMin-6); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // dot at the minimum
+    ctx.save(); ctx.fillStyle=color; ctx.beginPath(); ctx.arc(px,pyMin,4,0,2*Math.PI); ctx.fill(); ctx.restore();
+    // tick on x-axis at r0
+    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(px,padT+plotH); ctx.lineTo(px,padT+plotH+6); ctx.stroke(); ctx.restore();
+
+    // labels: bond length (in a band BELOW the x-axis gridline numbers, staggered
+    // onto two rows so two close bonds don't collide) + bond energy (beside the bar)
+    ctx.fillStyle=color; ctx.font='700 10px '+(tok('--app-font')||'sans-serif');
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText('r₀ '+b.r0+' pm', px, padT+plotH+19 + (lrow?13:0));
+    // energy label placed left/right of the bar to avoid overlap when two bonds collide
+    ctx.textAlign = side==='left' ? 'right' : 'left';
+    ctx.textBaseline='middle';
+    var lx = px + (side==='left' ? -7 : 7);
+    ctx.fillText('D = '+b.D+' kJ/mol', lx, (pyMin+pyZero)/2);
+    // bond name at the bottom of its well
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(b.label, px, pyMin+7);
+  }
+
+  var A=bondById(state.a), B=bondById(state.b);
+
+  // draw B (overlay) first, then A on top
+  if(state.cmp){ curve(B, correct, 2.6); }
+  curve(A, indigo, 3.2);
+
+  // when comparing, put the two r₀ captions on separate rows (B row0, A row1) so
+  // close bond lengths don't overprint; single-bond mode uses row0.
+  if(state.cmp){ marker(B, correct, B.r0 <= A.r0 ? 'left':'right', 0); }
+  marker(A, indigo, state.cmp ? (A.r0 < B.r0 ? 'left':'right') : 'right', state.cmp ? 1 : 0);
+}
+
+/* =====================================================================
+   PICKERS + KPIs
+   ===================================================================== */
+function buildPickers(){
+  var p1=document.getElementById('picker1'), p2=document.getElementById('picker2');
+  p1.innerHTML=''; p2.innerHTML='';
+  BONDS.forEach(function(b){
+    var c1=document.createElement('button'); c1.type='button'; c1.className='chip'; c1.dataset.id=b.id;
+    c1.innerHTML=b.label+' <small>'+b.r0+'pm·'+b.D+'</small>';
+    c1.addEventListener('click', function(){ state.a=b.id; refresh(); });
+    p1.appendChild(c1);
+    var c2=document.createElement('button'); c2.type='button'; c2.className='chip'; c2.dataset.id=b.id;
+    c2.innerHTML=b.label+' <small>'+b.r0+'pm·'+b.D+'</small>';
+    c2.addEventListener('click', function(){ state.b=b.id; refresh(); });
+    p2.appendChild(c2);
+  });
+}
+
+function refresh(){
+  // chip selection states
+  Array.prototype.forEach.call(document.getElementById('picker1').children, function(c){ c.classList.toggle('on1', c.dataset.id===state.a); });
+  Array.prototype.forEach.call(document.getElementById('picker2').children, function(c){ c.classList.toggle('on2', state.cmp && c.dataset.id===state.b); c.disabled=!state.cmp; c.style.opacity=state.cmp?'':'0.45'; });
+  document.getElementById('cmpPill').textContent = state.cmp ? 'compare two bonds' : 'single bond';
+
+  draw();
+
+  var A=bondById(state.a), B=bondById(state.b);
+  var box=document.getElementById('kpiBox');
+  function kpiPair(b,which){
+    return '<div class="kpi"><div class="lab">'+which+' — bond length r₀</div><div class="num">'+b.r0+' <small>pm</small></div></div>'+
+           '<div class="kpi"><div class="lab">'+which+' — bond energy D</div><div class="num">'+b.D+' <small>kJ/mol</small></div></div>';
+  }
+  box.innerHTML = kpiPair(A,'A '+A.label) + (state.cmp ? kpiPair(B,'B '+B.label) : '');
+
+  // verdict: confirm the AP trend deeper-well ↔ shorter-bond ↔ higher order
+  var vd=document.getElementById('verdict');
+  if(state.cmp && A.id!==B.id){
+    var shorter = A.r0 < B.r0 ? A : B;
+    var deeper  = A.D  > B.D  ? A : B;
+    var consistent = (shorter.id===deeper.id);
+    vd.innerHTML = '<b>'+shorter.label+'</b> is the shorter bond ('+shorter.r0+' pm) and '+
+      (consistent
+        ? 'also the <b>deeper, narrower</b> well ('+deeper.D+' kJ/mol) — shorter ⇒ stronger ⇒ more energy to break.'
+        : 'yet '+deeper.label+' has the deeper well — an exception worth noting (compare bonds between different atoms).');
+    if(A.label.replace(/[^A-Za-z]/g,'')===B.label.replace(/[^A-Za-z]/g,'') && A.order!==B.order){
+      var hi=A.order>B.order?A:B, lo=A.order>B.order?B:A;
+      vd.innerHTML += ' Same atoms, higher bond order ('+hi.label+', order '+hi.order+') ⇒ shorter & stronger than '+lo.label+'.';
+    }
+  } else if(!state.cmp){
+    vd.innerHTML = 'Showing one bond. Turn on the overlay to compare two and see the shorter-⇒-deeper trend.';
+  } else {
+    vd.innerHTML = 'Pick two different bonds to compare.';
+  }
+
+  document.getElementById('caption').innerHTML =
+    'The bottom of the dip sits at the <b>bond length</b> (r₀, x-axis); how far that minimum drops below the “separated atoms” line is the <b>bond energy</b> (D, the depth) — the energy needed to pull the atoms apart.';
+}
+window.__onVizTheme = function(){ refresh(); };
+
+/* =====================================================================
+   EVENTS + BOOT
+   ===================================================================== */
+document.getElementById('cmp').addEventListener('change', function(){ state.cmp=this.checked; refresh(); });
+
+(function(){
+  var q=new URLSearchParams(location.search);
+  var a=q.get('a'), b=q.get('b');
+  if(a&&bondById(a).id===a) state.a=a;
+  if(b&&bondById(b).id===b) state.b=b;
+  if(q.get('cmp')==='0'){ state.cmp=false; document.getElementById('cmp').checked=false; }
+  buildPickers();
+  refresh();
+})();
+</script>
+</body>
+</html>

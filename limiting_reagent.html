@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Limiting reagent &amp; stoichiometry</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 320px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 13px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:16px; margin-top:10px; }
+  .control { display:flex; flex-direction:column; gap:4px; flex:1 1 200px; min-width:170px; }
+  .control label { font-size:.76rem; color:var(--muted); font-weight:600; display:flex; justify-content:space-between; align-items:baseline; }
+  .control label .v { color:var(--ink); font-weight:700; font-size:.9rem; }
+  input[type="range"] { accent-color: var(--indigo); width:100%; height:28px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: 1fr; } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; text-transform:uppercase; letter-spacing:.03em; }
+  .kpi .num { font-size: 1.0rem; font-weight: 700; color: var(--ink); line-height: 1.25; }
+  .kpi.limiting { border-color: color-mix(in srgb, var(--rose) 60%, var(--line)); background: var(--rose-soft); }
+  .kpi.excess   { border-color: color-mix(in srgb, var(--amber) 60%, var(--line)); background: var(--amber-soft); }
+  .kpi.product  { border-color: color-mix(in srgb, var(--correct) 60%, var(--line)); background: var(--green-soft); }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:middle; margin-right:5px; }
+  .legend-note { font-size: .74rem; color: var(--muted); margin-top: 10px; line-height:1.5; }
+  .pill { display:inline-block; padding:2px 9px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.74rem; }
+  .eqn { font-weight:700; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Limiting reagent &amp; stoichiometry</h1>
+  <p class="viz-sub">Set the starting amounts of each reactant. The app finds the limiting reactant, the product formed, and what's left over.
+    <span class="pill eqn" id="eqnPill">N₂ + 3H₂ → 2NH₃</span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Reaction</span>
+      <div class="seg" id="rxnSeg" role="group" aria-label="reaction picker">
+        <button data-rxn="haber" class="on" type="button">N₂ + 3H₂ → 2NH₃</button>
+        <button data-rxn="alcl3" type="button">2Al + 3Cl₂ → 2AlCl₃</button>
+        <button data-rxn="combust" type="button">CH₄ + 2O₂ → CO₂ + 2H₂O</button>
+      </div>
+    </div>
+    <div class="controls" id="controls"><!-- sliders injected per reaction --></div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow">
+      <span><span class="sw" style="background:var(--indigo)"></span><b>Before</b> (starting moles)</span>
+      <span><span class="sw" style="background:var(--correct)"></span><b>After</b> (moles remaining / formed)</span>
+    </div>
+    <div class="legend-note">
+      <b>How to read it:</b> compare each reactant's <b>moles ÷ coefficient</b> — the <b>smallest</b> quotient is the
+      <b>limiting</b> reactant (fully consumed → 0 after). Product formed = limiting's quotient × product coefficient.
+      The <b>excess</b> reactant has some left over.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis">
+      <div class="kpi limiting"><div class="lab">Limiting reactant</div><div class="num" id="kLim">—</div></div>
+      <div class="kpi excess"><div class="lab">Excess left over</div><div class="num" id="kExc">—</div></div>
+      <div class="kpi product"><div class="lab">Product formed</div><div class="num" id="kProd">—</div></div>
+    </div>
+    <div class="legend-note" id="explain">Drag a slider to compute the limiting reactant.</div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   REACTION MODEL
+   ---------------------------------------------------------------------
+   Each reaction is a list of species: { name, coef, role }.
+   role: 'reactant' | 'product'. Coefficients are the balanced coefficients.
+   Sliders set the STARTING moles of each reactant (products start at 0).
+
+   Limiting-reagent algorithm:
+     For each reactant, quotient q_i = moles_i / coef_i.
+     The limiting reactant is the one with the SMALLEST q (call it qLim).
+     extent = qLim  (moles of reaction that run).
+     After:
+       reactant_i remaining = moles_i − coef_i · extent   (limiting → 0)
+       product_j formed     = coef_j · extent
+   ===================================================================== */
+var REACTIONS = {
+  haber: {
+    eqn: 'N₂ + 3H₂ → 2NH₃',
+    species: [
+      { name:'N₂',  coef:1, role:'reactant', start:2, max:8 },
+      { name:'H₂',  coef:3, role:'reactant', start:3, max:12 },
+      { name:'NH₃', coef:2, role:'product' }
+    ]
+  },
+  alcl3: {
+    eqn: '2Al + 3Cl₂ → 2AlCl₃',
+    species: [
+      { name:'Al',    coef:2, role:'reactant', start:4, max:10 },
+      { name:'Cl₂',   coef:3, role:'reactant', start:3, max:12 },
+      { name:'AlCl₃', coef:2, role:'product' }
+    ]
+  },
+  combust: {
+    eqn: 'CH₄ + 2O₂ → CO₂ + 2H₂O',
+    species: [
+      { name:'CH₄',  coef:1, role:'reactant', start:2, max:8 },
+      { name:'O₂',   coef:2, role:'reactant', start:5, max:14 },
+      { name:'CO₂',  coef:1, role:'product' },
+      { name:'H₂O',  coef:2, role:'product' }
+    ]
+  }
+};
+
+var curRxn = 'haber';
+var moles = {};   // { speciesName: startingMoles } for reactants only
+
+// Compute the full before/after picture for the current reaction + slider state.
+function solve(){
+  var rxn = REACTIONS[curRxn];
+  var reactants = rxn.species.filter(function(s){ return s.role==='reactant'; });
+
+  // smallest moles ÷ coefficient = extent of reaction; that reactant is limiting
+  var extent = Infinity, limiting = null;
+  reactants.forEach(function(s){
+    var q = (moles[s.name] || 0) / s.coef;
+    if (q < extent){ extent = q; limiting = s; }
+  });
+  if (!isFinite(extent)) extent = 0;
+
+  var before = {}, after = {};
+  rxn.species.forEach(function(s){
+    if (s.role==='reactant'){
+      before[s.name] = moles[s.name] || 0;
+      after[s.name]  = Math.max(0, (moles[s.name]||0) - s.coef*extent);
+    } else {
+      before[s.name] = 0;
+      after[s.name]  = s.coef*extent;
+    }
+  });
+
+  // excess reactants = reactants that are NOT the limiting one (and that have leftover)
+  var excess = reactants.filter(function(s){ return s !== limiting; });
+
+  return { rxn:rxn, reactants:reactants, limiting:limiting, extent:extent,
+           before:before, after:after, excess:excess };
+}
+
+/* =====================================================================
+   CONTROLS — build sliders for the current reaction's reactants
+   ===================================================================== */
+function buildControls(){
+  var rxn = REACTIONS[curRxn];
+  var host = document.getElementById('controls');
+  host.innerHTML = '';
+  moles = {};
+  rxn.species.filter(function(s){ return s.role==='reactant'; }).forEach(function(s){
+    moles[s.name] = s.start;
+    var wrap = document.createElement('div'); wrap.className='control';
+    var lab = document.createElement('label');
+    lab.innerHTML = 'Starting mol of <b>'+s.name+'</b> <span class="v" id="v_'+s.name+'">'+s.start.toFixed(1)+'</span>';
+    var inp = document.createElement('input');
+    inp.type='range'; inp.min='0'; inp.max=String(s.max); inp.step='0.5'; inp.value=String(s.start);
+    inp.setAttribute('data-sp', s.name);
+    inp.addEventListener('input', function(){
+      moles[s.name] = parseFloat(inp.value);
+      document.getElementById('v_'+s.name).textContent = moles[s.name].toFixed(1);
+      draw();
+    });
+    wrap.appendChild(lab); wrap.appendChild(inp);
+    host.appendChild(wrap);
+  });
+}
+
+/* =====================================================================
+   CHART — grouped before/after bars per species
+   ===================================================================== */
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+var chart = new Chart(document.getElementById('chart'), {
+  type:'bar',
+  data:{ labels:[], datasets:[
+    { label:'Before', data:[], borderWidth:0, borderRadius:5, categoryPercentage:0.7, barPercentage:0.9 },
+    { label:'After',  data:[], borderWidth:0, borderRadius:5, categoryPercentage:0.7, barPercentage:0.9 }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ display:false },
+      tooltip:{ callbacks:{ label:function(c){ return c.dataset.label+': '+c.parsed.y.toFixed(2)+' mol'; } } }
+    },
+    scales:{
+      x:{ grid:{display:false} },
+      y:{ beginAtZero:true, title:{display:true, text:'Amount (mol)'} }
+    }
+  }
+});
+
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  chart.data.datasets[0].backgroundColor = tok('--indigo');
+  chart.data.datasets[1].backgroundColor = tok('--correct');
+  chart.options.scales.x.ticks = Object.assign(chart.options.scales.x.ticks||{}, {color:ink, font:{weight:'600'}});
+  chart.options.scales.y.grid = {color:line, drawBorder:true, borderColor:line};
+  chart.options.scales.y.ticks = Object.assign(chart.options.scales.y.ticks||{}, {color:muted});
+  chart.options.scales.y.title.color = muted;
+  chart.update();
+}
+window.__onVizTheme = function(){ reskinChart(); };
+
+/* =====================================================================
+   DRAW
+   ===================================================================== */
+function fmt(n){ return (Math.round(n*100)/100).toString(); }
+
+function draw(){
+  var sol = solve();
+
+  // x labels annotate role so "Limiting / Excess / Product" reads off the axis
+  var labels = sol.rxn.species.map(function(s){
+    if (s.role==='product') return s.name+'\n(product)';
+    if (s === sol.limiting && sol.extent>0) return s.name+'\n(limiting)';
+    if (s.role==='reactant') return s.name+'\n(excess)';
+    return s.name;
+  });
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = sol.rxn.species.map(function(s){ return sol.before[s.name]; });
+  chart.data.datasets[1].data = sol.rxn.species.map(function(s){ return sol.after[s.name]; });
+  reskinChart();
+
+  // KPI cards
+  var limName = (sol.limiting && sol.extent>0) ? sol.limiting.name : '—';
+  document.getElementById('kLim').textContent = limName;
+
+  if (sol.extent <= 0){
+    document.getElementById('kExc').textContent = '—';
+    document.getElementById('kProd').textContent = '0 mol';
+    document.getElementById('explain').innerHTML =
+      'No reaction runs — at least one reactant is at <b>0 mol</b>. Add some of every reactant.';
+    return;
+  }
+
+  // excess: list each non-limiting reactant + its leftover
+  var excTxt = sol.excess.map(function(s){
+    return s.name+' '+fmt(sol.after[s.name])+' mol';
+  }).join(', ');
+  document.getElementById('kExc').textContent = excTxt || '0 mol';
+
+  var prodTxt = sol.rxn.species.filter(function(s){ return s.role==='product'; })
+    .map(function(s){ return fmt(sol.after[s.name])+' mol '+s.name; }).join(' + ');
+  document.getElementById('kProd').textContent = prodTxt;
+
+  // explanation with the moles ÷ coefficient quotients
+  var qParts = sol.reactants.map(function(s){
+    var q = (moles[s.name]||0)/s.coef;
+    var isLim = (s === sol.limiting);
+    return '<b'+(isLim?' style="color:var(--rose-aa)"':'')+'>'+s.name+'</b>: '
+      + fmt(moles[s.name]||0)+' ÷ '+s.coef+' = '+fmt(q)+(isLim?' ← smallest':'');
+  }).join(' &nbsp;·&nbsp; ');
+
+  document.getElementById('explain').innerHTML =
+    'moles ÷ coefficient → '+qParts+'. The smallest quotient is <b>'+sol.limiting.name+'</b>, '
+    + 'so it is the <b>limiting</b> reactant (consumed to 0). '
+    + 'Extent of reaction = '+fmt(sol.extent)+' mol-rxn → forms '+prodTxt
+    + (excTxt ? ', leaving '+excTxt+' of excess reactant.' : '.');
+}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+Array.prototype.forEach.call(document.getElementById('rxnSeg').children, function(b){
+  b.addEventListener('click', function(){
+    curRxn = b.dataset.rxn;
+    Array.prototype.forEach.call(document.getElementById('rxnSeg').children, function(x){ x.classList.toggle('on', x===b); });
+    document.getElementById('eqnPill').textContent = REACTIONS[curRxn].eqn;
+    buildControls();
+    draw();
+  });
+});
+
+/* ---- boot (deep-link: ?rxn=haber|alcl3|combust) ---- */
+(function(){
+  var q = new URLSearchParams(location.search);
+  var r = q.get('rxn');
+  if (r && REACTIONS[r]){
+    curRxn = r;
+    Array.prototype.forEach.call(document.getElementById('rxnSeg').children, function(x){ x.classList.toggle('on', x.dataset.rxn===r); });
+    document.getElementById('eqnPill').textContent = REACTIONS[r].eqn;
+  }
+})();
+buildControls();
+draw();
+
+/* =====================================================================
+   NUMERIC SELF-CHECKS (run on load; logged to console for the gate).
+   Asserts the limiting-reagent arithmetic against hand-computed answers.
+   ===================================================================== */
+(function selfTest(){
+  function check(rxnId, set, expect){
+    var saveR = curRxn, saveM = moles;
+    curRxn = rxnId; moles = set;
+    var sol = solve();
+    var limOk  = (sol.limiting ? sol.limiting.name : null) === expect.limiting;
+    var prodOk = Math.abs(sol.after[expect.prodName] - expect.prod) < 1e-9;
+    var excOk  = Math.abs(sol.after[expect.excName]  - expect.exc)  < 1e-9;
+    curRxn = saveR; moles = saveM;
+    var pass = limOk && prodOk && excOk;
+    console.log((pass?'PASS':'FAIL')+' ['+rxnId+'] '+JSON.stringify(set)
+      +' → limiting='+(sol.limiting?sol.limiting.name:'none')
+      +' (exp '+expect.limiting+'), '+expect.prodName+'='+sol.after[expect.prodName].toFixed(2)
+      +' (exp '+expect.prod+'), '+expect.excName+' left='+sol.after[expect.excName].toFixed(2)
+      +' (exp '+expect.exc+')');
+    return pass;
+  }
+  var all = true;
+  // N₂+3H₂→2NH₃, 2 N₂ + 3 H₂ → H₂ limiting, 2 NH₃, 1 N₂ leftover
+  all &= check('haber', {'N₂':2,'H₂':3}, {limiting:'H₂', prodName:'NH₃', prod:2, excName:'N₂', exc:1});
+  // N₂+3H₂→2NH₃, 1 N₂ + 6 H₂ → N₂ limiting, 2 NH₃, 3 H₂ leftover
+  all &= check('haber', {'N₂':1,'H₂':6}, {limiting:'N₂', prodName:'NH₃', prod:2, excName:'H₂', exc:3});
+  // 2Al+3Cl₂→2AlCl₃, 4 Al + 3 Cl₂ → Cl₂ limiting (4/2=2 vs 3/3=1), 2 AlCl₃, 2 Al leftover
+  all &= check('alcl3', {'Al':4,'Cl₂':3}, {limiting:'Cl₂', prodName:'AlCl₃', prod:2, excName:'Al', exc:2});
+  // CH₄+2O₂→CO₂+2H₂O, 2 CH₄ + 5 O₂ → O₂ limiting (5/2=2.5 vs 2/1=2... wait): 2/1=2, 5/2=2.5 → CH₄ limiting, 2 CO₂, 1 O₂ leftover
+  all &= check('combust', {'CH₄':2,'O₂':5}, {limiting:'CH₄', prodName:'CO₂', prod:2, excName:'O₂', exc:1});
+  console.log(all ? 'ALL LIMITING-REAGENT SELF-CHECKS PASSED' : 'SELF-CHECK FAILURE — see above');
+})();
+</script>
+</body>
+</html>

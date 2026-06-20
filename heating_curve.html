@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Heating / Cooling curve</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 340px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 14px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+  .seg button:active { transform: scale(.93); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 8px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.02rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .dash { display:inline-block; width:16px; height:0; border-top:2px solid currentColor; vertical-align:middle; margin-right:5px; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Heating / Cooling curve — pure water</h1>
+  <p class="viz-sub">Add (or remove) heat at a steady rate to 1.0 mol of pure H₂O and watch its temperature. On a <b>slope</b> the phase warms: q = mcΔT. On a <b>plateau</b> the phase changes at constant T: q = nΔH. <span class="pill">1 atm · pure substance</span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Direction</span>
+      <div class="seg" id="modeSeg" role="group" aria-label="direction">
+        <button data-mode="heat" class="on" type="button">Heating (add q)</button>
+        <button data-mode="cool" type="button">Cooling (remove q)</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="sN">Amount n = <b id="lN">1.0</b> mol H₂O</label>
+        <input type="range" id="sN" min="0.5" max="3.0" step="0.1" value="1.0">
+      </div>
+      <div class="control">
+        <label for="sHfus">ΔH<sub>fus</sub> = <b id="lHfus">6.01</b> kJ/mol</label>
+        <input type="range" id="sHfus" min="1.0" max="20.0" step="0.1" value="6.01">
+      </div>
+      <div class="control">
+        <label for="sHvap">ΔH<sub>vap</sub> = <b id="lHvap">40.7</b> kJ/mol</label>
+        <input type="range" id="sHvap" min="10.0" max="60.0" step="0.1" value="40.7">
+      </div>
+    </div>
+    <div class="legend-note" id="hint"></div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow">
+      <span style="color:var(--indigo)"><span class="dash"></span><b>Temperature</b></span>
+      <span style="color:var(--rose)"><span class="dash" style="border-top-style:dashed"></span><b>Fusion plateau (melt / freeze, 0 °C)</b></span>
+      <span style="color:var(--amber)"><span class="dash" style="border-top-style:dashed"></span><b>Vaporization plateau (boil / condense, 100 °C)</b></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis">
+      <div class="kpi"><div class="lab">Total heat</div><div class="num"><span id="kTot">—</span> <small>kJ</small></div></div>
+      <div class="kpi"><div class="lab">Fusion plateau q = nΔH<sub>fus</sub></div><div class="num"><span id="kFus">—</span> <small>kJ</small></div></div>
+      <div class="kpi"><div class="lab">Vaporization plateau q = nΔH<sub>vap</sub></div><div class="num"><span id="kVap">—</span> <small>kJ</small></div></div>
+      <div class="kpi"><div class="lab">Longest step</div><div class="num" id="kLong" style="font-size:.84rem">—</div></div>
+    </div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   HEATING / COOLING ENGINE — piecewise for 1.0 mol H2O (SPEC §6/#8).
+   ---------------------------------------------------------------------
+   Five segments, in heating order:
+     1. solid (ice) warming  -25 -> 0 C     q = m·c_ice·ΔT     (slope)
+     2. fusion plateau       at 0 C         q = n·ΔHfus        (flat)
+     3. liquid warming        0 -> 100 C    q = m·c_water·ΔT   (slope)
+     4. vaporization plateau at 100 C       q = n·ΔHvap        (flat)
+     5. gas (steam) warming  100 -> 125 C   q = m·c_steam·ΔT   (slope)
+   X = cumulative heat (kJ); Y = temperature (C). Cooling = same magnitudes
+   traversed in reverse (remove heat; condense at 100, freeze at 0).
+   Specific heats are the standard AP/textbook values (J/g·C); molar mass
+   18.015 g/mol. ΔHfus, ΔHvap, n come from the sliders; every q recomputes
+   live so the plateau lengths stretch as the enthalpies change.
+   ===================================================================== */
+var M = 18.015;          // g/mol
+var C_ICE = 2.09, C_WATER = 4.18, C_STEAM = 2.01;   // J/g·C
+var T_SOLID0 = -25, T_MELT = 0, T_BOIL = 100, T_END = 125;
+
+var state = { mode:'heat', n:1.0, Hfus:6.01, Hvap:40.7 };
+
+// returns the five segment heats (kJ) for the current state, heating order
+function segments(){
+  var n=state.n, m=n*M;
+  return {
+    q1: m*C_ICE  *(T_MELT - T_SOLID0)/1000,   // solid warm
+    q2: n*state.Hfus,                          // fusion plateau
+    q3: m*C_WATER*(T_BOIL - T_MELT)/1000,      // liquid warm
+    q4: n*state.Hvap,                          // vaporization plateau
+    q5: m*C_STEAM*(T_END  - T_BOIL)/1000       // gas warm
+  };
+}
+// build the curve as cumulative-heat / temperature vertices (heating order)
+function buildHeating(){
+  var s = segments(), q=0, pts=[];
+  pts.push({x:0,            y:T_SOLID0});  q+=s.q1;
+  pts.push({x:q,            y:T_MELT});    q+=s.q2;
+  pts.push({x:q,            y:T_MELT});    q+=s.q3;
+  pts.push({x:q,            y:T_BOIL});    q+=s.q4;
+  pts.push({x:q,            y:T_BOIL});    q+=s.q5;
+  pts.push({x:q,            y:T_END});
+  return pts;
+}
+// cooling: heat REMOVED on X (still increasing), temperature falls from steam to ice
+function buildCooling(){
+  var s = segments(), q=0, pts=[];
+  pts.push({x:0, y:T_END});   q+=s.q5;   // steam cools
+  pts.push({x:q, y:T_BOIL});  q+=s.q4;   // condense (plateau 100)
+  pts.push({x:q, y:T_BOIL});  q+=s.q3;   // liquid cools
+  pts.push({x:q, y:T_MELT});  q+=s.q2;   // freeze (plateau 0)
+  pts.push({x:q, y:T_MELT});  q+=s.q1;   // ice cools
+  pts.push({x:q, y:T_SOLID0});
+  return pts;
+}
+function curve(){ return state.mode==='cool' ? buildCooling() : buildHeating(); }
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]; } var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];} return [128,128,128]; }
+function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+
+/* =====================================================================
+   CHART — temperature vs cumulative heat; plugin marks the two plateaus
+   (constant-T phase changes) with dashed segment overlays + labels.
+   ===================================================================== */
+var plateauPlugin = {
+  id:'plateaus',
+  afterDatasetsDraw: function(c){
+    var meta = c.__plateaus; if(!meta) return;
+    var ctx=c.ctx, xA=c.scales.x, yA=c.scales.y;
+    meta.forEach(function(pl){
+      var x0=xA.getPixelForValue(pl.x0), x1=xA.getPixelForValue(pl.x1), y=yA.getPixelForValue(pl.T);
+      ctx.save();
+      ctx.setLineDash([6,4]); ctx.strokeStyle=tok(pl.color); ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x1,y); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=tok(pl.color); ctx.font='700 10px '+(tok('--app-font')||'sans-serif');
+      ctx.textAlign='center'; ctx.textBaseline = pl.T>50 ? 'bottom':'top';
+      ctx.fillText(pl.label, (x0+x1)/2, y + (pl.T>50?-6:6));
+      ctx.restore();
+    });
+  }
+};
+
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'Temperature', data:[], borderWidth:3, pointRadius:3, pointHoverRadius:5, tension:0, parsing:false }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return 'q='+c.parsed.x.toFixed(2)+' kJ,  T='+c.parsed.y.toFixed(1)+' °C'; } } } },
+    scales:{
+      x:{ type:'linear', min:0, title:{display:true,text:'Cumulative heat added / removed  q (kJ)'} },
+      y:{ title:{display:true,text:'Temperature (°C)'} }
+    }
+  },
+  plugins:[plateauPlugin]
+});
+
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line'), indigo=tok('--indigo');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  chart.data.datasets[0].borderColor=indigo;
+  chart.data.datasets[0].backgroundColor='transparent';
+  chart.data.datasets[0].pointBackgroundColor=indigo;
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks={color:muted}; chart.options.scales[ax].title.color=muted; });
+  chart.update();
+}
+
+/* =====================================================================
+   REFRESH
+   ===================================================================== */
+function refresh(){
+  document.getElementById('lN').textContent    = state.n.toFixed(1);
+  document.getElementById('lHfus').textContent = state.Hfus.toFixed(2);
+  document.getElementById('lHvap').textContent = state.Hvap.toFixed(1);
+
+  var pts = curve(), s = segments();
+  chart.data.datasets[0].data = pts;
+  chart.options.scales.x.max = Math.ceil(pts[pts.length-1].x/5)*5;
+  chart.options.scales.y.min = T_SOLID0 - 10;
+  chart.options.scales.y.max = T_END + 10;
+
+  // plateau overlays: find the two flat (constant-T) spans in the vertex list
+  var plats=[];
+  for (var i=1;i<pts.length;i++){
+    if (Math.abs(pts[i].y - pts[i-1].y) < 1e-9){
+      var T = pts[i].y;
+      plats.push({
+        x0: Math.min(pts[i-1].x, pts[i].x), x1: Math.max(pts[i-1].x, pts[i].x), T: T,
+        color: T===T_BOIL ? '--amber' : '--rose',
+        label: T===T_BOIL
+          ? (state.mode==='cool' ? 'Condensing 100 °C' : 'Boiling 100 °C')
+          : (state.mode==='cool' ? 'Freezing 0 °C' : 'Melting 0 °C')
+      });
+    }
+  }
+  chart.__plateaus = plats;
+  reskinChart();
+
+  // KPIs
+  var total = s.q1+s.q2+s.q3+s.q4+s.q5;
+  document.getElementById('kTot').textContent = total.toFixed(2);
+  document.getElementById('kFus').textContent = s.q2.toFixed(2);
+  document.getElementById('kVap').textContent = s.q4.toFixed(2);
+  var names=['Ice warming','Melting','Liquid warming','Boiling','Steam warming'];
+  var qs=[s.q1,s.q2,s.q3,s.q4,s.q5]; var li=0; for(var k=1;k<5;k++){ if(qs[k]>qs[li]) li=k; }
+  document.getElementById('kLong').textContent = names[li]+' ('+qs[li].toFixed(1)+' kJ)';
+
+  // hint + explanation
+  document.getElementById('hint').innerHTML = state.mode==='cool'
+    ? 'Cooling reverses the path: heat is <b>removed</b>. The substance gives up the same nΔH at each plateau as it condenses (100 °C) then freezes (0 °C).'
+    : 'The two plateaus are flat because all the added heat goes into breaking intermolecular forces — potential energy rises, but the temperature (average KE) stays fixed until the phase change finishes.';
+  document.getElementById('explain').innerHTML =
+    'Vaporization needs <b>'+(s.q4/s.q2).toFixed(1)+'×</b> the heat of fusion '
+    +'(ΔH<sub>vap</sub> ≫ ΔH<sub>fus</sub>: boiling fully separates the molecules, melting only loosens the lattice), '
+    +'so the boiling plateau is the longest stretch of the curve. '
+    +'Slopes are shallower where the specific heat is larger (liquid water, c = 4.18 J/g·°C, warms the slowest).';
+
+  // active mode button
+  Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){ b.classList.toggle('on', b.dataset.mode===state.mode); });
+}
+window.__onVizTheme = reskinChart;
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+document.getElementById('sN').addEventListener('input', function(){ state.n=+this.value; refresh(); });
+document.getElementById('sHfus').addEventListener('input', function(){ state.Hfus=+this.value; refresh(); });
+document.getElementById('sHvap').addEventListener('input', function(){ state.Hvap=+this.value; refresh(); });
+Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){
+  b.addEventListener('click', function(){ state.mode=b.dataset.mode; refresh(); });
+});
+
+/* ---- boot (optional ?mode= deep-link: heat | cool) ---- */
+(function(){
+  var m = new URLSearchParams(location.search).get('mode');
+  if (m && ['heat','cool'].indexOf(m)>=0) state.mode = m;
+})();
+refresh();
+</script>
+</body>
+</html>

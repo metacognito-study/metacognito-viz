@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Equilibrium &amp; Le Châtelier's principle</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 300px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .stress { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .sbtn {
+    border: 1px solid var(--line); cursor: pointer; color: var(--ink);
+    background: var(--surface-2); border-radius: 999px; padding: 9px 14px; min-height: 44px;
+    font: inherit; font-weight: 600; transition: transform .1s ease;
+  }
+  .sbtn:active { transform: scale(.93); }
+  .sbtn.warm { border-color: color-mix(in srgb, var(--rose) 50%, var(--line)); }
+  .sbtn.cool { border-color: color-mix(in srgb, var(--indigo) 50%, var(--line)); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.02rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+
+  .legendrow { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:.72rem; color:var(--muted); }
+  .legendrow b { color:var(--ink); }
+  .sw { display:inline-block; width:14px; height:0; border-top:3px solid currentColor; vertical-align:middle; margin-right:5px; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+  .shiftbadge { font-weight:700; }
+  .eqn { font-size:.86rem; font-weight:700; color:var(--ink); }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Equilibrium &amp; Le Châtelier's principle</h1>
+  <p class="viz-sub">A reaction at equilibrium is stressed; watch Q move away from K, then the system shift to restore Q = K.
+    <span class="pill eqn">A(g) + B(g) ⇌ C(g)</span> <span class="pill">2 mol gas ⇌ 1 mol gas</span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Forward reaction is</span>
+      <div class="seg" id="thermSeg" role="group" aria-label="thermicity">
+        <button data-th="exo" class="on" type="button">Exothermic (ΔH &lt; 0)</button>
+        <button data-th="endo" type="button">Endothermic (ΔH &gt; 0)</button>
+      </div>
+    </div>
+    <div class="stress">
+      <button class="sbtn" data-act="addA" type="button">+ Add A</button>
+      <button class="sbtn" data-act="addC" type="button">+ Add C (product)</button>
+      <button class="sbtn" data-act="remC" type="button">− Remove C</button>
+      <button class="sbtn" data-act="compress" type="button">Halve volume (compress)</button>
+      <button class="sbtn" data-act="expand" type="button">Double volume (expand)</button>
+      <button class="sbtn warm" data-act="heat" type="button">Increase temperature</button>
+      <button class="sbtn cool" data-act="cool" type="button">Decrease temperature</button>
+      <button class="sbtn" data-act="catalyst" type="button">Add catalyst</button>
+      <button class="sbtn" data-act="reset" type="button">↺ Reset</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legendrow">
+      <span style="color:var(--indigo)"><span class="sw"></span><b>[A]</b></span>
+      <span style="color:var(--correct)"><span class="sw" style="border-top-style:dashed"></span><b>[B]</b> (tracks [A] exactly — equal &amp; symmetric)</span>
+      <span style="color:var(--rose)"><span class="sw"></span><b>[C]</b></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="kpis">
+      <div class="kpi"><div class="lab">K<sub>c</sub> (at this T)</div><div class="num" id="kK">—</div></div>
+      <div class="kpi"><div class="lab">Q<sub>c</sub> (right now)</div><div class="num" id="kQ">—</div></div>
+      <div class="kpi"><div class="lab">Temperature</div><div class="num"><span id="kTemp">—</span> <small>K</small></div></div>
+      <div class="kpi"><div class="lab">Last shift</div><div class="num shiftbadge" id="kShift" style="font-size:.9rem">—</div></div>
+    </div>
+    <div class="legend-note" id="explain">Stress the system with a button above to see the shift.</div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   ENGINE — A(g) + B(g) ⇌ C(g)  (SPEC §6/#6).  Δn_gas = 1 − 2 = −1.
+   ---------------------------------------------------------------------
+   Forward-marching Euler relaxation toward Kc:
+     d[A] = (−kf[A][B] + kr[C])·Δt   (same for B);  d[C] = (+kf[A][B] − kr[C])·Δt
+   Equilibrium: kf[A][B] = kr[C]  ⇒  Kc = kf/kr = [C]/([A][B]).
+   We hold kf fixed and set kr = kf/Kc, so changing Kc (temperature) changes kr.
+
+   AP TRAPS encoded here (the science Elena must scrutinise):
+   • TEMPERATURE depends on ΔH. Treat heat as a term in the reaction:
+       exo:  A+B ⇌ C + heat   → raising T shifts LEFT (consumes heat, reverse),
+             and Kc DECREASES.  Endo: heat + A+B ⇌ C → raising T shifts RIGHT, Kc INCREASES.
+       Implemented with van't Hoff:  K2 = K1·exp(−ΔH/R·(1/T2 − 1/T1)),  ΔH<0 for exo.
+   • PRESSURE/VOLUME depends on Δn_gas. Compression multiplies every conc by the
+       same factor s>1, so Q → Q/s^Δn... but more simply, with the rate law above
+       the relaxation AUTOMATICALLY moves toward the side with FEWER gas moles.
+       Here products = 1 gas mol < reactants = 2, so COMPRESSION shifts RIGHT,
+       EXPANSION shifts LEFT. (Kc is unchanged — only T changes Kc.)
+   • CATALYST does NOT shift equilibrium (speeds both directions equally; same Q,
+       same K, no concentration change). It is a deliberate no-op on position.
+   ===================================================================== */
+var R = 8.314;                  // J/mol·K
+var dHmag = 55000;              // |ΔH| in J/mol used for van't Hoff (teaching magnitude)
+var kf = 1.0;                   // forward rate constant (fixed)
+var DT = 0.02, RELAX_STEPS = 900;   // Euler timestep + steps per relaxation
+
+var T0 = 298;                   // reference temperature (K)
+var Kc0 = 4.0;                  // reference Kc at T0 (M^-1 for this Δn, teaching value)
+
+function vantHoff(K1, dHsigned, T1, T2){
+  return K1 * Math.exp(-(dHsigned/R) * (1/T2 - 1/T1));
+}
+
+var state, series, tIndex, lastShift;
+function freshState(){
+  return {
+    therm:'exo',                // 'exo' | 'endo'
+    T:T0,
+    Kc:Kc0,
+    A:0, B:0, C:0
+  };
+}
+function dHsigned(){ return state.therm==='exo' ? -dHmag : +dHmag; }
+
+// one Euler step toward equilibrium at the current Kc (kr derived from Kc)
+function step(){
+  var kr = kf / state.Kc;
+  var rf = kf*state.A*state.B, rr = kr*state.C;
+  state.A += (-rf + rr)*DT;
+  state.B += (-rf + rr)*DT;
+  state.C += ( rf - rr)*DT;
+  if(state.A<0)state.A=0; if(state.B<0)state.B=0; if(state.C<0)state.C=0;
+}
+function Q(){ return state.C / ((state.A*state.B) || 1e-12); }
+
+// relax to equilibrium, recording the trajectory into the series
+function relax(steps){
+  for(var i=0;i<steps;i++){ step(); if(i%9===0) pushPoint(); }
+  pushPoint();
+}
+function pushPoint(){
+  series.A.push({x:tIndex, y:state.A});
+  series.B.push({x:tIndex, y:state.B});
+  series.C.push({x:tIndex, y:state.C});
+  tIndex++;
+}
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]; } var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];} return [128,128,128]; }
+
+/* =====================================================================
+   CHART
+   ===================================================================== */
+var chart = new Chart(document.getElementById('chart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'[A]', data:[], borderWidth:2.5, pointRadius:0, tension:0.25, parsing:false },
+    { label:'[B]', data:[], borderWidth:2.5, pointRadius:0, tension:0.25, parsing:false, borderDash:[6,5] },
+    { label:'[C]', data:[], borderWidth:2.5, pointRadius:0, tension:0.25, parsing:false }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    interaction:{ mode:'nearest', intersect:false },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return c.dataset.label+' = '+c.parsed.y.toFixed(3)+' M'; } } } },
+    scales:{
+      x:{ type:'linear', min:0, title:{display:true,text:'Reaction-progress timeline →'}, ticks:{display:false} },
+      y:{ min:0, title:{display:true,text:'Concentration (M)'} }
+    }
+  }
+});
+function reskinChart(){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  chart.data.datasets[0].borderColor=tok('--indigo');
+  chart.data.datasets[1].borderColor=tok('--correct');
+  chart.data.datasets[2].borderColor=tok('--rose');
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks=Object.assign(chart.options.scales[ax].ticks||{},{color:muted}); chart.options.scales[ax].title.color=muted; });
+  chart.update();
+}
+
+/* =====================================================================
+   INIT — start AT equilibrium from Kc
+   ===================================================================== */
+function initSeries(){
+  series = { A:[], B:[], C:[] }; tIndex = 0;
+  // seed away from equilibrium then relax so the opening trace settles to Kc
+  state.A = 1.0; state.B = 1.0; state.C = 0.2;
+  relax(RELAX_STEPS);
+}
+function resetAll(){
+  state = freshState();
+  state.therm = (new URLSearchParams(location.search).get('therm')==='endo') ? 'endo' : state.therm;
+  initSeries();
+  lastShift = '—';
+  syncTherm();
+  draw('Reset to equilibrium. Q = K.');
+}
+
+/* =====================================================================
+   STRESSES
+   ===================================================================== */
+function classifyShift(qBefore){
+  // direction inferred from Q vs K at the instant of stress
+  if (qBefore < state.Kc*0.999) return 'right';   // Q<K → forward (→)
+  if (qBefore > state.Kc*1.001) return 'left';     // Q>K → reverse (←)
+  return 'none';
+}
+function applyStress(act){
+  var note='', qBefore;
+  if (act==='reset'){ resetAll(); return; }
+  if (act==='catalyst'){
+    lastShift='none (catalyst)';
+    draw('A catalyst speeds the forward and reverse reactions <b>equally</b>. Q is unchanged, K is unchanged → <b>no shift</b>. Equilibrium is reached faster, but the position is identical.');
+    // a flat continuation so the trace shows "no change"
+    relax(120); commit();
+    return;
+  }
+
+  switch(act){
+    case 'addA':     state.A += 1.0;  break;
+    case 'addC':     state.C += 1.0;  break;
+    case 'remC':     state.C = Math.max(0, state.C*0.4); break;
+    case 'compress': state.A*=2; state.B*=2; state.C*=2; break;   // halve volume
+    case 'expand':   state.A*=0.5; state.B*=0.5; state.C*=0.5; break;  // double volume
+    case 'heat':
+      state.T += 25; state.Kc = vantHoff(state.Kc, dHsigned(), state.T-25, state.T); break;
+    case 'cool':
+      state.T -= 25; if(state.T<150)state.T=150; state.Kc = vantHoff(state.Kc, dHsigned(), state.T+25, state.T); break;
+  }
+  qBefore = Q();
+  var dir = classifyShift(qBefore);
+  lastShift = dir==='right' ? 'shifts → (forward)' : dir==='left' ? 'shifts ← (reverse)' : 'no shift';
+
+  // record the instantaneous jump, then relax to the (possibly new) Kc
+  pushPoint();
+  relax(RELAX_STEPS);
+  commit();
+
+  note = explainFor(act, dir);
+  draw(note);
+}
+function commit(){
+  // keep the timeline from growing unbounded (rolling window)
+  var MAXP = 1400;
+  ['A','B','C'].forEach(function(k){ if(series[k].length>MAXP) series[k]=series[k].slice(series[k].length-MAXP); });
+}
+
+function explainFor(act, dir){
+  var arrow = dir==='right' ? '<b>right (→, toward product C)</b>' : dir==='left' ? '<b>left (←, toward reactants A+B)</b>' : '<b>no shift</b>';
+  switch(act){
+    case 'addA': return 'Added A → Q drops below K (more reactant in the denominator) → shift '+arrow+' to consume the added A.';
+    case 'addC': return 'Added product C → Q rises above K → shift '+arrow+' to consume the added C.';
+    case 'remC': return 'Removed product C → Q drops below K → shift '+arrow+' to replace C.';
+    case 'compress': return 'Halved the volume → all concentrations double. With <b>2 gas mol on the left vs 1 on the right</b>, the system relieves the pressure by favouring the side with <b>fewer</b> gas molecules → shift '+arrow+'. (K<sub>c</sub> is unchanged — only T changes K.)';
+    case 'expand': return 'Doubled the volume → all concentrations halve. The system counteracts the drop in pressure by favouring the side with <b>more</b> gas molecules → shift '+arrow+'. (K<sub>c</sub> unchanged.)';
+    case 'heat':   return (state.therm==='exo'
+        ? 'Heated an <b>exothermic</b> reaction (heat is a product): added heat is consumed by the <b>reverse</b> reaction → shift '+arrow+', and <b>K<sub>c</sub> decreases</b>.'
+        : 'Heated an <b>endothermic</b> reaction (heat is a reactant): added heat drives the <b>forward</b> reaction → shift '+arrow+', and <b>K<sub>c</sub> increases</b>.');
+    case 'cool':   return (state.therm==='exo'
+        ? 'Cooled an <b>exothermic</b> reaction: removing heat favours the <b>forward</b> (heat-producing) reaction → shift '+arrow+', and <b>K<sub>c</sub> increases</b>.'
+        : 'Cooled an <b>endothermic</b> reaction: removing heat favours the <b>reverse</b> reaction → shift '+arrow+', and <b>K<sub>c</sub> decreases</b>.');
+  }
+  return '';
+}
+
+/* =====================================================================
+   DRAW
+   ===================================================================== */
+function draw(msg){
+  chart.data.datasets[0].data = series.A;
+  chart.data.datasets[1].data = series.B;
+  chart.data.datasets[2].data = series.C;
+  var x0 = series.A.length ? series.A[0].x : 0;
+  chart.options.scales.x.min = x0;
+  chart.options.scales.x.max = tIndex;
+  reskinChart();
+
+  document.getElementById('kK').textContent = state.Kc.toFixed(2);
+  document.getElementById('kQ').textContent = Q().toFixed(2);
+  document.getElementById('kTemp').textContent = Math.round(state.T);
+  document.getElementById('kShift').textContent = lastShift;
+  if (msg) document.getElementById('explain').innerHTML = msg;
+}
+window.__onVizTheme = reskinChart;
+
+function syncTherm(){
+  Array.prototype.forEach.call(document.getElementById('thermSeg').children, function(b){
+    b.classList.toggle('on', b.dataset.th===state.therm);
+  });
+}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+Array.prototype.forEach.call(document.getElementById('thermSeg').children, function(b){
+  b.addEventListener('click', function(){
+    state.therm=b.dataset.th; syncTherm();
+    draw('Switched the forward reaction to <b>'+(state.therm==='exo'?'exothermic':'endothermic')+'</b>. This changes only how a <b>temperature</b> stress behaves (the direction K moves).');
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll('.sbtn'), function(b){
+  b.addEventListener('click', function(){ applyStress(b.dataset.act); });
+});
+
+/* ---- boot (deep-link: ?therm=exo|endo, ?stress=addA|compress|heat|...) ---- */
+state = freshState();
+(function(){
+  var q=new URLSearchParams(location.search);
+  if (q.get('therm')==='endo') state.therm='endo';
+})();
+initSeries();
+lastShift='—';
+syncTherm();
+draw('At equilibrium: Q = K. Apply a stress to see Le Châtelier’s principle restore the balance.');
+(function(){
+  var st=new URLSearchParams(location.search).get('stress');
+  var valid=['addA','addC','remC','compress','expand','heat','cool','catalyst'];
+  if (st && valid.indexOf(st)>=0) applyStress(st);
+})();
+</script>
+</body>
+</html>

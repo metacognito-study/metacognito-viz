@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mass Spectrometry — isotopes &amp; average atomic mass</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1));
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; }
+  @media (max-width: 720px){ .grid2 { grid-template-columns: 1fr; } }
+
+  svg { width: 100%; height: auto; display: block; }
+  .spec-wrap { position: relative; width: 100%; }
+
+  /* KPI readout cards */
+  .kpis { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .kpi {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px 10px; text-align: left;
+  }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.3rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+  .kpi.hero { border-color: var(--indigo); background: var(--indigo-soft); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+
+  select {
+    appearance: none; font: inherit; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 10px; min-height: 44px;
+  }
+
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    border: none; background: var(--surface-2); color: var(--ink);
+    font: inherit; padding: 9px 14px; min-height: 44px; cursor: pointer;
+    border-right: 1px solid var(--line);
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .secLabel { font-size:.72rem; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+
+  /* per-isotope breakdown table */
+  table.iso { width: 100%; border-collapse: collapse; font-size: .76rem; margin-top: 6px; }
+  table.iso th, table.iso td { text-align: right; padding: 5px 7px; border-bottom: 1px solid var(--line); }
+  table.iso th { color: var(--muted); font-weight: 600; font-size: .68rem; }
+  table.iso td:first-child, table.iso th:first-child { text-align: left; }
+  table.iso .chip { display:inline-block; width:10px; height:10px; border-radius:3px; vertical-align:middle; margin-right:6px; }
+  table.iso tfoot td { font-weight: 700; color: var(--ink); border-top: 2px solid var(--line); border-bottom: none; }
+
+  .selfcheck { font-size:.70rem; margin-top:8px; padding:7px 9px; border-radius:9px; }
+  .selfcheck.ok   { background: var(--green-soft); color: var(--ink); border:1px solid color-mix(in srgb, var(--correct) 40%, var(--line)); }
+  .selfcheck.bad  { background: var(--rose-soft);  color: var(--ink); border:1px solid color-mix(in srgb, var(--rose) 40%, var(--line)); }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Mass Spectrometry — isotopes &amp; the average atomic mass</h1>
+  <p class="viz-sub">A mass spectrometer sorts an element's atoms by <b>mass-to-charge ratio (m/z)</b> and reads out how
+    common each isotope is. The periodic-table mass is the <b>weighted average</b> of these isotopes — heavier on the
+    abundant ones. <span class="pill">average mass = Σ (isotope mass × fractional abundance)</span></p>
+
+  <!-- (1) Element picker + mode -->
+  <div class="panel">
+    <div class="controls">
+      <div class="control" style="flex:1 1 260px;">
+        <label for="elem">Element</label>
+        <select id="elem"></select>
+      </div>
+      <div class="control" style="flex:0 0 auto; min-width:0;">
+        <label>View</label>
+        <div class="seg" id="modeSeg" role="group" aria-label="spectrum mode">
+          <button data-mode="atomic" class="on" type="button">Atomic</button>
+          <button data-mode="diatomic" type="button">Diatomic (X₂)</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend-note" id="modeNote"></div>
+  </div>
+
+  <div class="grid2">
+    <!-- (2) The stick spectrum -->
+    <div class="panel">
+      <div class="secLabel" id="specTitle">Mass spectrum — relative abundance vs m/z</div>
+      <div class="spec-wrap"><svg id="spectrum" viewBox="0 0 420 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="mass spectrum stick chart"></svg></div>
+      <div class="legend-note" id="baseNote"></div>
+    </div>
+
+    <!-- (3) Average-mass readout + breakdown -->
+    <div class="panel">
+      <div class="kpis">
+        <div class="kpi hero">
+          <div class="lab">Average atomic mass (computed live)</div>
+          <div class="num"><span id="kAvg">—</span> <small>u</small></div>
+        </div>
+      </div>
+      <div class="secLabel" style="margin-top:12px">Per-isotope contribution = mass × abundance</div>
+      <table class="iso">
+        <thead><tr><th>Isotope</th><th>mass (u)</th><th>abund. %</th><th>contribution</th></tr></thead>
+        <tbody id="isoBody"></tbody>
+        <tfoot><tr><td colspan="3">Σ contributions</td><td id="isoSum">—</td></tr></tfoot>
+      </table>
+      <div class="selfcheck" id="selfcheck"></div>
+    </div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ?theme=&font=&scale=  +  postMessage({theme,font,scale}) → data-* on <html>.
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){
+    var t = (st.theme === null || st.theme === 'default') ? '' : String(st.theme);
+    if (THEMES.indexOf(t) < 0) t = '';
+    root.setAttribute('data-theme', t);
+  }
+  if (st.font !== undefined){
+    var f = String(st.font || 'lexend');
+    if (FONTS.indexOf(f) < 0) f = 'lexend';
+    root.setAttribute('data-font', f);
+  }
+  if (st.scale !== undefined){
+    root.style.setProperty('--viz-scale', String(clampScale(st.scale)));
+  }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){
+  var q = new URLSearchParams(location.search);
+  applyState({ theme: q.get('theme'), font: q.get('font') || 'lexend', scale: q.get('scale') || 1 });
+})();
+window.addEventListener('message', function(e){
+  var d = e && e.data;
+  if (!d || typeof d !== 'object') return;
+  if (!('theme' in d) && !('font' in d) && !('scale' in d)) return;
+  applyState(d);
+});
+
+/* =====================================================================
+   THE DATA — real isotope masses (u) + natural abundances (fractional).
+   Masses: CIAAW / NIST atomic mass evaluation (rounded to 4 dp).
+   Abundances: IUPAC representative isotopic composition.
+   Each element's weighted average is verified numerically against the
+   accepted standard atomic weight (see SELF-CHECK below).
+   ===================================================================== */
+var ELEMENTS = {
+  chlorine: {
+    name: 'Chlorine', sym: 'Cl', known: 35.45,
+    iso: [ {A:35, mass:34.9689, ab:0.7577}, {A:37, mass:36.9659, ab:0.2423} ]
+  },
+  bromine: {
+    name: 'Bromine', sym: 'Br', known: 79.90,
+    iso: [ {A:79, mass:78.9183, ab:0.5069}, {A:81, mass:80.9163, ab:0.4931} ]
+  },
+  magnesium: {
+    name: 'Magnesium', sym: 'Mg', known: 24.31,
+    iso: [ {A:24, mass:23.9850, ab:0.7899}, {A:25, mass:24.9858, ab:0.1000}, {A:26, mass:25.9826, ab:0.1101} ]
+  },
+  boron: {
+    name: 'Boron', sym: 'B', known: 10.81,
+    iso: [ {A:10, mass:10.0129, ab:0.199}, {A:11, mass:11.0093, ab:0.801} ]
+  },
+  copper: {
+    name: 'Copper', sym: 'Cu', known: 63.55,
+    iso: [ {A:63, mass:62.9296, ab:0.6917}, {A:65, mass:64.9278, ab:0.3083} ]
+  },
+  carbon: {
+    name: 'Carbon', sym: 'C', known: 12.011,
+    iso: [ {A:12, mass:12.0000, ab:0.9893}, {A:13, mass:13.0034, ab:0.0107} ]
+  }
+};
+var ORDER = ['chlorine','bromine','magnesium','boron','copper','carbon'];
+
+/* superscript-A helper for labels, e.g. ³⁵Cl */
+var SUP = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function supNum(n){ return String(n).split('').map(function(c){ return SUP[c]||c; }).join(''); }
+function isoLabel(sym, A){ return supNum(A) + sym; }
+
+/* average atomic mass = Σ(mass × fractional abundance) */
+function averageMass(el){
+  return el.iso.reduce(function(s, i){ return s + i.mass * i.ab; }, 0);
+}
+
+/* ---------------------------------------------------------------------
+   DIATOMIC isotopologue distribution X₂ (only built for 2-isotope
+   elements, e.g. Cl₂). For isotopes a (lighter) and b with abundances
+   p and q (p+q=1), the two atoms combine independently:
+     m=2a : p²        (both light)
+     m=a+b: 2pq       (one of each — two ways)
+     m=2b : q²        (both heavy)
+   For Cl (p=.7577,q=.2423) → 70:72:74 in ≈ 0.574 : 0.367 : 0.0587,
+   i.e. the classic ~9 : 6 : 1 ratio when normalised to the smallest.
+   --------------------------------------------------------------------- */
+function diatomicPeaks(el){
+  if (el.iso.length !== 2) return null;
+  var a = el.iso[0], b = el.iso[1];
+  var p = a.ab, q = b.ab;
+  var sym = el.sym;
+  return [
+    { A: a.A*2,       mass: a.mass*2,        ab: p*p,   label: '('+supNum(a.A)+sym+')₂' },
+    { A: a.A+b.A,     mass: a.mass+b.mass,   ab: 2*p*q, label: supNum(a.A)+sym+supNum(b.A)+sym },
+    { A: b.A*2,       mass: b.mass*2,        ab: q*q,   label: '('+supNum(b.A)+sym+')₂' }
+  ];
+}
+
+/* =====================================================================
+   STATE + helpers
+   ===================================================================== */
+var state = { elem: 'chlorine', mode: 'atomic' };
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+var SVGNS = 'http://www.w3.org/2000/svg';
+function svg(tag, attrs){ var e=document.createElementNS(SVGNS, tag); for(var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+/* populate element picker */
+(function(){
+  var sel = document.getElementById('elem');
+  ORDER.forEach(function(key){
+    var el = ELEMENTS[key];
+    var o = document.createElement('option');
+    o.value = key; o.textContent = el.name + ' (' + el.sym + ')';
+    sel.appendChild(o);
+  });
+})();
+
+/* build the peak list for the current state (atomic isotopes OR diatomic) */
+function currentPeaks(){
+  var el = ELEMENTS[state.elem];
+  if (state.mode === 'diatomic'){
+    var d = diatomicPeaks(el);
+    if (d) return d.map(function(p){ return { mz: p.mass, mass: p.mass, ab: p.ab, label: p.label }; });
+  }
+  return el.iso.map(function(i){ return { mz: i.mass, mass: i.mass, ab: i.ab, label: isoLabel(el.sym, i.A) }; });
+}
+
+/* =====================================================================
+   RENDER: the stick / bar spectrum (SVG, fully token-coloured)
+   x = m/z, y = relative abundance (% of base peak = 100).
+   ===================================================================== */
+function drawSpectrum(){
+  var s = document.getElementById('spectrum');
+  s.innerHTML = '';
+  var W=420, Hh=300, padL=44, padR=18, padT=22, padB=40;
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  var indigo=tok('--indigo'), correct=tok('--correct');
+  var plotW = W - padL - padR, plotH = Hh - padT - padB;
+
+  var peaks = currentPeaks();
+  var maxAb = peaks.reduce(function(m,p){ return Math.max(m, p.ab); }, 0);
+
+  // x-domain from min..max m/z with padding so sticks aren't on the edge
+  var mzs = peaks.map(function(p){ return p.mz; });
+  var lo = Math.min.apply(null, mzs), hi = Math.max.apply(null, mzs);
+  var span = Math.max(hi - lo, 4);
+  var xLo = lo - span*0.35, xHi = hi + span*0.35;
+  function xOf(mz){ return padL + (mz - xLo)/(xHi - xLo) * plotW; }
+  // y: relative abundance scaled so base peak (maxAb) = 100%
+  function yOf(rel){ return padT + (1 - rel/100) * plotH; }   // rel in 0..100
+
+  // --- y axis (relative abundance %) ---
+  s.appendChild(svg('line', {x1:padL, y1:padT, x2:padL, y2:padT+plotH, stroke:muted, 'stroke-width':1.2}));
+  [0,25,50,75,100].forEach(function(v){
+    var y = yOf(v);
+    s.appendChild(svg('line', {x1:padL-3, y1:y, x2:padL, y2:y, stroke:muted, 'stroke-width':1}));
+    s.appendChild(svg('line', {x1:padL, y1:y, x2:padL+plotW, y2:y, stroke:line, 'stroke-width': v===0?1.2:1, 'stroke-dasharray': v===0?'':'2 4', opacity: v===0?1:0.7}));
+    var t=svg('text', {x:padL-6, y:y+3, fill:muted, 'font-size':9, 'text-anchor':'end'}); t.textContent=v; s.appendChild(t);
+  });
+  var yLab = svg('text', {x:13, y:padT+plotH/2, fill:muted, 'font-size':9.5, 'text-anchor':'middle', transform:'rotate(-90 13 '+(padT+plotH/2)+')'});
+  yLab.textContent='relative abundance (%)'; s.appendChild(yLab);
+
+  // --- x axis (m/z) ---
+  s.appendChild(svg('line', {x1:padL, y1:padT+plotH, x2:padL+plotW, y2:padT+plotH, stroke:muted, 'stroke-width':1.2}));
+  var xLab = svg('text', {x:padL+plotW/2, y:Hh-6, fill:muted, 'font-size':10, 'text-anchor':'middle'});
+  xLab.textContent='m/z  (mass-to-charge ratio)'; s.appendChild(xLab);
+
+  // --- the sticks/bars ---
+  var barW = Math.max(8, Math.min(26, plotW/(peaks.length*3)));
+  peaks.forEach(function(p){
+    var rel = (p.ab / maxAb) * 100;          // base peak = 100%
+    var x = xOf(p.mz), yTop = yOf(rel), yBot = yOf(0);
+    var isBase = (p.ab === maxAb);
+    var col = isBase ? indigo : correct;     // base peak = primary accent, others = series 2
+    // bar
+    s.appendChild(svg('rect', {x:x-barW/2, y:yTop, width:barW, height:Math.max(0,yBot-yTop), fill:col, rx:2}));
+    // m/z tick + value under the bar
+    s.appendChild(svg('line', {x1:x, y1:yBot, x2:x, y2:yBot+3, stroke:muted, 'stroke-width':1}));
+    var mzTxt = (Math.abs(p.mz - Math.round(p.mz)) < 0.06) ? String(Math.round(p.mz)) : p.mz.toFixed(1);
+    var mzt=svg('text', {x:x, y:yBot+15, fill:muted, 'font-size':9, 'text-anchor':'middle'}); mzt.textContent=mzTxt; s.appendChild(mzt);
+    // isotope label + abundance above the bar
+    var lab=svg('text', {x:x, y:yTop-12, fill:ink, 'font-size':10.5, 'font-weight':'700', 'text-anchor':'middle'});
+    lab.textContent=p.label + (isBase ? '' : ''); s.appendChild(lab);
+    var ab=svg('text', {x:x, y:yTop-2, fill:muted, 'font-size':8.5, 'text-anchor':'middle'});
+    ab.textContent=(p.ab*100).toFixed(p.ab*100 < 10 ? 2 : (p.ab*100<100?2:1))+'%'; s.appendChild(ab);
+  });
+
+  // base-peak note (mode-aware: isotope vs molecular-ion combination)
+  var base = peaks.reduce(function(m,p){ return p.ab > m.ab ? p : m; }, peaks[0]);
+  var what = (state.mode === 'diatomic') ? 'most abundant combination' : 'most abundant isotope';
+  document.getElementById('baseNote').innerHTML =
+    'Tallest peak (the <b>base peak</b>, set to 100%) = the '+what+', <b>'+base.label+'</b>. '
+    + 'Each stick sits at its mass on the m/z axis; its height is how common it is.';
+}
+
+/* =====================================================================
+   RENDER: average-mass KPI + per-isotope breakdown table + self-check
+   ===================================================================== */
+function renderReadout(){
+  var el = ELEMENTS[state.elem];
+  var avg = averageMass(el);
+  document.getElementById('kAvg').textContent = avg.toFixed(2);
+
+  var body = document.getElementById('isoBody');
+  body.innerHTML = '';
+  var indigo=tok('--indigo'), correct=tok('--correct');
+  var maxAb = el.iso.reduce(function(m,i){ return Math.max(m,i.ab); }, 0);
+  el.iso.forEach(function(i){
+    var contrib = i.mass * i.ab;
+    var col = (i.ab === maxAb) ? indigo : correct;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><span class="chip" style="background:'+col+'"></span>'+isoLabel(el.sym, i.A)+'</td>'
+      + '<td>'+i.mass.toFixed(4)+'</td>'
+      + '<td>'+(i.ab*100).toFixed(2)+'</td>'
+      + '<td>'+contrib.toFixed(4)+'</td>';
+    body.appendChild(tr);
+  });
+  document.getElementById('isoSum').textContent = avg.toFixed(4) + ' u';
+
+  // SELF-CHECK: computed weighted average vs accepted standard atomic weight
+  var diff = Math.abs(avg - el.known);
+  var sc = document.getElementById('selfcheck');
+  // tolerance: 0.05 u covers rounding in masses/abundances vs the tabulated value
+  if (diff <= 0.05){
+    sc.className = 'selfcheck ok';
+    sc.innerHTML = '✓ Self-check: computed '+avg.toFixed(3)+' u matches the periodic-table value '
+      + el.known.toFixed(2)+' u (Δ = '+diff.toFixed(3)+' u).';
+  } else {
+    sc.className = 'selfcheck bad';
+    sc.innerHTML = '✗ Self-check: computed '+avg.toFixed(3)+' u vs table '+el.known.toFixed(2)
+      + ' u (Δ = '+diff.toFixed(3)+' u) — exceeds tolerance.';
+  }
+}
+
+/* =====================================================================
+   FULL REFRESH
+   ===================================================================== */
+function refresh(){
+  var el = ELEMENTS[state.elem];
+  var hasDi = el.iso.length === 2;
+
+  // disable diatomic toggle when it isn't chemically simple (>2 isotopes)
+  Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){
+    var di = b.dataset.mode === 'diatomic';
+    b.disabled = di && !hasDi;
+    b.style.opacity = (di && !hasDi) ? 0.4 : 1;
+    b.style.cursor = (di && !hasDi) ? 'not-allowed' : 'pointer';
+  });
+  if (state.mode === 'diatomic' && !hasDi) state.mode = 'atomic';
+  Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){
+    b.classList.toggle('on', b.dataset.mode === state.mode);
+  });
+
+  var specT = document.getElementById('specTitle');
+  var modeN = document.getElementById('modeNote');
+  if (state.mode === 'diatomic'){
+    specT.textContent = el.sym+'₂ mass spectrum — molecular ion isotopologues';
+    modeN.innerHTML = 'A diatomic '+el.sym+'₂ molecule has two atoms, each independently '+supNum(el.iso[0].A)+' or '
+      + supNum(el.iso[1].A)+'. The molecular-ion peaks appear at m/z = sum of the two atom masses, with intensities '
+      + 'p², 2pq, q² (e.g. Cl₂ gives the classic 70 : 72 : 74 ≈ 9 : 6 : 1 pattern).';
+  } else {
+    specT.textContent = 'Mass spectrum of '+el.name+' — relative abundance vs m/z';
+    modeN.innerHTML = 'Each peak is one isotope of '+el.name+'. '
+      + (hasDi ? 'Switch to <b>Diatomic ('+el.sym+'₂)</b> to see how two atoms combine into a molecular-ion pattern.'
+               : el.name+' has '+el.iso.length+' stable isotopes shown here.');
+  }
+
+  drawSpectrum();
+  renderReadout();
+}
+
+window.__onVizTheme = refresh;   // SVG + chips read tokens fresh on every theme change
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+document.getElementById('elem').addEventListener('change', function(){ state.elem = this.value; refresh(); });
+Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){
+  b.addEventListener('click', function(){
+    if (b.disabled) return;
+    state.mode = b.dataset.mode; refresh();
+  });
+});
+
+/* ---- boot ---- */
+refresh();
+
+/* =====================================================================
+   CONSOLE SELF-TEST (logged for the numerical gate) — computed weighted
+   average vs accepted standard atomic weight for every element.
+   ===================================================================== */
+(function(){
+  try {
+    console.log('--- mass_spec.html numerical self-check (Σ mass×abundance vs known) ---');
+    var allOk = true;
+    ORDER.forEach(function(key){
+      var el = ELEMENTS[key];
+      var avg = averageMass(el);
+      var sumAb = el.iso.reduce(function(s,i){ return s+i.ab; }, 0);
+      var diff = Math.abs(avg - el.known);
+      var ok = diff <= 0.05;
+      allOk = allOk && ok;
+      console.log(
+        (ok?'OK ':'BAD') + '  ' + el.sym.padEnd(3) +
+        ' computed=' + avg.toFixed(4) +
+        ' known=' + el.known.toFixed(3) +
+        ' Δ=' + diff.toFixed(4) +
+        ' Σabund=' + sumAb.toFixed(4)
+      );
+    });
+    console.log(allOk ? 'ALL ELEMENTS PASS' : 'SOME ELEMENTS FAILED');
+  } catch(e){ console.warn('self-check error', e); }
+})();
+</script>
+</body>
+</html>

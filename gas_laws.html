@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gas Laws — PV = nRT</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1));
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .chart-wrap { position: relative; height: 300px; }
+
+  /* --- mode segmented control (which gas law) --- */
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    border: none; background: var(--surface-2); color: var(--ink);
+    font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer;
+    border-right: 1px solid var(--line);
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  /* --- piston + readout grid --- */
+  .stage { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: stretch; }
+  @media (max-width: 520px){ .stage { grid-template-columns: 92px 1fr; } }
+
+  /* the piston cylinder: a vertical container whose gas column height scales with V */
+  .cyl {
+    position: relative;
+    border: 2px solid var(--line);
+    border-radius: 10px 10px 6px 6px;
+    background: var(--surface-2);
+    overflow: hidden;
+    min-height: 200px;
+  }
+  .gas {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: color-mix(in srgb, var(--indigo) 26%, var(--surface));
+    border-top: 3px solid var(--indigo);      /* the piston face */
+    transition: height .06s linear;            /* tiny, not the chart — keeps piston smooth on drag */
+  }
+  .dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--indigo); opacity: .85; }
+  .cyl .cap { position: absolute; top: 0; left: 0; right: 0; height: 8px; background: var(--line); }
+  .pistonLbl { position: absolute; left: 0; right: 0; text-align: center; font-size: .62rem; color: var(--muted); pointer-events: none; }
+
+  /* readout KPIs for P,V,n,T */
+  .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; align-content: start; }
+  .kpi {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px 10px; text-align: left;
+  }
+  .kpi .lab { font-size: .66rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.18rem; font-weight: 700; color: var(--ink); line-height: 1.15; }
+  .kpi .num small { font-size: .62rem; color: var(--muted); font-weight: 600; }
+  .kpi.held { box-shadow: 0 0 0 2px color-mix(in srgb, var(--amber) 55%, transparent); }
+  .kpi.solved { box-shadow: 0 0 0 2px color-mix(in srgb, var(--correct) 65%, transparent); }
+  .kpi .tag { font-size: .56rem; border-radius: 999px; padding: 1px 6px; margin-left: 4px; vertical-align: middle; }
+  .kpi.held .tag   { background: var(--amber-soft, color-mix(in srgb,var(--amber) 30%, transparent)); color: var(--ink); }
+  .kpi.solved .tag { background: var(--green-soft, color-mix(in srgb,var(--correct) 30%, transparent)); color: var(--ink); }
+  .kpi.drive .tag  { background: var(--indigo-soft); color: var(--ink); }
+
+  .law {
+    background: var(--indigo-soft); color: var(--ink);
+    border-radius: 12px; padding: 8px 12px; margin-top: 10px;
+    font-size: .82rem;
+  }
+  .law b { color: var(--ink); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 4px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .ca-play-btn {
+    border: none; cursor: pointer; color: #fff;
+    background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a);
+    border-radius: 999px; padding: 10px 18px; min-height: 44px;
+    font: inherit; font-weight: 700;
+    box-shadow: 0 2px 7px rgba(33,48,86,.22);
+    transition: transform .1s ease, filter .15s ease;
+  }
+  .ca-play-btn:active { transform: scale(.93); }
+
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Gas Laws — the ideal gas law PV = nRT</h1>
+  <p class="viz-sub">Push the piston or change the temperature, moles, or pressure. The held quantities stay fixed; the law solves for the rest. <span class="pill">R = 0.08206 L·atm·mol⁻¹·K⁻¹</span></p>
+
+  <!-- (1) Mode picker = which sub-law (what is held constant) -->
+  <div class="panel">
+    <div style="font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:8px">Choose a relationship</div>
+    <div class="seg" id="modeSeg" role="group" aria-label="gas law mode">
+      <button data-mode="boyle"   class="on" type="button">Boyle&nbsp;P–V</button>
+      <button data-mode="charles" type="button">Charles&nbsp;V–T</button>
+      <button data-mode="gaylussac" type="button">Gay-Lussac&nbsp;P–T</button>
+      <button data-mode="avogadro" type="button">Avogadro&nbsp;V–n</button>
+      <button data-mode="combined" type="button">Combined PV=nRT</button>
+    </div>
+    <div class="legend-note" id="modeHint"></div>
+  </div>
+
+  <!-- (2) Piston stage + live P/V/n/T readout -->
+  <div class="panel">
+    <div class="stage">
+      <div class="cyl" id="cyl">
+        <div class="cap"></div>
+        <div class="gas" id="gas"><div class="pistonLbl" style="top:-1px">piston</div></div>
+      </div>
+      <div class="kpis" id="kpis">
+        <div class="kpi" id="kpi-P"><div class="lab">Pressure P <span class="tag"></span></div><div class="num"><span id="vP">—</span> <small>atm</small></div></div>
+        <div class="kpi" id="kpi-V"><div class="lab">Volume V <span class="tag"></span></div><div class="num"><span id="vV">—</span> <small>L</small></div></div>
+        <div class="kpi" id="kpi-n"><div class="lab">Moles n <span class="tag"></span></div><div class="num"><span id="vn">—</span> <small>mol</small></div></div>
+        <div class="kpi" id="kpi-T"><div class="lab">Temp T <span class="tag"></span></div><div class="num"><span id="vT">—</span> <small>K</small></div></div>
+      </div>
+    </div>
+    <div class="law" id="lawLine"></div>
+  </div>
+
+  <!-- (3) Controls — only the relevant levers per mode (others auto-disabled) -->
+  <div class="panel">
+    <div class="controls" id="controls">
+      <div class="control" id="c-P">
+        <label for="sP">Pressure P = <b id="lP">1.00</b> atm</label>
+        <input type="range" id="sP" min="0.20" max="10.0" step="0.05" value="1.00">
+      </div>
+      <div class="control" id="c-V">
+        <label for="sV">Volume V = <b id="lV">22.4</b> L</label>
+        <input type="range" id="sV" min="1.0" max="60.0" step="0.1" value="22.4">
+      </div>
+      <div class="control" id="c-n">
+        <label for="sn">Moles n = <b id="ln">1.00</b> mol</label>
+        <input type="range" id="sn" min="0.10" max="4.0" step="0.05" value="1.00">
+      </div>
+      <div class="control" id="c-T">
+        <label for="sT">Temperature T = <b id="lT">273.15</b> K</label>
+        <input type="range" id="sT" min="100" max="900" step="1" value="273">
+      </div>
+    </div>
+    <div class="legend-note" id="solveNote"></div>
+  </div>
+
+  <!-- (4) Relationship chart -->
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legend-note" id="chartNote"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ?theme=&font=&scale=  +  postMessage({theme,font,scale}) → data-* on <html>.
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){
+    var t = (st.theme === null || st.theme === 'default') ? '' : String(st.theme);
+    if (THEMES.indexOf(t) < 0) t = '';
+    root.setAttribute('data-theme', t);
+  }
+  if (st.font !== undefined){
+    var f = String(st.font || 'lexend');
+    if (FONTS.indexOf(f) < 0) f = 'lexend';
+    root.setAttribute('data-font', f);
+  }
+  if (st.scale !== undefined){
+    root.style.setProperty('--viz-scale', String(clampScale(st.scale)));
+  }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){
+  var q = new URLSearchParams(location.search);
+  applyState({ theme: q.get('theme'), font: q.get('font') || 'lexend', scale: q.get('scale') || 1 });
+})();
+window.addEventListener('message', function(e){
+  var d = e && e.data;
+  if (!d || typeof d !== 'object') return;
+  if (!('theme' in d) && !('font' in d) && !('scale' in d)) return;
+  applyState(d);
+});
+
+/* =====================================================================
+   GAS-LAW ENGINE  (exact PV = nRT, R = 0.08206 L·atm·mol⁻¹·K⁻¹)
+   ---------------------------------------------------------------------
+   One law everywhere: P·V = n·R·T. Each mode picks ONE quantity to SOLVE
+   for from the other three, so the relationship is exact and self-consistent.
+     Boyle      : hold n,T  → vary V (driver) → solve P = nRT/V          (P·V = const)
+     Charles    : hold n,P  → vary T (driver) → solve V = nRT/P          (V/T  = const)
+     Gay-Lussac : hold n,V  → vary T (driver) → solve P = nRT/V          (P/T  = const)
+     Avogadro   : hold T,P  → vary n (driver) → solve V = nRT/P          (V/n  = const)
+     Combined   : free P,n,T (3 sliders)      → solve V = nRT/P          (full law)
+   The chart sweeps the driver across its slider range and plots the solved
+   quantity, giving the exact Boyle hyperbola / Charles & Avogadro lines /
+   Gay-Lussac line. Charles & Gay-Lussac are plotted in °C so the line is
+   seen to extrapolate to absolute zero (−273.15 °C ⇒ V→0 / P→0).
+   ===================================================================== */
+var R = 0.08206;               // L·atm·mol⁻¹·K⁻¹
+var ABS_ZERO_C = -273.15;      // °C  (0 K)
+function K2C(t){ return t + ABS_ZERO_C; }
+function C2K(t){ return t - ABS_ZERO_C; }
+
+// the four state values (authoritative; some are held, one is solved per mode)
+var S = { P: 1.00, V: 22.4, n: 1.00, T: 273 };
+
+var MODES = {
+  boyle:    { driver:'V', solve:'P', hold:['n','T'],
+              title:'Boyle’s Law', rel:'P · V = constant',
+              hint:'Hold n and T constant; push the piston (V) and watch P rise — they trade off so P·V stays fixed.',
+              xKey:'V', xLabel:'Volume V (L)', yKey:'P', yLabel:'Pressure P (atm)', xC:false },
+  charles:  { driver:'T', solve:'V', hold:['n','P'],
+              title:'Charles’s Law', rel:'V / T = constant',
+              hint:'Hold n and P constant; heat the gas (T) and the volume grows in direct proportion. The line aims at absolute zero.',
+              xKey:'T', xLabel:'Temperature (°C)', yKey:'V', yLabel:'Volume V (L)', xC:true },
+  gaylussac:{ driver:'T', solve:'P', hold:['n','V'],
+              title:'Gay-Lussac’s Law', rel:'P / T = constant',
+              hint:'Hold n and V constant (rigid tank); heat the gas and the pressure climbs in direct proportion. Extrapolates to absolute zero.',
+              xKey:'T', xLabel:'Temperature (°C)', yKey:'P', yLabel:'Pressure P (atm)', xC:true },
+  avogadro: { driver:'n', solve:'V', hold:['P','T'],
+              title:'Avogadro’s Law', rel:'V / n = constant',
+              hint:'Hold P and T constant; add gas (more moles) and the volume grows in direct proportion.',
+              xKey:'n', xLabel:'Moles n (mol)', yKey:'V', yLabel:'Volume V (L)', xC:false },
+  combined: { driver:null, solve:'V', hold:['P','n','T'],
+              title:'Ideal Gas Law', rel:'P · V = n · R · T',
+              hint:'Vary any of P, n, T freely; V is solved so PV = nRT holds exactly. Curve sweeps T at the current P, n.',
+              xKey:'T', xLabel:'Temperature T (K)', yKey:'V', yLabel:'Volume V (L)', xC:false }
+};
+var mode = 'boyle';
+
+// solve the missing quantity exactly from the other three
+function solveFor(key, st){
+  switch(key){
+    case 'P': return (st.n * R * st.T) / st.V;
+    case 'V': return (st.n * R * st.T) / st.P;
+    case 'n': return (st.P * st.V) / (R * st.T);
+    case 'T': return (st.P * st.V) / (st.n * R);
+  }
+}
+
+// slider element map + range bounds (used to sweep the driver for the chart)
+var SL = {
+  P: { el:null, lab:null, ctrl:'c-P', min:0.20, max:10.0, fmt:function(v){return v.toFixed(2);}, unit:'atm' },
+  V: { el:null, lab:null, ctrl:'c-V', min:1.0,  max:60.0, fmt:function(v){return v.toFixed(1);}, unit:'L'   },
+  n: { el:null, lab:null, ctrl:'c-n', min:0.10, max:4.0,  fmt:function(v){return v.toFixed(2);}, unit:'mol' },
+  T: { el:null, lab:null, ctrl:'c-T', min:100,  max:900,  fmt:function(v){return v.toFixed(0);}, unit:'K'   }
+};
+['P','V','n','T'].forEach(function(k){
+  SL[k].el  = document.getElementById('s'+k);
+  SL[k].lab = document.getElementById('l'+k);
+});
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+/* =====================================================================
+   APPLY a mode: recompute S so PV=nRT holds, set which sliders are live.
+   ===================================================================== */
+function configureMode(){
+  var m = MODES[mode];
+  // read the held + driver sliders into S
+  m.hold.forEach(function(k){ S[k] = +SL[k].el.value; });
+  if (m.driver) S[m.driver] = +SL[m.driver].el.value;
+  // solve the remaining quantity so the law is satisfied
+  S[m.solve] = solveFor(m.solve, S);
+
+  // enable only the held + driver sliders; the solved one is disabled (it's derived)
+  ['P','V','n','T'].forEach(function(k){
+    var live = (k === m.driver) || (m.hold.indexOf(k) >= 0);
+    SL[k].el.disabled = !live;
+    var c = document.getElementById(SL[k].ctrl);
+    c.style.opacity = live ? '1' : '.45';
+    c.style.pointerEvents = live ? 'auto' : 'none';
+  });
+  // keep the solved-quantity slider visually in step with its computed value (clamped to its range)
+  syncSolvedSlider();
+}
+
+// reflect the solved value onto its (disabled) slider thumb, clamped to range
+function syncSolvedSlider(){
+  var k = MODES[mode].solve, sl = SL[k];
+  var v = Math.max(sl.min, Math.min(sl.max, S[k]));
+  sl.el.value = v;
+}
+
+/* =====================================================================
+   RENDER readouts (KPIs, piston, law line)
+   ===================================================================== */
+function fmt(k, v){ return SL[k].fmt(v); }
+
+function tagFor(k){
+  var m = MODES[mode];
+  if (k === m.solve) return ['solved','solved'];
+  if (k === m.driver) return ['drive','vary'];
+  if (m.hold.indexOf(k) >= 0) return ['held','held'];
+  return ['','']; // combined: all three driveable
+}
+
+function renderReadout(){
+  ['P','V','n','T'].forEach(function(k){
+    document.getElementById('v'+k).textContent = fmt(k, S[k]);
+    var box = document.getElementById('kpi-'+k);
+    box.className = 'kpi';
+    var t = tagFor(k);
+    if (t[0]) box.classList.add(t[0]);
+    box.querySelector('.tag').textContent = t[1];
+  });
+  // piston height ∝ V, mapped across the slider V-range to a 12%..96% column
+  var frac = (S.V - SL.V.min) / (SL.V.max - SL.V.min);
+  frac = Math.max(0, Math.min(1, frac));
+  document.getElementById('gas').style.height = (12 + frac * 84) + '%';
+
+  // law line
+  var m = MODES[mode];
+  document.getElementById('lawLine').innerHTML =
+    '<b>'+m.title+':</b> '+m.rel
+    + ' &nbsp;|&nbsp; check: P·V = ' + (S.P*S.V).toFixed(2) + ' L·atm,  n·R·T = ' + (S.n*R*S.T).toFixed(2) + ' L·atm'
+    + ' &nbsp;<span class="pill">' + (Math.abs(S.P*S.V - S.n*R*S.T) < 1e-6 ? 'PV = nRT ✓' : 'Δ='+(S.P*S.V - S.n*R*S.T).toExponential(1)) + '</span>';
+}
+
+/* =====================================================================
+   CHART — sweep the driver across its range, plot the solved quantity.
+   Token-driven (series = --indigo). Charles/Gay-Lussac x-axis in °C so the
+   line is seen aiming at absolute zero; a dashed reference marks 0 L/atm.
+   ===================================================================== */
+var chart = new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: { datasets: [
+    { label: 'curve', data: [], borderWidth: 3, pointRadius: 0, tension: 0, parsing:false },
+    { label: 'state', data: [], borderWidth: 0, pointRadius: 6, pointHoverRadius: 8, showLine:false, parsing:false }
+  ]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    animation: false,
+    parsing: false,
+    interaction: { mode: 'nearest', intersect: false },
+    plugins: { legend: { display: false }, tooltip: { callbacks: {
+      label: function(c){ return '('+c.parsed.x.toFixed(2)+', '+c.parsed.y.toFixed(2)+')'; } } } },
+    scales: {
+      x: { type:'linear', title: { display: true, text: '' } },
+      y: { title: { display: true, text: '' }, beginAtZero: false }
+    }
+  }
+});
+
+function buildCurve(){
+  var m = MODES[mode];
+  var pts = [];
+  var N = 80;
+
+  if (mode === 'combined'){
+    // sweep T (K) at current P, n; solve V
+    var t0 = SL.T.min, t1 = SL.T.max;
+    for (var i=0;i<=N;i++){
+      var T = t0 + (t1-t0)*i/N;
+      pts.push({ x:T, y: solveFor('V', {P:S.P, n:S.n, T:T, V:S.V}) });
+    }
+    return { pts:pts, statePt:{ x:S.T, y:S.V } };
+  }
+
+  var dKey = m.driver;
+  var d0 = SL[dKey].min, d1 = SL[dKey].max;
+  for (var j=0;j<=N;j++){
+    var dv = d0 + (d1-d0)*j/N;
+    var st = { P:S.P, V:S.V, n:S.n, T:S.T };
+    st[dKey] = dv;
+    st[m.solve] = solveFor(m.solve, st);   // exact solve at each sweep point
+    var xVal = m.xC ? K2C(st[m.xKey]) : st[m.xKey];
+    pts.push({ x:xVal, y: st[m.yKey] });
+  }
+  var sx = m.xC ? K2C(S[m.xKey]) : S[m.xKey];
+  return { pts:pts, statePt:{ x:sx, y:S[m.yKey] } };
+}
+
+function refreshChart(){
+  var m = MODES[mode];
+  var c = buildCurve();
+  chart.data.datasets[0].data = c.pts;
+  chart.data.datasets[1].data = [c.statePt];
+  chart.options.scales.x.title.text = m.xLabel;
+  chart.options.scales.y.title.text = m.yLabel;
+  // For direct-proportion laws shown in °C, force the axes to include origin region
+  // so the extrapolation to absolute zero is visible.
+  if (m.xC){
+    chart.options.scales.x.min = ABS_ZERO_C;          // show the line reaching 0 K
+    chart.options.scales.y.min = 0;
+  } else {
+    chart.options.scales.x.min = undefined;
+    chart.options.scales.y.min = (mode==='avogadro'||mode==='combined') ? 0 : undefined;
+  }
+  reskinChart();
+
+  // chart caption
+  var capt;
+  if (mode==='boyle') capt = 'Boyle hyperbola: as V↑, P↓ (P = nRT/V). The product P·V is constant along the curve.';
+  else if (mode==='charles') capt = 'Straight line through absolute zero: extend it and V→0 at −273.15 °C (0 K). V ∝ T (in kelvin).';
+  else if (mode==='gaylussac') capt = 'Straight line through absolute zero: P→0 at −273.15 °C (0 K). P ∝ T (in kelvin), rigid container.';
+  else if (mode==='avogadro') capt = 'Straight line through the origin: more moles → proportionally more volume (V ∝ n) at fixed P, T.';
+  else capt = 'V solved from PV = nRT as T sweeps at the current P and n. Slope = nR/P.';
+  document.getElementById('chartNote').innerHTML = capt;
+}
+
+function reskinChart(){
+  var ink = tok('--ink'), muted = tok('--muted'), line = tok('--line');
+  var indigo = tok('--indigo'), correct = tok('--correct');
+  Chart.defaults.color = ink;
+  Chart.defaults.font.family = tok('--app-font') || 'sans-serif';
+
+  chart.data.datasets[0].borderColor = indigo;
+  chart.data.datasets[0].backgroundColor = 'transparent';
+  chart.data.datasets[1].pointBackgroundColor = correct;
+  chart.data.datasets[1].pointBorderColor = correct;
+
+  ['x','y'].forEach(function(ax){
+    chart.options.scales[ax].grid = { color: line, drawBorder: true, borderColor: line };
+    chart.options.scales[ax].ticks = { color: muted };
+    chart.options.scales[ax].title.color = muted;
+  });
+  chart.update();
+}
+window.__onVizTheme = function(){ reskinChart(); };
+
+/* =====================================================================
+   FULL REFRESH (recompute → render → chart)
+   ===================================================================== */
+function refresh(){
+  configureMode();
+  // sync slider labels
+  ['P','V','n','T'].forEach(function(k){ SL[k].lab.textContent = SL[k].fmt(S[k]); });
+  renderReadout();
+  refreshChart();
+  // solve note
+  var m = MODES[mode];
+  var solvedTxt = m.solve + ' = ' + SL[m.solve].fmt(S[m.solve]) + ' ' + SL[m.solve].unit;
+  document.getElementById('solveNote').innerHTML =
+    'Disabled slider = the <b>solved</b> quantity ('+solvedTxt+'), derived from PV=nRT — it can’t be set directly.';
+  document.getElementById('modeHint').textContent = m.hint;
+}
+
+/* =====================================================================
+   EVENTS — input-driven 60fps redraw (no animation).
+   ===================================================================== */
+['P','V','n','T'].forEach(function(k){
+  SL[k].el.addEventListener('input', function(){
+    if (SL[k].el.disabled) return;     // solved sliders are read-only
+    S[k] = +SL[k].el.value;
+    refresh();
+  });
+});
+Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){
+  b.addEventListener('click', function(){
+    mode = b.dataset.mode;
+    Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(x){
+      x.classList.toggle('on', x.dataset.mode === mode);
+    });
+    refresh();
+  });
+});
+
+/* ---- boot ---- */
+refresh();
+</script>
+</body>
+</html>

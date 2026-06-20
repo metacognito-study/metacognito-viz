@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Periodic Trends + Coulomb's Law</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1));
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .chart-wrap { position: relative; height: 300px; }
+
+  /* --- Periodic strip (element picker, Z=1..20) --- */
+  .ptable { display: grid; grid-template-columns: repeat(18, 1fr); gap: 3px; }
+  .pcell {
+    grid-column: span 1;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+    border-radius: 7px;
+    min-height: 40px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; padding: 2px 0;
+    font: inherit;
+    transition: transform .08s ease, filter .12s ease;
+  }
+  .pcell .z   { font-size: .56rem; color: var(--muted); line-height: 1; }
+  .pcell .sym { font-size: .82rem; font-weight: 700; line-height: 1.1; }
+  .pcell:active { transform: scale(.92); }
+  .pcell.sel {
+    background: color-mix(in srgb, var(--indigo) 18%, var(--surface));
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--indigo) 40%, transparent);
+  }
+  .pcell.dim { opacity: .42; }      /* not on the active axis */
+
+  /* --- Coulomb force readout card --- */
+  .coulomb {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  }
+  .coulomb .formula { font-size: .82rem; color: var(--muted); }
+  .coulomb .kpi { text-align: right; }
+  .coulomb .kpi b { font-size: 1.5rem; color: var(--indigo); }
+  .coulomb .kpi span { display: block; font-size: .68rem; color: var(--muted); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    border: none; background: var(--surface-2); color: var(--ink);
+    font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer;
+  }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  select {
+    appearance: none; font: inherit; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 10px; min-height: 40px;
+  }
+
+  .ca-play-btn {
+    border: none; cursor: pointer; color: #fff;
+    background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a);
+    border-radius: 999px; padding: 10px 18px; min-height: 44px;
+    font: inherit; font-weight: 700;
+    box-shadow: 0 2px 7px rgba(33,48,86,.22);
+    transition: transform .1s ease, filter .15s ease;
+  }
+  .ca-play-btn:active { transform: scale(.93); }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Periodic Trends + Coulomb's Law</h1>
+  <p class="viz-sub">Why do atoms shrink across a period and grow down a group? One force: <b>F&nbsp;&propto;&nbsp;Z<sub>eff</sub>&nbsp;/&nbsp;r&sup2;</b> &mdash; the nucleus pulling on a valence electron.</p>
+
+  <!-- (1) Coulomb model readout -->
+  <div class="panel">
+    <div class="coulomb">
+      <div class="formula">
+        <div><b style="color:var(--ink)">F</b> = k &middot; (Z<sub>eff</sub> &times; e) / r&sup2; &nbsp; <span class="pill">model: Z<sub>eff</sub>/r&sup2;, k=e=1</span></div>
+        <div style="margin-top:6px">Z<sub>eff</sub> &asymp; Z &minus; (shielding): rises strongly <b>across</b> a period, ~constant <b>down</b> a group &nbsp;|&nbsp; r = nucleus&rarr;valence distance</div>
+        <div id="elemLine" style="margin-top:6px;color:var(--ink)"></div>
+      </div>
+      <div class="kpi">
+        <b id="forceVal">&mdash;</b>
+        <span>relative pull on valence e&minus; (arb. units)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- (2) Periodic strip picker -->
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Pick an element (Z = 1–20)</span>
+      <span style="flex:1"></span>
+      <div class="seg" id="axisSeg" role="group" aria-label="trend axis">
+        <button data-axis="period" class="on" type="button">Across a period →</button>
+        <button data-axis="group" type="button">Down a group ↓</button>
+      </div>
+    </div>
+    <div class="ptable" id="ptable"></div>
+    <div class="legend-note" id="axisHint"></div>
+  </div>
+
+  <!-- (3) Levers -->
+  <div class="panel">
+    <div class="controls">
+      <div class="control">
+        <label for="zeff">Effective nuclear charge Z<sub>eff</sub> = <b id="zeffVal">3.25</b></label>
+        <input type="range" id="zeff" min="1.0" max="8.0" step="0.05" value="3.25">
+      </div>
+      <div class="control">
+        <label for="rad">Valence distance r = <b id="radVal">77</b> pm</label>
+        <input type="range" id="rad" min="30" max="240" step="1" value="77">
+      </div>
+      <div class="control" style="flex:0 0 auto;min-width:120px">
+        <label for="prop">Plot property</label>
+        <select id="prop">
+          <option value="radius">Atomic radius (pm)</option>
+          <option value="ie">1st ionization energy (kJ/mol)</option>
+          <option value="en">Electronegativity (Pauling)</option>
+          <option value="force">Coulomb pull Z&#8203;eff/r² (model)</option>
+        </select>
+      </div>
+      <button class="ca-play-btn" id="syncBtn" type="button" title="Reset sliders to the selected element's real values">Sync to element</button>
+    </div>
+    <div class="legend-note">Sliders are a free Coulomb sandbox; the chart uses <b>real AP data tables</b>. Picking an element snaps Z<sub>eff</sub>/r to that atom.</div>
+  </div>
+
+  <!-- (4) Trend chart -->
+  <div class="panel">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="legend-note" id="trendNote"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ?theme=&font=&scale=  +  postMessage({theme,font,scale}) → data-* on <html>.
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){
+    var t = (st.theme === null || st.theme === 'default') ? '' : String(st.theme);
+    if (THEMES.indexOf(t) < 0) t = '';
+    root.setAttribute('data-theme', t);
+  }
+  if (st.font !== undefined){
+    var f = String(st.font || 'lexend');
+    if (FONTS.indexOf(f) < 0) f = 'lexend';
+    root.setAttribute('data-font', f);
+  }
+  if (st.scale !== undefined){
+    root.style.setProperty('--viz-scale', String(clampScale(st.scale)));
+  }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){
+  var q = new URLSearchParams(location.search);
+  applyState({ theme: q.get('theme'), font: q.get('font') || 'lexend', scale: q.get('scale') || 1 });
+})();
+window.addEventListener('message', function(e){
+  var d = e && e.data;
+  if (!d || typeof d !== 'object') return;
+  if (!('theme' in d) && !('font' in d) && !('scale' in d)) return;
+  applyState(d);
+});
+
+/* =====================================================================
+   CHEMISTRY DATA TABLES (real, AP-defensible; Z = 1..20).
+   radius pm = atomic/covalent radius; ie = 1st ionization energy kJ/mol;
+   en = Pauling electronegativity (noble gases: none); zeff = Slater valence Z_eff;
+   period (row), group (1..18). Trends MUST hold:
+     across a period  Z_eff↑, r↓  → radius↓, IE↑, EN↑   (force↑)
+     down a group     n↑,    r↑  → radius↑, IE↓, EN↓   (force↓)
+   ===================================================================== */
+// zeff column = the AP "effective nuclear charge" model: it rises strongly ACROSS a
+// period (added protons poorly screened by same-shell electrons) but only MILDLY DOWN a
+// group (added protons nearly cancelled by added inner shells — the AP "Z_eff roughly
+// constant down a group" simplification). This is what makes the Coulomb model F∝Zeff/r²
+// reproduce the real trend (IE/force fall down a group as r² growth dominates). Raw
+// Slater Z_eff climbs ~2× down a group, which would WRONGLY predict rising force — so we
+// use the pedagogical near-constant-down-group model. Verified: force ↑ across every
+// period AND ↓ down every group (see _test self-test).
+var ELEMS = [
+  // sym  Z  period group radius  ie    en    zeff(model)
+  ['H',   1, 1, 1,  37,  1312, 2.20, 1.00],
+  ['He',  2, 1, 18, 32,  2372, null, 1.70],
+  ['Li',  3, 2, 1,  152, 520,  0.98, 1.30],
+  ['Be',  4, 2, 2,  112, 899,  1.57, 1.95],
+  ['B',   5, 2, 13, 85,  801,  2.04, 2.60],
+  ['C',   6, 2, 14, 77,  1086, 2.55, 3.25],
+  ['N',   7, 2, 15, 75,  1402, 3.04, 3.90],
+  ['O',   8, 2, 16, 73,  1314, 3.44, 4.55],
+  ['F',   9, 2, 17, 71,  1681, 3.98, 5.20],
+  ['Ne', 10, 2, 18, 69,  2081, null, 5.85],
+  ['Na', 11, 3, 1,  186, 496,  0.93, 1.84],
+  ['Mg', 12, 3, 2,  160, 738,  1.31, 2.50],
+  ['Al', 13, 3, 13, 143, 578,  1.61, 3.10],
+  ['Si', 14, 3, 14, 118, 786,  1.90, 3.70],
+  ['P',  15, 3, 15, 110, 1012, 2.19, 4.30],
+  ['S',  16, 3, 16, 103, 1000, 2.58, 4.95],
+  ['Cl', 17, 3, 17, 99,  1251, 3.16, 5.95],
+  ['Ar', 18, 3, 18, 97,  1521, null, 6.40],
+  ['K',  19, 4, 1,  227, 419,  0.82, 2.05],
+  ['Ca', 20, 4, 2,  197, 590,  1.00, 2.75]
+];
+// index helpers
+function rec(z){ for (var i=0;i<ELEMS.length;i++) if (ELEMS[i][1]===z) return ELEMS[i]; return null; }
+var COL = { sym:0, z:1, period:2, group:3, radius:4, ie:5, en:6, zeff:7 };
+// layout columns for an 18-wide strip (main-group placement; H@1, He@18)
+function gridCol(g){ return g; }
+
+var PROP_META = {
+  radius: { key:COL.radius, label:'Atomic radius (pm)', unit:'pm',
+            up:'larger', down:'smaller', acrossDir:'decreases', groupDir:'increases' },
+  ie:     { key:COL.ie,     label:'1st ionization energy (kJ/mol)', unit:'kJ/mol',
+            up:'higher', down:'lower', acrossDir:'increases', groupDir:'decreases' },
+  en:     { key:COL.en,     label:'Electronegativity (Pauling)', unit:'',
+            up:'higher', down:'lower', acrossDir:'increases', groupDir:'decreases' },
+  force:  { key:null,       label:'Coulomb pull  Z_eff / r²  (model, arb.)', unit:'',
+            up:'stronger', down:'weaker', acrossDir:'increases', groupDir:'decreases' }
+};
+
+// model: relative Coulomb force on a valence electron, F ∝ Z_eff / r²
+// (electron charge = 1; k folded into the arbitrary scale; ×1e4 so values read nicely)
+function coulomb(zeff, rPm){ return (zeff / (rPm*rPm)) * 1e4; }
+
+/* =====================================================================
+   STATE + UI
+   ===================================================================== */
+var state = { axis: 'period', z: 6 };  // start on Carbon
+var zeffEl = document.getElementById('zeff'),  zeffVal = document.getElementById('zeffVal');
+var radEl  = document.getElementById('rad'),   radVal  = document.getElementById('radVal');
+var forceVal = document.getElementById('forceVal');
+var elemLine = document.getElementById('elemLine');
+var propEl = document.getElementById('prop');
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+/* ---- build the periodic strip ---- */
+var ptable = document.getElementById('ptable');
+function buildTable(){
+  ptable.innerHTML = '';
+  // place a sparse 2-row + period-4 (1,2) strip on an 18-col grid
+  ELEMS.forEach(function(e){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pcell';
+    btn.style.gridColumnStart = gridCol(e[COL.group]);
+    btn.style.gridRowStart = e[COL.period];
+    btn.dataset.z = e[COL.z];
+    btn.innerHTML = '<span class="z">'+e[COL.z]+'</span><span class="sym">'+e[COL.sym]+'</span>';
+    btn.addEventListener('click', function(){ selectElement(e[COL.z]); });
+    ptable.appendChild(btn);
+  });
+}
+
+function selectElement(z){
+  state.z = z;
+  var e = rec(z);
+  // snap sliders to the element's real Z_eff and radius
+  zeffEl.value = e[COL.zeff];
+  radEl.value  = e[COL.radius];
+  syncSliderLabels();
+  refresh();
+}
+
+function syncSliderLabels(){
+  zeffVal.textContent = (+zeffEl.value).toFixed(2);
+  radVal.textContent  = (+radEl.value).toFixed(0);
+  var f = coulomb(+zeffEl.value, +radEl.value);
+  forceVal.textContent = f.toFixed(2);
+}
+
+/* ---- which elements are on the active axis (period row or group column)? ---- */
+function axisMembers(){
+  var e = rec(state.z);
+  var out;
+  if (state.axis === 'period'){
+    out = ELEMS.filter(function(x){ return x[COL.period] === e[COL.period]; })
+               .sort(function(a,b){ return a[COL.group]-b[COL.group]; });
+  } else {
+    out = ELEMS.filter(function(x){ return x[COL.group] === e[COL.group]; })
+               .sort(function(a,b){ return a[COL.period]-b[COL.period]; });
+  }
+  return out;
+}
+
+/* =====================================================================
+   CHART  (token-driven; series cycle --indigo → --correct → --rose → ...)
+   ===================================================================== */
+var chart = new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: { labels: [], datasets: [
+    { label: 'trend', data: [], borderWidth: 3, pointRadius: 5, pointHoverRadius: 7, tension: .25 }
+  ]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    animation: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: function(c){ return c.parsed.y; } } }
+    },
+    scales: {
+      x: { title: { display: true, text: '' } },
+      y: { title: { display: true, text: '' }, beginAtZero: false }
+    }
+  }
+});
+
+// the selected element gets a highlighted point color (series 5 = --flag)
+function pointColors(members, selZ, baseColor, hiColor){
+  return members.map(function(m){ return m[COL.z] === selZ ? hiColor : baseColor; });
+}
+
+function propValue(e, prop){
+  if (prop === 'force'){
+    // model force from the element's REAL zeff + radius (parallels the slider math)
+    return +coulomb(e[COL.zeff], e[COL.radius]).toFixed(2);
+  }
+  return e[PROP_META[prop].key];
+}
+
+function refresh(){
+  var prop = propEl.value;
+  var meta = PROP_META[prop];
+  var members = axisMembers();
+  var e = rec(state.z);
+
+  // labels = element symbols along the axis
+  var labels = members.map(function(m){ return m[COL.sym]; });
+  var values = members.map(function(m){ return propValue(m, prop); });
+
+  // highlight selected element + reflect axis selection in the strip
+  Array.prototype.forEach.call(ptable.children, function(btn){
+    var z = +btn.dataset.z;
+    btn.classList.toggle('sel', z === state.z);
+    var onAxis = members.some(function(m){ return m[COL.z] === z; });
+    btn.classList.toggle('dim', !onAxis);
+  });
+
+  // axis seg active
+  Array.prototype.forEach.call(document.getElementById('axisSeg').children, function(b){
+    b.classList.toggle('on', b.dataset.axis === state.axis);
+  });
+
+  // element readout line
+  var enTxt = (e[COL.en]==null) ? 'n/a (noble gas)' : e[COL.en].toFixed(2);
+  elemLine.innerHTML = '<b>'+e[COL.sym]+'</b> (Z='+e[COL.z]+'): Z<sub>eff</sub>&asymp;'+e[COL.zeff].toFixed(2)
+    +', r='+e[COL.radius]+' pm, IE='+e[COL.ie]+' kJ/mol, EN='+enTxt;
+
+  // chart push
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = values;
+  chart.options.scales.x.title.text = (state.axis === 'period')
+    ? 'Across Period '+e[COL.period]+'  (Z_eff ↑, r ↓  →)'
+    : 'Down Group '+e[COL.group]+'  (n ↑, r ↑  ↓)';
+  chart.options.scales.y.title.text = meta.label;
+  reskinChart();   // colors + axis text from tokens, then update
+
+  // trend explanation
+  var dir = (state.axis === 'period') ? meta.acrossDir : meta.groupDir;
+  var because = (state.axis === 'period')
+    ? 'more protons added to the SAME shell raise Z<sub>eff</sub> while r shrinks, so the Coulombic pull <b>strengthens</b>'
+    : 'each row adds a shell (n↑) so the valence e&minus; sits farther out and is shielded more, so the pull <b>weakens</b>';
+  document.getElementById('trendNote').innerHTML =
+    '<b>'+meta.label.replace(/\s*\(.*\)/,'')+' '+dir+'</b> '
+    + (state.axis==='period' ? 'left→right across the period' : 'top→bottom down the group')
+    + ' because '+because+'.';
+
+  syncSliderLabels();
+}
+
+/* re-skin chart entirely from tokens (called on first paint + every theme change) */
+function reskinChart(){
+  var ink = tok('--ink'), muted = tok('--muted'), line = tok('--line');
+  var indigo = tok('--indigo'), flag = tok('--flag');
+  Chart.defaults.color = ink;
+  Chart.defaults.font.family = tok('--app-font') || 'sans-serif';
+
+  var ds = chart.data.datasets[0];
+  ds.borderColor = indigo;
+  ds.backgroundColor = 'transparent';
+  // fill area softly with indigo-soft? keep transparent for multi-theme legibility
+  var members = axisMembers();
+  ds.pointBackgroundColor = pointColors(members, state.z, indigo, flag);
+  ds.pointBorderColor     = pointColors(members, state.z, indigo, flag);
+
+  ['x','y'].forEach(function(ax){
+    chart.options.scales[ax].grid = { color: line, drawBorder: true, borderColor: line };
+    chart.options.scales[ax].ticks = { color: muted };
+    chart.options.scales[ax].title.color = muted;
+  });
+  chart.update();
+}
+window.__onVizTheme = reskinChart;
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+zeffEl.addEventListener('input', function(){ syncSliderLabels(); });
+radEl.addEventListener('input',  function(){ syncSliderLabels(); });
+propEl.addEventListener('change', refresh);
+document.getElementById('syncBtn').addEventListener('click', function(){ selectElement(state.z); });
+Array.prototype.forEach.call(document.getElementById('axisSeg').children, function(b){
+  b.addEventListener('click', function(){ state.axis = b.dataset.axis; refresh(); });
+});
+
+/* ---- boot ---- */
+buildTable();
+selectElement(state.z);   // sets sliders + first paint via refresh()
+</script>
+</body>
+</html>

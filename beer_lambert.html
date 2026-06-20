@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="" data-font="lexend">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Beer–Lambert absorbance (A = εbc)</title>
+
+<!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
+<link rel="stylesheet" href="viz-theme.css">
+<!-- Chart.js inside the iframe (SPEC §2d). Animations disabled below. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink); font-family: var(--app-font);
+    font-size: calc(16px * var(--viz-scale, 1)); -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums; padding: 14px; box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  .viz-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .viz-sub   { font-size: .76rem; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px){ .grid2 { grid-template-columns: 1fr; } }
+  .chart-wrap { position: relative; height: 240px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface-2); color: var(--ink); font: inherit; padding: 8px 12px; min-height: 40px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color: #fff; font-weight: 700; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 8px; }
+  .control { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 200px; }
+  .control label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .control label b { color: var(--ink); }
+  input[type="range"] { accent-color: var(--indigo); width: 100%; height: 28px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+  @media (max-width:560px){ .kpis { grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .kpi .lab { font-size: .64rem; color: var(--muted); font-weight: 600; }
+  .kpi .num { font-size: 1.02rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .kpi .num small { font-size: .60rem; color: var(--muted); font-weight: 600; }
+
+  .legend-note { font-size: .72rem; color: var(--muted); margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--ink); font-size:.72rem; }
+  .secLabel { font-size:.72rem; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  .cuvette { display:flex; align-items:flex-end; gap:8px; }
+  .cuvette .tube { width:34px; height:64px; border:2px solid var(--line); border-top:none; border-radius:0 0 6px 6px; position:relative; overflow:hidden; background:var(--surface-2); }
+  .cuvette .tube .fill { position:absolute; left:0; right:0; bottom:0; top:0; }
+</style>
+</head>
+<body>
+  <h1 class="viz-title">Beer–Lambert law — absorbance A = εbc</h1>
+  <p class="viz-sub">More concentrated (or a longer path) absorbs more light. Absorbance is proportional to concentration — the basis of a calibration curve.
+    <span class="pill">A = ε·b·c</span> <span class="pill">%T = 100·10<sup>−A</sup></span></p>
+
+  <div class="panel">
+    <div class="row">
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Solution</span>
+      <div class="seg" id="solSeg" role="group" aria-label="solution"></div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="sC">Concentration c = <b id="lC">0.020</b> M</label>
+        <input type="range" id="sC" min="0.001" max="0.050" step="0.001" value="0.020">
+      </div>
+      <div class="control">
+        <label for="sB">Path length b = <b id="lB">1.00</b> cm</label>
+        <input type="range" id="sB" min="0.5" max="2.0" step="0.1" value="1.0">
+      </div>
+    </div>
+    <div class="legend-note" id="epsNote"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="secLabel">Absorption spectrum — peak height grows with c (A = εbc at λ<sub>max</sub>)</div>
+      <div class="chart-wrap"><canvas id="specChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="secLabel">Calibration line — A vs c (drag the dot, or use the slider)</div>
+      <div class="chart-wrap"><canvas id="calChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="align-items:center;gap:16px">
+      <div class="cuvette" title="sample colour darkens as absorbance rises">
+        <div class="tube"><div class="fill" id="cuFill"></div></div>
+        <span class="secLabel" style="margin:0">sample</span>
+      </div>
+      <div class="kpis" style="flex:1;margin:0">
+        <div class="kpi"><div class="lab">Absorbance A</div><div class="num" id="kA">—</div></div>
+        <div class="kpi"><div class="lab">Transmittance %T</div><div class="num"><span id="kT">—</span> <small>%</small></div></div>
+        <div class="kpi"><div class="lab">Molar absorptivity ε</div><div class="num"><span id="kEps">—</span> <small>M⁻¹cm⁻¹</small></div></div>
+      </div>
+    </div>
+    <div class="legend-note" id="explain"></div>
+  </div>
+
+<script>
+/* =====================================================================
+   THE HARNESS PROTOCOL (verbatim from _shell/index.html).
+   ===================================================================== */
+var FONTS  = ['lexend','quicksand','comfortaa','lora','shantell','caveat','gaegu'];
+var THEMES = ['','dark','pink','blue','mint','purple','mango','metallic'];
+function clampScale(s){ s = parseFloat(s); if(!isFinite(s)) return 1; return Math.min(1.4, Math.max(0.85, s)); }
+function applyState(st){
+  var root = document.documentElement;
+  if (st.theme !== undefined){ var t=(st.theme===null||st.theme==='default')?'':String(st.theme); if(THEMES.indexOf(t)<0)t=''; root.setAttribute('data-theme',t); }
+  if (st.font !== undefined){ var f=String(st.font||'lexend'); if(FONTS.indexOf(f)<0)f='lexend'; root.setAttribute('data-font',f); }
+  if (st.scale !== undefined){ root.style.setProperty('--viz-scale', String(clampScale(st.scale))); }
+  if (window.__onVizTheme) window.__onVizTheme();
+}
+(function(){ var q=new URLSearchParams(location.search); applyState({theme:q.get('theme'),font:q.get('font')||'lexend',scale:q.get('scale')||1}); })();
+window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
+
+/* =====================================================================
+   ENGINE — Beer–Lambert (SPEC §6/#9).
+   ---------------------------------------------------------------------
+     A      = ε·b·c                 (dimensionless absorbance)
+     %T     = 100·10^(−A)           (percent transmittance)
+     A(λ)   = A_peak·exp(−(λ−λmax)²/2σ²)   Gaussian band; A_peak = εbc
+   Calibration line: A vs c is straight, slope = εb, through the origin —
+   that linearity is what lets you read an unknown concentration off the line.
+   ε is a fixed property of the species at λmax (hardcoded, AP-stylised).
+   ===================================================================== */
+var SOLUTIONS = [
+  { id:'cu', name:'Cu²⁺ (aq)',  lmax:800, eps:25, sigma:90, swatch:'#1f7ae0' },
+  { id:'co', name:'Co²⁺ (aq)',  lmax:510, eps:18, sigma:55, swatch:'#e0476b' },
+  { id:'ni', name:'Ni²⁺ (aq)',  lmax:720, eps:15, sigma:80, swatch:'#1faf6b' }
+];
+var LAM_LO = 400, LAM_HI = 900;
+var C_MAX = 0.050;
+
+var state = { sol:'cu', c:0.020, b:1.0 };
+function curSol(){ for(var i=0;i<SOLUTIONS.length;i++) if(SOLUTIONS[i].id===state.sol) return SOLUTIONS[i]; return SOLUTIONS[0]; }
+
+function absorbance(eps, b, c){ return eps * b * c; }
+function transmittancePct(A){ return 100 * Math.pow(10, -A); }
+function bandAt(lam, Apeak, lmax, sigma){ return Apeak * Math.exp(-Math.pow(lam-lmax,2)/(2*sigma*sigma)); }
+
+function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]; } var m=c.match(/rgba?\(([^)]+)\)/); if(m){var p=m[1].split(',').map(parseFloat);return[p[0],p[1],p[2]];} return [128,128,128]; }
+function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+
+/* =====================================================================
+   CHARTS
+   ===================================================================== */
+var specChart = new Chart(document.getElementById('specChart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'A(λ)', data:[], borderWidth:2.5, pointRadius:0, tension:0, parsing:false, fill:true }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return 'λ='+c.parsed.x.toFixed(0)+' nm, A='+c.parsed.y.toFixed(3); } } } },
+    scales:{
+      x:{ type:'linear', min:LAM_LO, max:LAM_HI, title:{display:true,text:'Wavelength λ (nm)'} },
+      y:{ min:0, title:{display:true,text:'Absorbance A'} }
+    }
+  }
+});
+
+var dotPlugin = {
+  id:'caldot',
+  afterDatasetsDraw:function(c){
+    var d=c.__dot; if(!d) return;
+    var ctx=c.ctx, xA=c.scales.x, yA=c.scales.y;
+    var X=xA.getPixelForValue(d.x), Y=yA.getPixelForValue(d.y);
+    // drop lines to axes
+    ctx.save(); ctx.setLineDash([4,4]); ctx.lineWidth=1; ctx.strokeStyle=rgba('--muted',0.7);
+    ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(X,yA.bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(xA.left,Y); ctx.stroke();
+    ctx.restore();
+    ctx.save(); ctx.fillStyle=tok('--rose'); ctx.strokeStyle=tok('--surface'); ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(X,Y,7,0,2*Math.PI); ctx.fill(); ctx.stroke(); ctx.restore();
+  }
+};
+
+var calChart = new Chart(document.getElementById('calChart'), {
+  type:'line',
+  data:{ datasets:[
+    { label:'A = εbc', data:[], borderWidth:3, pointRadius:0, tension:0, parsing:false }
+  ]},
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:false, parsing:false,
+    plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+    scales:{
+      x:{ type:'linear', min:0, max:C_MAX, title:{display:true,text:'Concentration c (M)'} },
+      y:{ min:0, title:{display:true,text:'Absorbance A'} }
+    }
+  },
+  plugins:[dotPlugin]
+});
+
+function reskin(chart){
+  var ink=tok('--ink'), muted=tok('--muted'), line=tok('--line');
+  Chart.defaults.color=ink; Chart.defaults.font.family=tok('--app-font')||'sans-serif';
+  ['x','y'].forEach(function(ax){ chart.options.scales[ax].grid={color:line,drawBorder:true,borderColor:line}; chart.options.scales[ax].ticks={color:muted}; chart.options.scales[ax].title.color=muted; });
+}
+function reskinAll(){
+  var indigo=tok('--indigo');
+  reskin(specChart); reskin(calChart);
+  specChart.data.datasets[0].borderColor=indigo;
+  specChart.data.datasets[0].backgroundColor=rgba('--indigo',0.16);
+  calChart.data.datasets[0].borderColor=tok('--correct');
+  specChart.update(); calChart.update();
+}
+
+/* =====================================================================
+   REFRESH
+   ===================================================================== */
+function refresh(){
+  var s = curSol();
+  var A = absorbance(s.eps, state.b, state.c);
+  var T = transmittancePct(A);
+
+  // spectrum band
+  var spec=[]; for(var lam=LAM_LO; lam<=LAM_HI; lam+=2) spec.push({x:lam, y:bandAt(lam, A, s.lmax, s.sigma)});
+  specChart.data.datasets[0].data = spec;
+  var Amax = absorbance(s.eps, 2.0, C_MAX);                 // worst-case ceiling so axis is stable
+  specChart.options.scales.y.max = Math.max(0.5, Amax*1.05);
+
+  // calibration line (slope εb), full c range
+  var cal=[{x:0,y:0},{x:C_MAX,y:absorbance(s.eps,state.b,C_MAX)}];
+  calChart.data.datasets[0].data = cal;
+  calChart.options.scales.y.max = Math.max(0.5, Amax*1.05);
+  calChart.__dot = { x:state.c, y:A };
+
+  reskinAll();
+
+  // labels + KPIs
+  document.getElementById('lC').textContent = state.c.toFixed(3);
+  document.getElementById('lB').textContent = state.b.toFixed(2);
+  document.getElementById('kA').textContent = A.toFixed(3);
+  document.getElementById('kT').textContent = T.toFixed(1);
+  document.getElementById('kEps').textContent = s.eps;
+  document.getElementById('epsNote').innerHTML = '<b>'+s.name+'</b> absorbs most strongly at λ<sub>max</sub> = '+s.lmax+' nm (ε = '+s.eps+' M⁻¹cm⁻¹). Absorbance is read at λ<sub>max</sub>.';
+
+  // cuvette colour: opacity tracks fraction of light absorbed (1 − T)
+  var fillEl = document.getElementById('cuFill');
+  var frac = 1 - Math.pow(10, -A);                          // fraction absorbed
+  fillEl.style.background = s.swatch;
+  fillEl.style.opacity = (0.12 + 0.85*Math.min(1,frac)).toFixed(3);
+
+  document.getElementById('explain').innerHTML = 'At c = '+state.c.toFixed(3)+' M and b = '+state.b.toFixed(2)+' cm, A = ε·b·c = '+s.eps+'·'+state.b.toFixed(2)+'·'+state.c.toFixed(3)+' = <b>'+A.toFixed(3)+'</b>, so %T = 100·10<sup>−A</sup> = <b>'+T.toFixed(1)+'%</b>. Doubling c (or b) doubles A; the calibration line stays straight through the origin.';
+}
+window.__onVizTheme = reskinAll;
+
+/* =====================================================================
+   EVENTS — sliders + drag the calibration dot
+   ===================================================================== */
+document.getElementById('sC').addEventListener('input', function(){ state.c=+this.value; refresh(); });
+document.getElementById('sB').addEventListener('input', function(){ state.b=+this.value; refresh(); });
+
+function buildSeg(){
+  var seg=document.getElementById('solSeg');
+  SOLUTIONS.forEach(function(s){
+    var b=document.createElement('button'); b.type='button'; b.dataset.sol=s.id; b.innerHTML=s.name;
+    if(s.id===state.sol) b.className='on';
+    b.addEventListener('click', function(){ state.sol=s.id; Array.prototype.forEach.call(seg.children,function(x){x.classList.toggle('on',x.dataset.sol===s.id);}); refresh(); });
+    seg.appendChild(b);
+  });
+}
+
+// drag concentration on the calibration chart
+var calCanvas = document.getElementById('calChart');
+var dragging=false;
+function cFromEvent(ev){
+  var rect=calCanvas.getBoundingClientRect();
+  var clientX = (ev.touches?ev.touches[0].clientX:ev.clientX);
+  var xA=calChart.scales.x;
+  var c=xA.getValueForPixel(clientX-rect.left);
+  c=Math.min(C_MAX, Math.max(0.001, Math.round(c/0.001)*0.001));
+  state.c=c; document.getElementById('sC').value=c; refresh();
+}
+calCanvas.addEventListener('mousedown', function(e){ dragging=true; cFromEvent(e); });
+window.addEventListener('mousemove', function(e){ if(dragging) cFromEvent(e); });
+window.addEventListener('mouseup', function(){ dragging=false; });
+calCanvas.addEventListener('touchstart', function(e){ dragging=true; cFromEvent(e); e.preventDefault(); }, {passive:false});
+calCanvas.addEventListener('touchmove', function(e){ if(dragging){ cFromEvent(e); e.preventDefault(); } }, {passive:false});
+calCanvas.addEventListener('touchend', function(){ dragging=false; });
+
+/* ---- boot (deep-link: ?sol=cu|co|ni, ?c=, ?b=) ---- */
+(function(){
+  var q=new URLSearchParams(location.search);
+  var sol=q.get('sol'); if(sol && SOLUTIONS.some(function(s){return s.id===sol;})) state.sol=sol;
+  var c=parseFloat(q.get('c')); if(isFinite(c)) state.c=Math.min(C_MAX,Math.max(0.001,c));
+  var b=parseFloat(q.get('b')); if(isFinite(b)) state.b=Math.min(2.0,Math.max(0.5,b));
+  document.getElementById('sC').value=state.c;
+  document.getElementById('sB').value=state.b;
+})();
+buildSeg();
+refresh();
+</script>
+</body>
+</html>
