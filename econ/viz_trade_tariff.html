@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>International Trade &amp; Tariff</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the viz is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --cue:var(--amber); --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:14px;
+        font-size:calc(15px*var(--fz,1)); -webkit-text-size-adjust:100%; }
+  .kpis{ display:flex; gap:10px; margin-bottom:12px; }
+  .kpi{ flex:1; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .kpi .lbl{ font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val{ font-size:20px; font-weight:800; color:var(--indigo); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .kpi.imp .val{ color:var(--correct); }
+  .kpi.rev .val{ color:var(--amber); }
+  .kpi.dwl .val{ color:var(--rose); }
+  .chartwrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; box-shadow:var(--shadow); }
+  canvas{ display:block; width:100%; height:auto; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.4; margin:8px 2px 12px; }
+  .controls{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .ctl{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; }
+  .ctl label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .ctl label b{ color:var(--indigo); font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px;
+    background:color-mix(in srgb, var(--indigo) 18%, var(--line)); outline:none; accent-color:var(--indigo); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; height:20px; width:20px; border-radius:50%;
+    background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); cursor:pointer; box-shadow:0 2px 6px rgba(33,48,86,.35); transition:transform .1s; }
+  input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.18); }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); margin:6px 2px 0; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:14px; height:10px; border-radius:3px; display:inline-block; opacity:.9; }
+  .swatch.line{ height:3px; border-radius:2px; }
+  .snapbar{ display:flex; align-items:center; gap:10px; margin:10px 2px 0; flex-wrap:wrap; }
+  .snap-btn{ font:inherit; font-size:13px; font-weight:700; padding:7px 13px; border-radius:999px; border:none; cursor:pointer;
+    color:#fff; background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); box-shadow:0 2px 7px rgba(33,48,86,.22); transition:transform .1s; }
+  .snap-btn:active{ transform:scale(.93); }
+  .snap-btn.ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .snap-btn.preset{ background:var(--indigo-soft); color:var(--indigo); border:1px solid color-mix(in srgb, var(--indigo) 32%, transparent); box-shadow:none; }
+  .snap-cmp{ font-size:12.5px; font-weight:600; color:var(--correct); font-variant-numeric:tabular-nums; }
+  .predictbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:10px 2px 0; font-size:12.5px; color:var(--ink); font-weight:600; }
+  .pred-btn{ font:inherit; font-size:12.5px; font-weight:700; padding:5px 11px; border-radius:999px; border:1px solid var(--line); cursor:pointer;
+    color:var(--ink); background:var(--surface-2); transition:transform .1s; }
+  .pred-btn.sel{ background:var(--indigo); color:#fff; border-color:var(--indigo); }
+  .pred-btn:active{ transform:scale(.93); }
+  .pred-fb{ font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .pred-fb.ok{ color:var(--correct); } .pred-fb.no{ color:var(--rose); }
+  @media (prefers-reduced-motion: reduce){
+    .snap-btn:active,.pred-btn:active{ transform:none; }
+    input[type=range]::-webkit-slider-thumb:active{ transform:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi imp"><div class="lbl">Imports</div><div class="val" id="kpiImp">-</div></div>
+    <div class="kpi rev"><div class="lbl">Tariff revenue</div><div class="val" id="kpiRev">-</div></div>
+    <div class="kpi dwl"><div class="lbl">Total DWL from tariff</div><div class="val" id="kpiDWL">-</div></div>
+  </div>
+  <div class="chartwrap"><canvas id="cv"></canvas></div>
+  <div class="legend">
+    <span><i class="swatch line" id="swD"></i> Demand</span>
+    <span><i class="swatch line" id="swS"></i> Supply</span>
+    <span><i class="swatch" id="swCS"></i> Consumer surplus</span>
+    <span><i class="swatch" id="swPS"></i> Producer surplus</span>
+    <span><i class="swatch" id="swRev"></i> Tariff revenue</span>
+    <span><i class="swatch" id="swDWL"></i> Deadweight loss</span>
+  </div>
+  <div class="snapbar">
+    <button type="button" class="snap-btn" id="snapBtn">📸 Snapshot</button>
+    <button type="button" class="snap-btn ghost" id="clearBtn">Clear</button>
+    <button type="button" class="snap-btn preset" id="presetFree">Open to free trade</button>
+    <button type="button" class="snap-btn preset" id="presetTariff">Impose a tariff</button>
+    <button type="button" class="snap-btn ghost" id="resetBtn">Reset</button>
+    <span class="snap-cmp" id="snapCmp"></span>
+  </div>
+  <div class="predictbar">
+    <span>Predict: a tariff will make imports…</span>
+    <button type="button" class="pred-btn" id="predRise" data-v="rise">rise</button>
+    <button type="button" class="pred-btn" id="predFall" data-v="fall">fall</button>
+    <span class="pred-fb" id="predFb"></span>
+  </div>
+  <div class="note" id="note"></div>
+  <div class="controls">
+    <div class="ctl"><label>World price of smartphones (P<sub>w</sub>) <b id="vPw">$50</b></label><input type="range" id="Pw" min="20" max="110" value="50" step="1"></div>
+    <div class="ctl"><label>Import tariff (t per unit) <b id="vT">$0</b></label><input type="range" id="T" min="0" max="60" value="0" step="1"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // ===== small-country trade model =====
+  // Domestic demand:  P = a - b*Q   (a=120, b=1)
+  // Domestic supply:  P = c + d*Q   (c=20,  d=1.5)
+  // Good: smartphones. The country is a PRICE TAKER at the world price Pw.
+  var a=120, b=1, c=20, d=1.5;
+  var Qa=(a-c)/(b+d);            // autarky quantity = 40
+  var Pa=a-b*Qa;                 // autarky price    = 80
+
+  // ---- theme/font/scale handoff (query + postMessage) ----
+  function applyTheme(o){
+    if(!o) return;
+    if(o.theme) document.documentElement.dataset.theme = String(o.theme);
+    if(o.font)  document.documentElement.style.setProperty('--app-font', String(o.font));
+    if(o.scale) document.documentElement.style.setProperty('--fz', String(o.scale));
+    if(typeof canvas !== 'undefined' && canvas) draw();   // skip until chart is initialised (avoids hoisting crash on the initial query-param call)
+  }
+  (function(){ var q=new URLSearchParams(location.search); applyTheme({theme:q.get('theme'),font:q.get('font'),scale:q.get('scale')}); })();
+  window.addEventListener('message', function(e){ if(e&&e.data&&e.data.__viz) applyTheme(e.data); });
+
+  // ---- color helper (reads live CSS vars so it re-themes) ----
+  function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
+  // hex/rgb -> rgba with alpha, for translucent region fills
+  function tint(col, al){
+    col=(col||'').trim();
+    if(col[0]==='#'){
+      var h=col.slice(1);
+      if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var n=parseInt(h,16);
+      return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+al+')';
+    }
+    if(col.indexOf('rgb')===0) return col.replace(/^rgb\(/,'rgba(').replace(/\)$/, ','+al+')');
+    return col;
+  }
+
+  var canvas=document.getElementById('cv'), ctx=canvas.getContext('2d');
+  var elPw=document.getElementById('Pw'), elT=document.getElementById('T');
+  function vPw(){ return parseFloat(elPw.value); }
+  function vT(){ return parseFloat(elT.value); }
+
+  // ---- core trade/tariff math (clamped, finite) ----
+  function trade(Pw, t){
+    // effective domestic price under the tariff, capped at autarky (a tariff can't lift price above autarky)
+    var Peff = Pw + t;
+    if(Peff > Pa) Peff = Pa;
+    var tEff = Peff - Pw;                 // effective tariff once capped
+    // free-trade quantities at the world price Pw
+    var Qd0 = Math.max(0,(a-Pw)/b), Qs0 = Math.max(0,(Pw-c)/d);
+    // tariff quantities at Peff
+    var Qd1 = Math.max(0,(a-Peff)/b), Qs1 = Math.max(0,(Peff-c)/d);
+    var imports0 = Math.max(0, Qd0-Qs0);  // free-trade imports
+    var importsT = Math.max(0, Qd1-Qs1);  // imports with the tariff
+    var exporting = Pw > Pa;              // world price above autarky => this good is exported, not imported
+    var tariffRev = tEff * importsT;
+    var dwlProd = 0.5*Math.max(0,(Qs1-Qs0))*tEff;  // production distortion triangle
+    var dwlCons = 0.5*Math.max(0,(Qd0-Qd1))*tEff;  // consumption distortion triangle
+    var dwlTot  = dwlProd + dwlCons;
+    if(!isFinite(tariffRev)) tariffRev=0;
+    if(!isFinite(dwlTot)) { dwlProd=dwlCons=dwlTot=0; }
+    return {Pw:Pw,t:t,Peff:Peff,tEff:tEff,Qd0:Qd0,Qs0:Qs0,Qd1:Qd1,Qs1:Qs1,
+            imports0:imports0,importsT:importsT,exporting:exporting,
+            tariffRev:tariffRev,dwlProd:dwlProd,dwlCons:dwlCons,dwlTot:dwlTot};
+  }
+
+  // ---- comparative-statics snapshots: photograph the world-price / tariff state, then change on top ----
+  var snaps=[];
+  function snapshot(){
+    var w=trade(vPw(), vT());
+    snaps.push({Pw:w.Pw,t:w.t,Peff:w.Peff,tEff:w.tEff,Qd0:w.Qd0,Qs0:w.Qs0,Qd1:w.Qd1,Qs1:w.Qs1,
+                importsT:w.importsT,tariffRev:w.tariffRev,dwlTot:w.dwlTot});
+    if(snaps.length>3) snaps.shift();
+    draw();
+  }
+  function clearSnaps(){ snaps=[]; draw(); }
+
+  // ---- predict-then-reveal state ----
+  var prediction=null;
+  function setPrediction(v){
+    prediction=v;
+    document.getElementById('predRise').classList.toggle('sel', v==='rise');
+    document.getElementById('predFall').classList.toggle('sel', v==='fall');
+    draw();
+  }
+
+  function dims(){
+    var w=canvas.clientWidth||520, h=Math.round(w*0.80);
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w,h:h};
+  }
+
+  function draw(){
+    var Pw=vPw(), t=vT();
+    document.getElementById('vPw').textContent='$'+Pw.toFixed(0);
+    document.getElementById('vT').textContent='$'+t.toFixed(0);
+
+    var w=trade(Pw,t);
+    document.getElementById('kpiImp').textContent=w.importsT.toFixed(1)+' units';
+    document.getElementById('kpiRev').textContent='$'+w.tariffRev.toFixed(0);
+    document.getElementById('kpiDWL').textContent='$'+w.dwlTot.toFixed(0);
+
+    var ink=cv('--ink'), muted=cv('--muted'), line=cv('--line');
+    var dem=cv('--indigo'), sup=cv('--rose'), eqc=cv('--correct'), loss=cv('--rose'), rev=cv('--amber');
+    var csCol=cv('--correct'), psCol=cv('--indigo');
+    document.getElementById('swD').style.background=dem;
+    document.getElementById('swS').style.background=sup;
+    document.getElementById('swCS').style.background=tint(csCol,.32);
+    document.getElementById('swPS').style.background=tint(psCol,.28);
+    document.getElementById('swRev').style.background=tint(rev,.42);
+    document.getElementById('swDWL').style.background=tint(loss,.42);
+
+    var D2=dims(), W=D2.w, H=D2.h;
+    var padL=46, padB=36, padT=14, padR=16;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    // fixed axis frame: Q up to a (=120 cap on demand x-intercept), P up to ~125
+    var Qmax=120, Pmax=125;
+    function X(q){ return x0 + (q/Qmax)*plotW; }
+    function Y(p){ return y0 - (p/Pmax)*plotH; }
+
+    ctx.clearRect(0,0,W,H);
+
+    // gridlines + axis ticks
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.font='11px '+cv('--app-font'); ctx.fillStyle=muted;
+    var i;
+    for(i=0;i<=5;i++){ var gp=Pmax*i/5; ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(X(0),Y(gp)); ctx.lineTo(X(Qmax),Y(gp)); ctx.stroke(); ctx.globalAlpha=1;
+      ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText('$'+gp.toFixed(0), x0-6, Y(gp)); }
+    for(i=0;i<=6;i++){ var gq=Qmax*i/6; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(gq.toFixed(0), X(gq), y0+6); }
+
+    var Peff=w.Peff, Qd0=w.Qd0, Qs0=w.Qs0, Qd1=w.Qd1, Qs1=w.Qs1;
+    var hasTariff = w.tEff>0.001;
+    var importing = !w.exporting && w.importsT>0.001 || (!w.exporting && w.imports0>0.001);
+
+    // ----- ghost snapshot (prior world-price / tariff state: faded price lines + region outlines) -----
+    snaps.forEach(function(s,gi){
+      ctx.save();
+      ctx.globalAlpha=0.30+0.08*gi; ctx.setLineDash([4,4]); ctx.lineWidth=1.5;
+      // faded world-price line
+      ctx.strokeStyle=eqc;
+      ctx.beginPath(); ctx.moveTo(X(0),Y(s.Pw)); ctx.lineTo(X(Qmax),Y(s.Pw)); ctx.stroke();
+      // faded effective (tariff) price line
+      if(s.tEff>0.001){
+        ctx.strokeStyle=ink;
+        ctx.beginPath(); ctx.moveTo(X(0),Y(s.Peff)); ctx.lineTo(X(Qmax),Y(s.Peff)); ctx.stroke();
+      }
+      // faded import-gap bracket outline at the operative price (Peff)
+      var sQs=s.Qs1, sQd=s.Qd1;
+      if(s.importsT>0.001){
+        ctx.strokeStyle=csCol;
+        ctx.beginPath(); ctx.moveTo(X(sQs),Y(s.Peff)); ctx.lineTo(X(sQd),Y(s.Peff)); ctx.stroke();
+      }
+      // faded revenue-rectangle outline
+      if(s.tEff>0.001 && s.importsT>0.001){
+        ctx.strokeStyle=rev;
+        ctx.beginPath(); ctx.rect(X(sQs),Y(s.Peff),X(sQd)-X(sQs),Y(s.Pw)-Y(s.Peff)); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      // numbered marker on the price axis at the snapshot's effective price
+      ctx.globalAlpha=Math.min(1,0.55+0.12*gi); ctx.fillStyle=muted;
+      ctx.beginPath(); ctx.arc(X(0)+9,Y(s.Peff),7,0,7); ctx.fill();
+      ctx.fillStyle=cv('--surface'); ctx.font='bold 10px '+cv('--app-font'); ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(String(gi+1), X(0)+9, Y(s.Peff));
+      ctx.restore();
+    });
+
+    // ===== shaded regions (under the curves) =====
+    // operative price the domestic market faces:
+    var Pop = Peff;                       // = Pw when no tariff
+    var QdOp = Qd1, QsOp = Qs1;           // domestic Qd / Qs at the operative price
+    // Consumer surplus: below demand (from a down to Pop), 0..QdOp  -> triangle (0,Pop)-(0,a)-(QdOp,Pop)
+    if(QdOp>0 && a>Pop){
+      ctx.beginPath();
+      ctx.moveTo(X(0),Y(Pop));
+      ctx.lineTo(X(0),Y(a));
+      ctx.lineTo(X(QdOp),Y(Pop));
+      ctx.closePath();
+      ctx.fillStyle=tint(csCol,.30); ctx.fill();
+    }
+    // Producer surplus: above supply (from c up to Pop), 0..QsOp -> triangle (0,c)-(0,Pop)-(QsOp,Pop)
+    if(QsOp>0 && Pop>c){
+      ctx.beginPath();
+      ctx.moveTo(X(0),Y(c));
+      ctx.lineTo(X(0),Y(Pop));
+      ctx.lineTo(X(QsOp),Y(Pop));
+      ctx.closePath();
+      ctx.fillStyle=tint(psCol,.26); ctx.fill();
+    }
+    // Tariff-revenue rectangle: width = imports (QsOp..QdOp), height = tariff (Pw..Peff)
+    if(hasTariff && w.importsT>0.001){
+      ctx.beginPath();
+      ctx.rect(X(QsOp), Y(Peff), X(QdOp)-X(QsOp), Y(Pw)-Y(Peff));
+      ctx.fillStyle=tint(rev,.42); ctx.fill();
+      ctx.strokeStyle=tint(rev,.85); ctx.lineWidth=1; ctx.stroke();
+    }
+    // Two DWL triangles (production distortion left, consumption distortion right)
+    if(hasTariff){
+      // production distortion: between Qs0 and Qs1 along supply, height up to tariff
+      // triangle vertices: (Qs0,Pw)-(Qs1,Peff)-(Qs1,Pw)
+      if(w.dwlProd>0.01){
+        ctx.beginPath();
+        ctx.moveTo(X(Qs0),Y(Pw));
+        ctx.lineTo(X(Qs1),Y(Peff));
+        ctx.lineTo(X(Qs1),Y(Pw));
+        ctx.closePath();
+        ctx.fillStyle=tint(loss,.45); ctx.fill();
+        ctx.strokeStyle=tint(loss,.85); ctx.lineWidth=1; ctx.stroke();
+      }
+      // consumption distortion: between Qd1 and Qd0 along demand
+      // triangle vertices: (Qd1,Peff)-(Qd1,Pw)-(Qd0,Pw)
+      if(w.dwlCons>0.01){
+        ctx.beginPath();
+        ctx.moveTo(X(Qd1),Y(Peff));
+        ctx.lineTo(X(Qd1),Y(Pw));
+        ctx.lineTo(X(Qd0),Y(Pw));
+        ctx.closePath();
+        ctx.fillStyle=tint(loss,.45); ctx.fill();
+        ctx.strokeStyle=tint(loss,.85); ctx.lineWidth=1; ctx.stroke();
+      }
+    }
+
+    // axes
+    ctx.strokeStyle=ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x0,padT); ctx.lineTo(x0,y0); ctx.lineTo(W-padR,y0); ctx.stroke();
+    // axis titles
+    ctx.fillStyle=ink; ctx.font='12px '+cv('--app-font');
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('Quantity (000s of phones)', x0+plotW/2, y0+18);
+    ctx.save(); ctx.translate(13, padT+plotH/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText('Price ($)',0,0); ctx.restore();
+
+    // demand line P=a-bQ  (from (0,a) to (a/b,0))
+    ctx.lineWidth=2.6; ctx.strokeStyle=dem; ctx.beginPath();
+    ctx.moveTo(X(0),Y(a)); ctx.lineTo(X(Math.min(a/b,Qmax)),Y(Math.max(0,a-b*Math.min(a/b,Qmax)))); ctx.stroke();
+    // supply line P=c+dQ  (from (0,c) up, clamped to Pmax)
+    var supQend=Math.min(Qmax,(Pmax-c)/d);
+    ctx.strokeStyle=sup; ctx.beginPath();
+    ctx.moveTo(X(0),Y(c)); ctx.lineTo(X(supQend),Y(c+d*supQend)); ctx.stroke();
+    // curve labels
+    ctx.font='bold 12px '+cv('--app-font');
+    ctx.fillStyle=dem; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillText('D', X(Math.min(a/b,Qmax))-4, Y(0)+14);
+    ctx.fillStyle=sup; ctx.textAlign='right'; ctx.textBaseline='top'; ctx.fillText('S', X(supQend)-2, Y(c+d*supQend)+2);
+
+    // autarky (no-trade) marker: faint dot where D meets S
+    ctx.fillStyle=tint(muted,.9); ctx.beginPath(); ctx.arc(X(Qa),Y(Pa),3,0,7); ctx.fill();
+    ctx.font='10px '+cv('--app-font'); ctx.fillStyle=muted; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillText('autarky $'+Pa.toFixed(0), X(Qa)+6, Y(Pa)-3);
+
+    // ===== world-price line (Pw) =====
+    ctx.strokeStyle=eqc; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(x0,Y(Pw)); ctx.lineTo(X(Qmax),Y(Pw)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=eqc; ctx.font='bold 11px '+cv('--app-font'); ctx.textAlign='right'; ctx.textBaseline='bottom';
+    ctx.fillText('Pw=$'+Pw.toFixed(0), X(Qmax), Y(Pw)-3);   // AP world-price label
+
+    // ===== effective (world price + tariff) line =====
+    if(hasTariff){
+      ctx.strokeStyle=ink; ctx.lineWidth=1.8; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(x0,Y(Peff)); ctx.lineTo(X(Qmax),Y(Peff)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=ink; ctx.textAlign='right'; ctx.textBaseline='bottom';
+      ctx.fillText('Pw+t=$'+Peff.toFixed(0), X(Qmax), Y(Peff)-3);
+    }
+
+    // ===== import-gap bracket =====
+    // drop the bracket from the WORLD-PRICE line (lower edge) so it never collides with the
+    // revenue rectangle / DWL labels that live in the Pw..Peff band.
+    if(w.importsT>0.001){
+      var xa=X(QsOp), xb=X(QdOp), ybr=Y(Pw), ydrop=16;
+      // vertical guides for Qs and Qd at the operative price (light, behind the bracket)
+      ctx.strokeStyle=tint(muted,.55); ctx.lineWidth=1; ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(X(QsOp),y0); ctx.lineTo(X(QsOp),Y(Pop)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X(QdOp),y0); ctx.lineTo(X(QdOp),Y(Pop)); ctx.stroke();
+      ctx.setLineDash([]);
+      // the bracket itself, dropping below the Pw line
+      ctx.strokeStyle=muted; ctx.lineWidth=1.4;
+      ctx.beginPath();
+      ctx.moveTo(xa, ybr); ctx.lineTo(xa, ybr+ydrop);
+      ctx.moveTo(xa, ybr+ydrop); ctx.lineTo(xb, ybr+ydrop);
+      ctx.moveTo(xb, ybr); ctx.lineTo(xb, ybr+ydrop);
+      ctx.stroke();
+      ctx.fillStyle=muted; ctx.font='bold 11px '+cv('--app-font'); ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText('imports = '+w.importsT.toFixed(1), (xa+xb)/2, ybr+ydrop+2);
+    }
+
+    // ===== area-value labels on revenue rect + the two DWL triangles =====
+    ctx.font='bold 10.5px '+cv('--app-font'); ctx.textAlign='center'; ctx.textBaseline='middle';
+    if(hasTariff && w.tariffRev>0.5){
+      ctx.fillStyle=ink;
+      ctx.fillText('$'+w.tariffRev.toFixed(0)+' rev', (X(QsOp)+X(QdOp))/2, (Y(Peff)+Y(Pw))/2);
+    }
+    if(hasTariff && w.dwlProd>0.5){
+      // place the production-distortion value just LEFT of its triangle apex, above Pw
+      ctx.fillStyle=loss; ctx.textAlign='right'; ctx.textBaseline='bottom';
+      ctx.fillText('$'+w.dwlProd.toFixed(0), X(Qs1)-3, Y(Pw)-2);
+    }
+    if(hasTariff && w.dwlCons>0.5){
+      ctx.fillStyle=loss; ctx.textAlign='left'; ctx.textBaseline='bottom';
+      ctx.fillText('$'+w.dwlCons.toFixed(0), X(Qd1)+1, Y(Pw)-1);
+    }
+
+    // ===== teaching note =====
+    var noteEl=document.getElementById('note');
+    if(w.exporting){
+      noteEl.textContent='World price $'+Pw.toFixed(0)+' is ABOVE the autarky price $'+Pa.toFixed(0)+
+        ', so this country would EXPORT smartphones, not import them. Slide Pw below $'+Pa.toFixed(0)+' to study an import tariff.';
+    } else if(!hasTariff){
+      noteEl.textContent='Free trade: at the world price $'+Pw.toFixed(0)+' (below autarky $'+Pa.toFixed(0)+
+        ') domestic buyers want '+Qd0.toFixed(1)+' but home firms supply only '+Qs0.toFixed(1)+
+        '. The gap, '+w.imports0.toFixed(1)+' units, is imported. Add a tariff to see the effect.';
+    } else {
+      noteEl.textContent='Tariff $'+w.tEff.toFixed(0)+'/unit lifts the home price to $'+Peff.toFixed(0)+
+        '. Domestic supply rises to '+Qs1.toFixed(1)+', demand falls to '+Qd1.toFixed(1)+
+        ', so imports shrink to '+w.importsT.toFixed(1)+'. Government collects $'+w.tariffRev.toFixed(0)+
+        ' (amber), but the two red triangles ($'+w.dwlTot.toFixed(0)+' total) are pure deadweight loss.';
+    }
+
+    // ===== predict-then-reveal check =====
+    var fb=document.getElementById('predFb');
+    if(prediction){
+      // truth: a tariff makes imports fall (toward 0). Only meaningful in the importing regime.
+      var truth='fall';
+      if(prediction===truth){ fb.className='pred-fb ok'; fb.textContent='✓ Correct - a tariff raises the home price, so imports fall.'; }
+      else { fb.className='pred-fb no'; fb.textContent='✗ Not quite - the higher home price expands home supply and cuts home demand, so imports fall.'; }
+    } else { fb.className='pred-fb'; fb.textContent=''; }
+
+    // ===== Δ comparison vs the latest snapshot =====
+    var cmp=document.getElementById('snapCmp');
+    if(snaps.length){
+      var last=snaps[snaps.length-1];
+      var dImp=w.importsT-last.importsT, dRev=w.tariffRev-last.tariffRev, dDwl=w.dwlTot-last.dwlTot;
+      function s1(x,u){ return (x>=0?'+':'−')+(u||'')+Math.abs(x).toFixed(u==='$'?0:1); }
+      cmp.textContent='vs snapshot '+snaps.length+':  ΔImports '+s1(dImp)+' · ΔTariffRev '+s1(dRev,'$')+' · ΔDWL '+s1(dDwl,'$');
+    } else { cmp.textContent=''; }
+  }
+
+  // ---- presets ----
+  function presetFreeTrade(){ elPw.value='50'; elT.value='0'; draw(); }
+  function presetTariff(){ elPw.value='50'; elT.value='15'; draw(); }   // binding $15 tariff (Peff=$65, imports 50->25)
+  function reset(){ elPw.value='50'; elT.value='0'; snaps=[]; prediction=null;
+    document.getElementById('predRise').classList.remove('sel'); document.getElementById('predFall').classList.remove('sel'); draw(); }
+
+  elPw.addEventListener('input', draw);
+  elT.addEventListener('input', draw);
+  document.getElementById('snapBtn').addEventListener('click', snapshot);
+  document.getElementById('clearBtn').addEventListener('click', clearSnaps);
+  document.getElementById('presetFree').addEventListener('click', presetFreeTrade);
+  document.getElementById('presetTariff').addEventListener('click', presetTariff);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  document.getElementById('predRise').addEventListener('click', function(){ setPrediction('rise'); });
+  document.getElementById('predFall').addEventListener('click', function(){ setPrediction('fall'); });
+  window.addEventListener('resize', draw);
+
+  // verification/demo hook: ?snapdemo=1 → snapshot free trade (t=0), then impose a tariff (ghost + Δ: imports fall, DWL appears)
+  (function(){ try{ if(new URLSearchParams(location.search).get('snapdemo')==='1'){
+    presetFreeTrade(); snapshot(); elT.value='15'; }
+  }catch(e){} })();
+
+  draw();
+})();
+</script>
+</body>
+</html>

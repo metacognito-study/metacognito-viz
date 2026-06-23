@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tax Incidence &amp; Deadweight Loss</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the viz is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --cue:var(--amber); --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:14px;
+        font-size:calc(15px*var(--fz,1)); -webkit-text-size-adjust:100%; }
+  .kpis{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .kpi{ background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .kpi .lbl{ font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val{ font-size:20px; font-weight:800; color:var(--indigo); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .chartwrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; box-shadow:var(--shadow); }
+  canvas{ display:block; width:100%; height:auto; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.4; margin:8px 2px 12px; }
+  .controls{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .ctl{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; }
+  .ctl.full{ grid-column:1 / -1; }
+  .ctl label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .ctl label b{ color:var(--indigo); font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px;
+    background:color-mix(in srgb, var(--indigo) 18%, var(--line)); outline:none; accent-color:var(--indigo); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; height:20px; width:20px; border-radius:50%;
+    background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); cursor:pointer; box-shadow:0 2px 6px rgba(33,48,86,.35); transition:transform .1s; }
+  input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.18); }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); margin:6px 2px 0; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:14px; height:10px; border-radius:3px; display:inline-block; }
+  .swatch.line{ height:3px; }
+  .snapbar{ display:flex; align-items:center; gap:10px; margin:10px 2px 0; flex-wrap:wrap; }
+  .snap-btn{ font:inherit; font-size:13px; font-weight:700; padding:7px 13px; border-radius:999px; border:none; cursor:pointer;
+    color:#fff; background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); box-shadow:0 2px 7px rgba(33,48,86,.22); transition:transform .1s; }
+  .snap-btn:active{ transform:scale(.93); }
+  .snap-btn.ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .snap-cmp{ font-size:12.5px; font-weight:600; color:var(--correct); font-variant-numeric:tabular-nums; }
+  @media (prefers-reduced-motion: reduce){ .snap-btn:active{ transform:none; } input[type=range]::-webkit-slider-thumb:active{ transform:none; } }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Buyers pay (P_b)</div><div class="val" id="kpiPb">-</div></div>
+    <div class="kpi"><div class="lbl">Sellers keep (P_s)</div><div class="val" id="kpiPs">-</div></div>
+    <div class="kpi"><div class="lbl">Tax revenue</div><div class="val" id="kpiRev">-</div></div>
+    <div class="kpi"><div class="lbl">Deadweight loss</div><div class="val" id="kpiDwl">-</div></div>
+  </div>
+  <div class="chartwrap"><canvas id="cv"></canvas></div>
+  <div class="legend">
+    <span><i class="swatch line" id="swD"></i> Demand</span>
+    <span><i class="swatch line" id="swS"></i> Supply</span>
+    <span><i class="swatch" id="swBuy"></i> Buyer burden</span>
+    <span><i class="swatch" id="swSell"></i> Seller burden</span>
+    <span><i class="swatch" id="swDwl"></i> Deadweight loss</span>
+  </div>
+  <div class="snapbar">
+    <button type="button" class="snap-btn" id="snapBtn">📸 Snapshot</button>
+    <button type="button" class="snap-btn ghost" id="clearBtn">Clear</button>
+    <span class="snap-cmp" id="snapCmp"></span>
+  </div>
+  <div class="note" id="note"></div>
+  <div class="controls">
+    <div class="ctl"><label>Demand steepness (more elastic ◄ ► more inelastic) <b id="vB">2.0</b></label><input type="range" id="B" min="1" max="5" value="2" step="0.1"></div>
+    <div class="ctl"><label>Supply steepness (more elastic ◄ ► more inelastic) <b id="vD">3.0</b></label><input type="range" id="D" min="1" max="6" value="3" step="0.1"></div>
+    <div class="ctl full"><label>Tax per unit ($) <b id="vT">30</b></label><input type="range" id="T" min="0" max="90" value="30" step="1"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // fixed intercepts (AP scenario): P_d = a - bQ, P_s = c + dQ
+  var A_FIX = 100, C_FIX = 10;
+
+  // ---- theme/font/scale handoff (query + postMessage) ----
+  function applyTheme(o){
+    if(!o) return;
+    if(o.theme) document.documentElement.dataset.theme = String(o.theme);
+    if(o.font)  document.documentElement.style.setProperty('--app-font', String(o.font));
+    if(o.scale) document.documentElement.style.setProperty('--fz', String(o.scale));
+    if(typeof canvas !== 'undefined' && canvas) draw();   // GUARD: skip until chart is initialised (avoids hoisting crash on the initial query-param call)
+  }
+  (function(){ var q=new URLSearchParams(location.search); applyTheme({theme:q.get('theme'),font:q.get('font'),scale:q.get('scale')}); })();
+  window.addEventListener('message', function(e){ if(e&&e.data&&e.data.__viz) applyTheme(e.data); });
+
+  // ---- color helper (reads live CSS vars so it re-themes) ----
+  function cvar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
+  // rgba tint from a hex/rgb CSS var (for soft fills)
+  function tint(name, alpha){
+    var c = cvar(name);
+    if(c[0]==='#'){
+      var h=c.slice(1);
+      if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+      return 'rgba('+r+','+g+','+b+','+alpha+')';
+    }
+    var m=c.match(/rgba?\(([^)]+)\)/);
+    if(m){ var p=m[1].split(',').map(function(s){return s.trim();}); return 'rgba('+p[0]+','+p[1]+','+p[2]+','+alpha+')'; }
+    return 'rgba(136,136,136,'+alpha+')';
+  }
+
+  var canvas=document.getElementById('cv'), ctx=canvas.getContext('2d');
+  var ids=['B','D','T'], el={}; ids.forEach(function(k){ el[k]=document.getElementById(k); });
+  function val(k){ return parseFloat(el[k].value); }
+
+  // ---- comparative-statics snapshots: "photograph" the before-state, then shift on top ----
+  var snaps=[];
+  function snapshot(){
+    var b=val('B'), d=val('D'), t=val('T'); var m=compute(b,d,t);
+    snaps.push({b:b,d:d,t:t,Qt:m.Qt,Pb:m.Pb,Ps:m.Ps,dwl:m.dwl,buyerBurden:m.buyerBurden,sellerBurden:m.sellerBurden});
+    if(snaps.length>3) snaps.shift();
+    draw();
+  }
+  function clearSnaps(){ snaps=[]; draw(); }
+
+  // ---- pure math (also unit-tested headlessly) ----
+  function compute(b,d,t){
+    var a=A_FIX, c=C_FIX;
+    var Qe=(a-c)/(b+d);              // no-tax equilibrium quantity
+    var Pe=a-b*Qe;                   // no-tax equilibrium price
+    var Qt=Math.max(0,(a-c-t)/(b+d));// quantity with per-unit tax t
+    var Pb=a-b*Qt;                   // price buyers pay
+    var Ps=c+d*Qt;                   // price sellers keep
+    var buyerBurden=Math.max(0,Pb-Pe);
+    var sellerBurden=Math.max(0,Pe-Ps);
+    var taxRev=Math.max(0,t*Qt);
+    var dwl=Math.max(0,0.5*t*(Qe-Qt));
+    return {a:a,c:c,Qe:Qe,Pe:Pe,Qt:Qt,Pb:Pb,Ps:Ps,buyerBurden:buyerBurden,sellerBurden:sellerBurden,taxRev:taxRev,dwl:dwl};
+  }
+  if(typeof window!=='undefined') window.__taxCompute = compute; // expose for headless math test
+
+  function dims(){
+    var w=canvas.clientWidth||520, h=Math.round(w*0.74);
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w,h:h};
+  }
+
+  function draw(){
+    var b=val('B'), d=val('D'), t=val('T');
+    document.getElementById('vB').textContent=b.toFixed(1);
+    document.getElementById('vD').textContent=d.toFixed(1);
+    document.getElementById('vT').textContent=t.toFixed(0);
+
+    var m=compute(b,d,t);
+    var a=m.a, c=m.c;
+    document.getElementById('kpiPb').textContent='$'+m.Pb.toFixed(2);
+    document.getElementById('kpiPs').textContent='$'+m.Ps.toFixed(2);
+    document.getElementById('kpiRev').textContent='$'+m.taxRev.toFixed(0);
+    document.getElementById('kpiDwl').textContent='$'+m.dwl.toFixed(0);
+
+    var ink=cvar('--ink'), muted=cvar('--muted'), line=cvar('--line');
+    var dem=cvar('--indigo'), sup=cvar('--rose'), eqc=cvar('--correct'), amb=cvar('--amber');
+    document.getElementById('swD').style.background=dem;
+    document.getElementById('swS').style.background=sup;
+    document.getElementById('swBuy').style.background=tint('--amber',.55);
+    document.getElementById('swSell').style.background=tint('--indigo',.45);
+    document.getElementById('swDwl').style.background=tint('--rose',.4);
+
+    var D=dims(), W=D.w, H=D.h;
+    var padL=48, padB=36, padT=14, padR=16;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    // axis ranges frame both curves + the no-tax equilibrium
+    var Qmax=Math.max(a/b, m.Qe*1.55, 5);
+    var Pmax=Math.max(a, c+d*(a/b))*1.04;
+    function X(q){ return x0 + (Math.max(0,q)/Qmax)*plotW; }
+    function Y(p){ return y0 - (Math.max(0,p)/Pmax)*plotH; }
+
+    ctx.clearRect(0,0,W,H);
+    // gridlines + axis ticks
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.font='11px '+cvar('--app-font'); ctx.fillStyle=muted;
+    var i, gp, gq;
+    for(i=0;i<=5;i++){ gp=Pmax*i/5; ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(X(0),Y(gp)); ctx.lineTo(X(Qmax),Y(gp)); ctx.stroke(); ctx.globalAlpha=1;
+      ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText('$'+gp.toFixed(0), x0-6, Y(gp)); }
+    for(i=0;i<=5;i++){ gq=Qmax*i/5; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(gq.toFixed(0), X(gq), y0+6); }
+    // axes
+    ctx.strokeStyle=ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x0,padT); ctx.lineTo(x0,y0); ctx.lineTo(W-padR,y0); ctx.stroke();
+    // axis titles
+    ctx.fillStyle=ink; ctx.font='12px '+cvar('--app-font');
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('Quantity', x0+plotW/2, y0+18);
+    ctx.save(); ctx.translate(13, padT+plotH/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText('Price ($)',0,0); ctx.restore();
+
+    var Qt=m.Qt, Qe=m.Qe, Pe=m.Pe, Pb=m.Pb, Ps=m.Ps;
+
+    // ---- ghost snapshots (comparative statics: prior positions dotted/faded UNDER the live graph) ----
+    snaps.forEach(function(s,i){
+      ctx.save(); ctx.globalAlpha=0.26+0.08*i; ctx.setLineDash([3,4]); ctx.lineWidth=2;
+      // ghost demand P=a-bQ
+      var gQd=Math.min(a/s.b,Qmax);
+      ctx.strokeStyle=dem; ctx.beginPath(); ctx.moveTo(X(0),Y(Math.min(a,Pmax))); ctx.lineTo(X(gQd),Y(Math.max(0,a-s.b*gQd))); ctx.stroke();
+      // ghost supply P=c+dQ
+      ctx.strokeStyle=sup; ctx.beginPath(); ctx.moveTo(X(0),Y(c)); ctx.lineTo(X(Qmax),Y(Math.min(c+s.d*Qmax,Pmax))); ctx.stroke();
+      // faint ghost tax-wedge at the prior taxed quantity (Ps -> Pb)
+      if(s.t>0 && s.Qt>0){ ctx.strokeStyle=muted; ctx.beginPath(); ctx.moveTo(X(s.Qt),Y(s.Pb)); ctx.lineTo(X(s.Qt),Y(s.Ps)); ctx.stroke(); }
+      ctx.setLineDash([]);
+      // numbered marker at the prior taxed point (buyers-pay corner of the wedge)
+      var mQ=(s.t>0&&s.Qt>0)?s.Qt:s.Qt, mP=(s.t>0&&s.Qt>0)?s.Pb:(a-s.b*s.Qt);
+      if(mQ>0 && mP>0){
+        ctx.globalAlpha=Math.min(1,0.5+0.12*i); ctx.fillStyle=muted;
+        ctx.beginPath(); ctx.arc(X(mQ),Y(mP),3.4,0,7); ctx.fill();
+        ctx.font='bold 10px '+cvar('--app-font'); ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(String(i+1), X(mQ), Y(mP)-9);
+      }
+      ctx.restore();
+    });
+
+    // ---- shaded regions (drawn under the curves) ----
+    // Government-revenue rectangle from Q=0..Qt, SPLIT at Pe:
+    //   buyer burden (Pe -> Pb), seller burden (Ps -> Pe)
+    if(Qt>0 && t>0){
+      // seller burden (Ps -> Pe), tint indigo
+      ctx.fillStyle=tint('--indigo',.30);
+      ctx.fillRect(X(0), Y(Pe), X(Qt)-X(0), Y(Ps)-Y(Pe));
+      // buyer burden (Pe -> Pb), tint amber
+      ctx.fillStyle=tint('--amber',.42);
+      ctx.fillRect(X(0), Y(Pb), X(Qt)-X(0), Y(Pe)-Y(Pb));
+    }
+    // Deadweight-loss triangle between Qt and Qe: vertices (Qt,Pb),(Qt,Ps),(Qe,Pe)
+    if(t>0 && Qe>Qt){
+      ctx.fillStyle=tint('--rose',.34);
+      ctx.beginPath();
+      ctx.moveTo(X(Qt),Y(Pb)); ctx.lineTo(X(Qt),Y(Ps)); ctx.lineTo(X(Qe),Y(Pe)); ctx.closePath(); ctx.fill();
+    }
+
+    // ---- demand line P=a-bQ ----
+    ctx.lineWidth=2.6; ctx.strokeStyle=dem; ctx.beginPath();
+    var QdEnd=Math.min(a/b,Qmax);
+    ctx.moveTo(X(0),Y(Math.min(a,Pmax))); ctx.lineTo(X(QdEnd), Y(Math.max(0,a-b*QdEnd))); ctx.stroke();
+    // ---- supply line P=c+dQ ----
+    ctx.strokeStyle=sup; ctx.beginPath();
+    ctx.moveTo(X(0),Y(c)); ctx.lineTo(X(Qmax), Y(Math.min(c+d*Qmax,Pmax))); ctx.stroke();
+    // curve labels
+    ctx.font='bold 12px '+cvar('--app-font'); ctx.textAlign='left';
+    ctx.fillStyle=dem; ctx.textBaseline='bottom'; ctx.fillText('D', X(QdEnd)-14, Y(2)-2);
+    ctx.fillStyle=sup; ctx.textBaseline='top';  ctx.fillText('S', X(Qmax)-14, Y(Math.min(c+d*Qmax,Pmax))+2);
+
+    // ---- no-tax equilibrium marker (dashed reference) ----
+    if(Qe>0 && Pe>0){
+      ctx.strokeStyle=eqc; ctx.lineWidth=1.2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(x0,Y(Pe)); ctx.lineTo(X(Qe),Y(Pe)); ctx.lineTo(X(Qe),y0); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=eqc; ctx.beginPath(); ctx.arc(X(Qe),Y(Pe),3.8,0,7); ctx.fill();
+      ctx.font='bold 11px '+cvar('--app-font'); ctx.fillStyle=eqc; ctx.textAlign='left'; ctx.textBaseline='bottom';
+      ctx.fillText('E', X(Qe)+6, Y(Pe)-3);
+    }
+
+    // ---- tax wedge: vertical line at Qt from Ps up to Pb, with Pb/Ps tick lines ----
+    if(t>0 && Qt>0){
+      // horizontal dashed guides to the axis for Pb and Ps
+      ctx.strokeStyle=amb; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.moveTo(x0,Y(Pb)); ctx.lineTo(X(Qt),Y(Pb)); ctx.stroke();      // buyers pay
+      ctx.strokeStyle=dem; ctx.beginPath(); ctx.moveTo(x0,Y(Ps)); ctx.lineTo(X(Qt),Y(Ps)); ctx.stroke(); // sellers keep
+      ctx.setLineDash([]);
+      // the wedge itself (solid) at Qt
+      ctx.strokeStyle=ink; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(X(Qt),Y(Pb)); ctx.lineTo(X(Qt),Y(Ps)); ctx.stroke();
+      // wedge endpoint dots
+      ctx.fillStyle=amb; ctx.beginPath(); ctx.arc(X(Qt),Y(Pb),3.6,0,7); ctx.fill();
+      ctx.fillStyle=dem; ctx.beginPath(); ctx.arc(X(Qt),Y(Ps),3.6,0,7); ctx.fill();
+      // axis price labels
+      ctx.font='bold 10.5px '+cvar('--app-font'); ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillStyle=amb; ctx.fillText('P_b', x0+4, Y(Pb)-7);
+      ctx.fillStyle=dem; ctx.fillText('P_s', x0+4, Y(Ps)+7);
+      // wedge label = tax size
+      ctx.fillStyle=ink; ctx.font='bold 11px '+cvar('--app-font'); ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText('tax = $'+t.toFixed(0), X(Qt)+6, (Y(Pb)+Y(Ps))/2);
+      // Qt tick label
+      ctx.fillStyle=muted; ctx.font='11px '+cvar('--app-font'); ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText('Qt='+Qt.toFixed(1), X(Qt), y0-16);
+    }
+
+    // ---- teaching note ----
+    var who;
+    if(t<=0){
+      who='No tax: buyers and sellers transact at E. Add a tax to open the wedge.';
+    } else {
+      var bb=m.buyerBurden, sb=m.sellerBurden;
+      if(Math.abs(bb-sb)<0.5) who='Burden is split roughly evenly here.';
+      else if(bb>sb) who='Buyers bear the bigger share - demand is the more inelastic (steeper) side.';
+      else who='Sellers bear the bigger share - supply is the more inelastic (steeper) side.';
+    }
+    document.getElementById('note').textContent =
+      'A $'+t.toFixed(0)+' per-unit tax drives a wedge between what buyers pay (P_b) and what sellers keep (P_s). '+
+      who+' Whoever is more INELASTIC (the steeper curve) bears the bigger burden - no matter who legally pays the tax.';
+
+    // ---- comparison vs the most recent snapshot (comparative statics) ----
+    var cmp=document.getElementById('snapCmp');
+    if(snaps.length){
+      var last=snaps[snaps.length-1];
+      var dDwl=m.dwl-last.dwl, dBuy=m.buyerBurden-last.buyerBurden;
+      cmp.textContent='vs snapshot '+snaps.length+':  ΔDWL '+(dDwl>=0?'+':'−')+'$'+Math.abs(dDwl).toFixed(0)+
+                      '   Δbuyer-burden '+(dBuy>=0?'+':'−')+'$'+Math.abs(dBuy).toFixed(2);
+    } else { cmp.textContent=''; }
+  }
+
+  ids.forEach(function(k){ el[k].addEventListener('input', draw); });
+  document.getElementById('snapBtn').addEventListener('click', snapshot);
+  document.getElementById('clearBtn').addEventListener('click', clearSnaps);
+  window.addEventListener('resize', draw);
+  // verification/demo hook: ?snapdemo=1 → snapshot the default, then bump the tax (shows the ghost + Δ comparison)
+  (function(){ try{ if(new URLSearchParams(location.search).get('snapdemo')==='1'){ snapshot(); el.T.value='75'; } }catch(e){} })();
+  draw();
+})();
+</script>
+</body>
+</html>

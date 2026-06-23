@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Welfare Explorer</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the viz is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --cue:var(--amber); --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:14px;
+        font-size:calc(15px*var(--fz,1)); -webkit-text-size-adjust:100%; }
+  .kpis{ display:flex; gap:10px; margin-bottom:12px; }
+  .kpi{ flex:1; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .kpi .lbl{ font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val{ font-size:20px; font-weight:800; color:var(--indigo); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .kpi.cs .val{ color:var(--correct); }
+  .kpi.ps .val{ color:var(--indigo); }
+  .kpi.dwl .val{ color:var(--rose); }
+  .chartwrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; box-shadow:var(--shadow); }
+  canvas{ display:block; width:100%; height:auto; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.4; margin:8px 2px 12px; }
+  .controls{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:12px; }
+  .ctl{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; }
+  .ctl label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .ctl label b{ color:var(--indigo); font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px;
+    background:color-mix(in srgb, var(--indigo) 18%, var(--line)); outline:none; accent-color:var(--indigo); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; height:20px; width:20px; border-radius:50%;
+    background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); cursor:pointer; box-shadow:0 2px 6px rgba(33,48,86,.35); transition:transform .1s; }
+  input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.18); }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); margin:6px 2px 0; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:14px; height:10px; border-radius:3px; display:inline-block; opacity:.9; }
+  .swatch.line{ height:3px; border-radius:2px; }
+  .snapbar{ display:flex; align-items:center; gap:10px; margin:10px 2px 0; flex-wrap:wrap; }
+  .snap-btn{ font:inherit; font-size:13px; font-weight:700; padding:7px 13px; border-radius:999px; border:none; cursor:pointer;
+    color:#fff; background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); box-shadow:0 2px 7px rgba(33,48,86,.22); transition:transform .1s; }
+  .snap-btn:active{ transform:scale(.93); }
+  .snap-btn.ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .snap-cmp{ font-size:12.5px; font-weight:600; color:var(--correct); font-variant-numeric:tabular-nums; }
+  @media (prefers-reduced-motion: reduce){ .snap-btn:active{ transform:none; } input[type=range]::-webkit-slider-thumb:active{ transform:none; } }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi cs"><div class="lbl">Consumer Surplus</div><div class="val" id="kpiCS">-</div></div>
+    <div class="kpi ps"><div class="lbl">Producer Surplus</div><div class="val" id="kpiPS">-</div></div>
+    <div class="kpi dwl"><div class="lbl">Deadweight Loss</div><div class="val" id="kpiDWL">-</div></div>
+  </div>
+  <div class="chartwrap"><canvas id="cv"></canvas></div>
+  <div class="legend">
+    <span><i class="swatch line" id="swD"></i> Demand</span>
+    <span><i class="swatch line" id="swS"></i> Supply</span>
+    <span><i class="swatch" id="swCS"></i> Consumer surplus</span>
+    <span><i class="swatch" id="swPS"></i> Producer surplus</span>
+    <span><i class="swatch" id="swDWL"></i> Deadweight loss</span>
+  </div>
+  <div class="snapbar">
+    <button type="button" class="snap-btn" id="snapBtn">📸 Snapshot</button>
+    <button type="button" class="snap-btn ghost" id="clearBtn">Clear</button>
+    <span class="snap-cmp" id="snapCmp"></span>
+  </div>
+  <div class="note" id="note"></div>
+  <div class="controls">
+    <div class="ctl"><label>Market price <b id="vP">$50</b></label><input type="range" id="P" min="10" max="90" value="50" step="1"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // ---- fixed market parameters (clean integer geometry: Pe=50, Qe=50) ----
+  var A=100, B=1, C=0, D=1;            // D: P=A-B*Q ; S: P=C+D*Q
+  var Qe=(A-C)/(B+D), Pe=A-B*Qe;       // = 50, 50
+
+  // ---- theme/font/scale handoff (query + postMessage) ----
+  function applyTheme(o){
+    if(!o) return;
+    if(o.theme) document.documentElement.dataset.theme = String(o.theme);
+    if(o.font)  document.documentElement.style.setProperty('--app-font', String(o.font));
+    if(o.scale) document.documentElement.style.setProperty('--fz', String(o.scale));
+    if(typeof canvas !== 'undefined' && canvas) draw();   // skip until chart is initialised (avoids hoisting crash on the initial query-param call)
+  }
+  (function(){ var q=new URLSearchParams(location.search); applyTheme({theme:q.get('theme'),font:q.get('font'),scale:q.get('scale')}); })();
+  window.addEventListener('message', function(e){ if(e&&e.data&&e.data.__viz) applyTheme(e.data); });
+
+  // ---- color helper (reads live CSS vars so it re-themes) ----
+  function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
+  // hex/rgb -> rgba with alpha, for translucent region fills
+  function tint(col, a){
+    col=(col||'').trim();
+    if(col[0]==='#'){
+      var h=col.slice(1);
+      if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var n=parseInt(h,16);
+      return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+    }
+    if(col.indexOf('rgb')===0) return col.replace(/^rgb\(/,'rgba(').replace(/\)$/, ','+a+')');
+    return col;
+  }
+
+  var canvas=document.getElementById('cv'), ctx=canvas.getContext('2d');
+  var elP=document.getElementById('P');
+
+  // ---- comparative-statics snapshots: "photograph" the welfare state at this price, then move on top ----
+  var snaps=[];
+  function snapshot(){
+    var P=parseFloat(elP.value); var w=welfare(P);
+    snaps.push({P:P,Qt:w.Qt,buyerValue:w.buyerValue,sellerCost:w.sellerCost,CS:w.CS,PS:w.PS,DWL:w.DWL});
+    if(snaps.length>3) snaps.shift();
+    draw();
+  }
+  function clearSnaps(){ snaps=[]; draw(); }
+
+  // ---- welfare math (clamped, finite) ----
+  function welfare(P){
+    var Qd=(A-P)/B, Qs=(P-C)/D;
+    var Qt=Math.min(Qd,Qs);
+    if(!isFinite(Qt) || Qt<0) Qt=0;
+    var buyerValue=A-B*Qt;            // height of demand at the traded quantity
+    var sellerCost=C+D*Qt;           // height of supply at the traded quantity
+    var CS=0.5*Qt*(A-buyerValue) + Qt*(buyerValue-P);
+    var PS=0.5*Qt*(sellerCost-C) + Qt*(P-sellerCost);
+    var DWL=0.5*(Qe-Qt)*(buyerValue-sellerCost);
+    CS=Math.max(0,CS); PS=Math.max(0,PS); DWL=Math.max(0,DWL);
+    return {Qd:Qd,Qs:Qs,Qt:Qt,buyerValue:buyerValue,sellerCost:sellerCost,CS:CS,PS:PS,DWL:DWL};
+  }
+
+  function dims(){
+    var w=canvas.clientWidth||520, h=Math.round(w*0.78);
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w,h:h};
+  }
+
+  function draw(){
+    var P=parseFloat(elP.value);
+    document.getElementById('vP').textContent='$'+P.toFixed(0);
+
+    var w=welfare(P);
+    document.getElementById('kpiCS').textContent='$'+w.CS.toFixed(0);
+    document.getElementById('kpiPS').textContent='$'+w.PS.toFixed(0);
+    document.getElementById('kpiDWL').textContent='$'+w.DWL.toFixed(0);
+
+    var ink=cv('--ink'), muted=cv('--muted'), line=cv('--line');
+    var dem=cv('--indigo'), sup=cv('--rose'), eqc=cv('--correct'), loss=cv('--rose');
+    var csCol=cv('--correct'), psCol=cv('--indigo');
+    document.getElementById('swD').style.background=dem;
+    document.getElementById('swS').style.background=sup;
+    document.getElementById('swCS').style.background=tint(csCol,.35);
+    document.getElementById('swPS').style.background=tint(psCol,.30);
+    document.getElementById('swDWL').style.background=tint(loss,.40);
+
+    var D2=dims(), W=D2.w, H=D2.h;
+    var padL=46, padB=36, padT=14, padR=16;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    // fixed axis frame (A=100 cap, Qmax=100) so geometry is stable & clean
+    var Qmax=100, Pmax=100;
+    function X(q){ return x0 + (q/Qmax)*plotW; }
+    function Y(p){ return y0 - (p/Pmax)*plotH; }
+
+    ctx.clearRect(0,0,W,H);
+
+    // gridlines + axis ticks
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.font='11px '+cv('--app-font'); ctx.fillStyle=muted;
+    var i;
+    for(i=0;i<=5;i++){ var gp=Pmax*i/5; ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(X(0),Y(gp)); ctx.lineTo(X(Qmax),Y(gp)); ctx.stroke(); ctx.globalAlpha=1;
+      ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText('$'+gp.toFixed(0), x0-6, Y(gp)); }
+    for(i=0;i<=5;i++){ var gq=Qmax*i/5; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(gq.toFixed(0), X(gq), y0+6); }
+
+    var Qt=w.Qt, bv=w.buyerValue, sc=w.sellerCost;
+
+    // ----- ghost snapshots (comparative statics: prior welfare state dotted/faded UNDER the live shading) -----
+    snaps.forEach(function(s,gi){
+      var sQt=s.Qt, sbv=s.buyerValue, ssc=s.sellerCost, sP=s.P;
+      ctx.save();
+      ctx.globalAlpha=0.24+0.07*gi; ctx.setLineDash([3,4]); ctx.lineWidth=1.6;
+      // ghost CS outline: (0,sP)->(0,A)->(sQt,sbv)->(sQt,sP)
+      if(sQt>0 && A>sP){
+        ctx.strokeStyle=csCol;
+        ctx.beginPath(); ctx.moveTo(X(0),Y(sP)); ctx.lineTo(X(0),Y(A)); ctx.lineTo(X(sQt),Y(sbv)); ctx.lineTo(X(sQt),Y(sP)); ctx.closePath(); ctx.stroke();
+      }
+      // ghost PS outline: (0,C)->(0,sP)->(sQt,sP)->(sQt,ssc)
+      if(sQt>0 && sP>C){
+        ctx.strokeStyle=psCol;
+        ctx.beginPath(); ctx.moveTo(X(0),Y(C)); ctx.lineTo(X(0),Y(sP)); ctx.lineTo(X(sQt),Y(sP)); ctx.lineTo(X(sQt),Y(ssc)); ctx.closePath(); ctx.stroke();
+      }
+      // ghost DWL outline: (sQt,sbv)->(sQt,ssc)->(Qe,Pe)
+      if(s.DWL>0.01){
+        ctx.strokeStyle=loss;
+        ctx.beginPath(); ctx.moveTo(X(sQt),Y(sbv)); ctx.lineTo(X(sQt),Y(ssc)); ctx.lineTo(X(Qe),Y(Pe)); ctx.closePath(); ctx.stroke();
+      }
+      // ghost price line at sP
+      ctx.strokeStyle=ink; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(X(0),Y(sP)); ctx.lineTo(X(Qmax),Y(sP)); ctx.stroke();
+      ctx.setLineDash([]);
+      // faded numbered marker at the snapshot's price level (on the price axis)
+      ctx.globalAlpha=Math.min(1,0.5+0.12*gi); ctx.fillStyle=muted;
+      ctx.beginPath(); ctx.arc(X(0)+9,Y(sP),7,0,7); ctx.fill();
+      ctx.fillStyle=cv('--surface'); ctx.font='bold 10px '+cv('--app-font'); ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(String(gi+1), X(0)+9, Y(sP));
+      ctx.restore();
+    });
+
+    // ----- shaded welfare regions (drawn before lines so curves sit on top) -----
+    // Consumer surplus: below demand, above price line, 0..Qt
+    // vertices: (0,P)->(0,A)->(Qt,buyerValue)->(Qt,P)
+    if(Qt>0 && A>P){
+      ctx.beginPath();
+      ctx.moveTo(X(0),Y(P));
+      ctx.lineTo(X(0),Y(A));
+      ctx.lineTo(X(Qt),Y(bv));
+      ctx.lineTo(X(Qt),Y(P));
+      ctx.closePath();
+      ctx.fillStyle=tint(csCol,.32); ctx.fill();
+    }
+    // Producer surplus: above supply, below price line, 0..Qt
+    // vertices: (0,C)->(0,P)->(Qt,P)->(Qt,sellerCost)
+    if(Qt>0 && P>C){
+      ctx.beginPath();
+      ctx.moveTo(X(0),Y(C));
+      ctx.lineTo(X(0),Y(P));
+      ctx.lineTo(X(Qt),Y(P));
+      ctx.lineTo(X(Qt),Y(sc));
+      ctx.closePath();
+      ctx.fillStyle=tint(psCol,.28); ctx.fill();
+    }
+    // Deadweight loss triangle (only when P != Pe): between Qt and Qe
+    // vertices: (Qt,buyerValue)->(Qt,sellerCost)->(Qe,Pe)
+    if(w.DWL>0.01){
+      ctx.beginPath();
+      ctx.moveTo(X(Qt),Y(bv));
+      ctx.lineTo(X(Qt),Y(sc));
+      ctx.lineTo(X(Qe),Y(Pe));
+      ctx.closePath();
+      ctx.fillStyle=tint(loss,.42); ctx.fill();
+      ctx.strokeStyle=tint(loss,.85); ctx.lineWidth=1; ctx.stroke();
+    }
+
+    // axes
+    ctx.strokeStyle=ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x0,padT); ctx.lineTo(x0,y0); ctx.lineTo(W-padR,y0); ctx.stroke();
+    // axis titles
+    ctx.fillStyle=ink; ctx.font='12px '+cv('--app-font');
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('Quantity', x0+plotW/2, y0+18);
+    ctx.save(); ctx.translate(13, padT+plotH/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText('Price ($)',0,0); ctx.restore();
+
+    // demand line P=A-B*Q  (from (0,A) to (A/B,0))
+    ctx.lineWidth=2.6; ctx.strokeStyle=dem; ctx.beginPath();
+    ctx.moveTo(X(0),Y(A)); ctx.lineTo(X(A/B),Y(0)); ctx.stroke();
+    // supply line P=C+D*Q  (from (0,C) to (Qmax, C+D*Qmax) clamped to Pmax)
+    var supQend=Math.min(Qmax,(Pmax-C)/D);
+    ctx.strokeStyle=sup; ctx.beginPath();
+    ctx.moveTo(X(0),Y(C)); ctx.lineTo(X(supQend),Y(C+D*supQend)); ctx.stroke();
+    // curve labels
+    ctx.font='bold 12px '+cv('--app-font');
+    ctx.fillStyle=dem; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillText('D', X(A/B)-4, Y(0)-2);
+    ctx.fillStyle=sup; ctx.textAlign='right'; ctx.textBaseline='top'; ctx.fillText('S', X(supQend)-2, Y(C+D*supQend)+2);
+
+    // equilibrium marker (Pe,Qe)
+    ctx.strokeStyle=eqc; ctx.lineWidth=1.3; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(X(Qe),y0); ctx.lineTo(X(Qe),Y(Pe)); ctx.lineTo(x0,Y(Pe)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=eqc; ctx.beginPath(); ctx.arc(X(Qe),Y(Pe),4,0,7); ctx.fill();
+    ctx.font='bold 11px '+cv('--app-font'); ctx.fillStyle=eqc;
+    ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText('E (Pe=$'+Pe.toFixed(0)+', Qe='+Qe.toFixed(0)+')', X(Qe)+6, Y(Pe)-4);
+
+    // horizontal price line at P
+    ctx.strokeStyle=ink; ctx.lineWidth=1.6; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(x0,Y(P)); ctx.lineTo(X(Qmax),Y(P)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=ink; ctx.font='bold 11px '+cv('--app-font'); ctx.textAlign='right'; ctx.textBaseline='bottom';
+    ctx.fillText('P=$'+P.toFixed(0), X(Qmax), Y(P)-3);
+    // traded-quantity tick
+    if(Qt>0 && Qt<Qmax){
+      ctx.strokeStyle=muted; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(X(Qt),y0); ctx.lineTo(X(Qt),Y(Math.max(bv,sc))); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=muted; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('Qt='+Qt.toFixed(0), X(Qt), y0-16);
+    }
+
+    // teaching note
+    var atEq=Math.abs(P-Pe)<0.5;
+    document.getElementById('note').textContent = atEq
+      ? 'At the equilibrium price ($'+Pe.toFixed(0)+') the market trades Qe='+Qe.toFixed(0)+' units. Total surplus (CS + PS) is maximized and deadweight loss is zero.'
+      : 'Set away from equilibrium ($'+Pe.toFixed(0)+'), only Qt='+Qt.toFixed(0)+' units trade. Some mutually-beneficial trades vanish - the red triangle is the deadweight loss, the surplus no one captures.';
+
+    // ----- comparison vs the most recent snapshot (welfare comparative statics) -----
+    var cmp=document.getElementById('snapCmp');
+    if(snaps.length){
+      var last=snaps[snaps.length-1];
+      var dCS=w.CS-last.CS, dPS=w.PS-last.PS, dDWL=w.DWL-last.DWL;
+      function sgn(x){ return (x>=0?'+':'−')+'$'+Math.abs(x).toFixed(0); }
+      cmp.textContent='vs snapshot '+snaps.length+':  ΔCS '+sgn(dCS)+' · ΔPS '+sgn(dPS)+' · ΔDWL '+sgn(dDWL);
+    } else { cmp.textContent=''; }
+  }
+
+  elP.addEventListener('input', draw);
+  document.getElementById('snapBtn').addEventListener('click', snapshot);
+  document.getElementById('clearBtn').addEventListener('click', clearSnaps);
+  window.addEventListener('resize', draw);
+  // verification/demo hook: ?snapdemo=1 → snapshot the equilibrium price (DWL 0), then move off-equilibrium (shows the ghost + non-zero ΔDWL)
+  (function(){ try{ if(new URLSearchParams(location.search).get('snapdemo')==='1'){ elP.value=String(Pe); snapshot(); elP.value='74'; } }catch(e){} })();
+  draw();
+})();
+</script>
+</body>
+</html>

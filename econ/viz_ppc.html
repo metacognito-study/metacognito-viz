@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PPC &amp; Opportunity Cost</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the viz is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --cue:var(--amber); --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:14px;
+        font-size:calc(15px*var(--fz,1)); -webkit-text-size-adjust:100%; }
+  .kpis{ display:flex; gap:10px; margin-bottom:12px; }
+  .kpi{ flex:1; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .kpi .lbl{ font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val{ font-size:18px; font-weight:800; color:var(--indigo); font-variant-numeric:tabular-nums; margin-top:2px; line-height:1.18; }
+  .kpi.eff .val{ color:var(--correct); }
+  .kpi.eff.inefficient .val{ color:var(--amber); }
+  .kpi.eff.unattainable .val{ color:var(--rose); }
+  .chartwrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; box-shadow:var(--shadow); }
+  canvas{ display:block; width:100%; height:auto; touch-action:none; cursor:grab; }
+  canvas:active{ cursor:grabbing; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.4; margin:8px 2px 12px; }
+  .controls{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .ctl{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; }
+  .ctl label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .ctl label b{ color:var(--indigo); font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px;
+    background:color-mix(in srgb, var(--indigo) 18%, var(--line)); outline:none; accent-color:var(--indigo); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; height:20px; width:20px; border-radius:50%;
+    background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); cursor:pointer; box-shadow:0 2px 6px rgba(33,48,86,.35); transition:transform .1s; }
+  input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.18); }
+  /* segmented constant/increasing toggle */
+  .seg{ display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:var(--surface); }
+  .seg button{ font:inherit; font-size:12.5px; font-weight:700; padding:6px 14px; border:none; cursor:pointer; background:transparent; color:var(--muted); transition:background .12s,color .12s; }
+  .seg button[aria-pressed="true"]{ background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color:#fff; }
+  .togbar{ display:flex; align-items:center; gap:10px; margin:0 2px 4px; flex-wrap:wrap; }
+  .togbar .tlbl{ font-size:12.5px; font-weight:700; color:var(--ink); }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); margin:6px 2px 0; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:14px; height:10px; border-radius:3px; display:inline-block; opacity:.9; }
+  .swatch.line{ height:3px; border-radius:2px; }
+  .swatch.dot{ width:11px; height:11px; border-radius:50%; }
+  .snapbar{ display:flex; align-items:center; gap:10px; margin:10px 2px 0; flex-wrap:wrap; }
+  .snap-btn{ font:inherit; font-size:13px; font-weight:700; padding:7px 13px; border-radius:999px; border:none; cursor:pointer;
+    color:#fff; background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); box-shadow:0 2px 7px rgba(33,48,86,.22); transition:transform .1s; }
+  .snap-btn:active{ transform:scale(.93); }
+  .snap-btn.ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .snap-btn.preset{ background:var(--indigo-soft); color:var(--indigo); border:1px solid color-mix(in srgb, var(--indigo) 32%, transparent); box-shadow:none; }
+  .snap-cmp{ font-size:12.5px; font-weight:600; color:var(--correct); font-variant-numeric:tabular-nums; }
+  @media (prefers-reduced-motion: reduce){
+    .snap-btn:active{ transform:none; }
+    .seg button{ transition:none; }
+    input[type=range]::-webkit-slider-thumb:active{ transform:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Production point</div><div class="val" id="kpiPt">-</div></div>
+    <div class="kpi eff" id="kpiEffCard"><div class="lbl">Status</div><div class="val" id="kpiEff">-</div></div>
+    <div class="kpi"><div class="lbl">Opportunity cost (1 more Phone)</div><div class="val" id="kpiOC">-</div></div>
+  </div>
+  <div class="togbar">
+    <span class="tlbl">Opportunity cost:</span>
+    <div class="seg" id="seg" role="group" aria-label="Opportunity cost type">
+      <button type="button" id="segConst" aria-pressed="false">Constant (straight)</button>
+      <button type="button" id="segIncr" aria-pressed="true">Increasing (bowed out)</button>
+    </div>
+  </div>
+  <div class="chartwrap"><canvas id="cv"></canvas></div>
+  <div class="legend">
+    <span><i class="swatch line" id="swF"></i> Frontier (PPF)</span>
+    <span><i class="swatch dot" id="swPt"></i> Your production point</span>
+    <span><i class="swatch" id="swGhost"></i> Snapshot frontier</span>
+  </div>
+  <div class="snapbar">
+    <button type="button" class="snap-btn" id="snapBtn">📸 Snapshot</button>
+    <button type="button" class="snap-btn ghost" id="clearBtn">Clear</button>
+    <button type="button" class="snap-btn preset" id="presetGrow">Economic growth → shifts OUT</button>
+    <button type="button" class="snap-btn preset" id="presetTech">New tech (Phones only) → pivots</button>
+    <button type="button" class="snap-btn ghost" id="resetBtn">Reset</button>
+    <span class="snap-cmp" id="snapCmp"></span>
+  </div>
+  <div class="note" id="note"></div>
+  <div class="controls">
+    <div class="ctl"><label>Max Phones (Good A capacity) <b id="vXm">100</b></label><input type="range" id="Xm" min="60" max="160" value="100" step="2"></div>
+    <div class="ctl"><label>Max Solar panels (Good B capacity) <b id="vYm">80</b></label><input type="range" id="Ym" min="50" max="140" value="80" step="2"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- theme/font/scale handoff (query + postMessage) ----
+  function applyTheme(o){
+    if(!o) return;
+    if(o.theme) document.documentElement.dataset.theme = String(o.theme);
+    if(o.font)  document.documentElement.style.setProperty('--app-font', String(o.font));
+    if(o.scale) document.documentElement.style.setProperty('--fz', String(o.scale));
+    if(typeof canvas !== 'undefined' && canvas) draw();   // skip until chart is initialised (avoids hoisting crash on the initial query-param call)
+  }
+  (function(){ var q=new URLSearchParams(location.search); applyTheme({theme:q.get('theme'),font:q.get('font'),scale:q.get('scale')}); })();
+  window.addEventListener('message', function(e){ if(e&&e.data&&e.data.__viz) applyTheme(e.data); });
+
+  // ---- color helper (reads live CSS vars so it re-themes) ----
+  function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
+  // hex/rgb -> rgba with alpha, for translucent fills
+  function tint(col, a){
+    col=(col||'').trim();
+    if(col[0]==='#'){
+      var h=col.slice(1);
+      if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var n=parseInt(h,16);
+      return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+    }
+    if(col.indexOf('rgb')===0) return col.replace(/^rgb\(/,'rgba(').replace(/\)$/, ','+a+')');
+    return col;
+  }
+
+  var canvas=document.getElementById('cv'), ctx=canvas.getContext('2d');
+  var elXm=document.getElementById('Xm'), elYm=document.getElementById('Ym');
+
+  // ---- base case + state ----
+  var BASE={ Xmax:100, Ymax:80, mode:'increasing', px:55, py:0 };  // px,py = production point (Good A, Good B)
+  var mode='increasing';                                           // 'constant' | 'increasing'
+  var pt={ x:55, y:0 };                                            // production point; y set on first draw to sit on the frontier
+
+  // fixed axis frame so the picture stays stable as caps grow (presets can push frontier toward the cap)
+  var AX={ Xmax:180, Ymax:170 };
+
+  // ---- frontier math ----
+  function Xm(){ return parseFloat(elXm.value); }
+  function Ym(){ return parseFloat(elYm.value); }
+  // frontier height (Good B) at a given Good-A quantity x, for the current caps + mode
+  function frontierY(x){
+    var xmax=Xm(), ymax=Ym();
+    if(x<0) x=0; if(x>xmax) x=xmax;
+    if(mode==='constant') return ymax*(1 - x/xmax);
+    var r=x/xmax; return ymax*Math.sqrt(Math.max(0,1 - r*r));   // quarter-ellipse, bows outward
+  }
+  // local opportunity cost |dY/dX| = Good B given up per +1 Good A, at x
+  function oppCost(x){
+    var xmax=Xm(), ymax=Ym();
+    if(mode==='constant') return ymax/xmax;                      // constant slope
+    if(x<=0) return 0;
+    if(x>=xmax) return Infinity;
+    var r=x/xmax; return ymax*r/(xmax*Math.sqrt(1 - r*r));
+  }
+  // classify a point against the frontier (tolerance in Good-B units)
+  function classify(x,y,tol){
+    var fy=frontierY(x);
+    if(Math.abs(y-fy)<=tol) return 'efficient';
+    return (y<fy) ? 'inefficient' : 'unattainable';
+  }
+
+  // ---- comparative-statics snapshots: photograph the whole frontier, ghost it under the live one ----
+  var snaps=[];
+  function snapshot(){ snaps.push({Xmax:Xm(), Ymax:Ym(), mode:mode}); if(snaps.length>3) snaps.shift(); draw(); }
+  function clearSnaps(){ snaps=[]; draw(); }
+
+  function dims(){
+    var w=canvas.clientWidth||520, h=Math.round(w*0.82);
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w,h:h};
+  }
+
+  // geometry shared by draw() + hit-testing (computed from last dims)
+  var GEO={ x0:0,y0:0,plotW:1,plotH:1 };
+  function X(q){ return GEO.x0 + (q/AX.Xmax)*GEO.plotW; }
+  function Y(p){ return GEO.y0 - (p/AX.Ymax)*GEO.plotH; }
+  function invX(px){ return (px-GEO.x0)/GEO.plotW*AX.Xmax; }
+  function invY(py){ return (GEO.y0-py)/GEO.plotH*AX.Ymax; }
+
+  // sample the frontier into a polyline of [x,y] pairs for a given cap set + mode
+  function frontierPath(xmax,ymax,md){
+    var pts=[], N=64, i, x, r;
+    for(i=0;i<=N;i++){ x=xmax*i/N;
+      var y = (md==='constant') ? ymax*(1-x/xmax) : ymax*Math.sqrt(Math.max(0,1-(x/xmax)*(x/xmax)));
+      pts.push([x,y]); }
+    return pts;
+  }
+
+  function draw(){
+    var xmax=Xm(), ymax=Ym();
+    document.getElementById('vXm').textContent=xmax.toFixed(0);
+    document.getElementById('vYm').textContent=ymax.toFixed(0);
+
+    // keep production point inside the attainable x-range, snap y if it strayed past the cap geometry
+    if(pt.x<0) pt.x=0; if(pt.x>xmax) pt.x=xmax;
+    if(pt.y<0) pt.y=0;
+
+    var status=classify(pt.x, pt.y, ymax*0.018);   // tolerance ~1.8% of B-axis
+    var oc=oppCost(pt.x);
+
+    // KPIs (always real values)
+    document.getElementById('kpiPt').textContent=Math.round(pt.x)+' Phones · '+Math.round(pt.y)+' Solar';
+    var effCard=document.getElementById('kpiEffCard'), effEl=document.getElementById('kpiEff');
+    effCard.classList.remove('inefficient','unattainable');
+    if(status==='efficient'){ effEl.textContent='Productively efficient (on the curve)'; }
+    else if(status==='inefficient'){ effEl.textContent='Inefficient - idle resources (inside the curve)'; effCard.classList.add('inefficient'); }
+    else { effEl.textContent='Unattainable (beyond current resources)'; effCard.classList.add('unattainable'); }
+    document.getElementById('kpiOC').textContent =
+      (mode==='constant') ? '= '+oc.toFixed(2)+' Solar (constant)'
+      : (pt.x>=xmax ? '→ ∞ Solar (at the corner)' : '= '+oc.toFixed(2)+' Solar (rising)');
+
+    var ink=cv('--ink'), muted=cv('--muted'), line=cv('--line');
+    var fcol=cv('--indigo'), dot=cv('--correct'), ghost=cv('--muted');
+    var attCol=cv('--correct');
+    document.getElementById('swF').style.background=fcol;
+    document.getElementById('swPt').style.background=dot;
+    document.getElementById('swGhost').style.background=tint(ghost,.5);
+
+    var D=dims(), W=D.w, H=D.h;
+    var padL=46, padB=40, padT=14, padR=16;
+    GEO.x0=padL; GEO.y0=H-padB; GEO.plotW=W-padL-padR; GEO.plotH=H-padT-padB;
+
+    ctx.clearRect(0,0,W,H);
+
+    // gridlines + axis ticks (axis in good-units, not $)
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.font='11px '+cv('--app-font'); ctx.fillStyle=muted;
+    var i;
+    for(i=0;i<=5;i++){ var gy=AX.Ymax*i/5; ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(X(0),Y(gy)); ctx.lineTo(X(AX.Xmax),Y(gy)); ctx.stroke(); ctx.globalAlpha=1;
+      ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText(gy.toFixed(0), GEO.x0-6, Y(gy)); }
+    for(i=0;i<=6;i++){ var gx=AX.Xmax*i/6; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(gx.toFixed(0), X(gx), GEO.y0+6); }
+
+    // ----- ghost snapshot frontiers (dotted + faded UNDER the live one) -----
+    snaps.forEach(function(s,gi){
+      var path=frontierPath(s.Xmax,s.Ymax,s.mode);
+      ctx.save();
+      ctx.globalAlpha=0.30+0.10*gi; ctx.setLineDash([3,4]); ctx.lineWidth=2; ctx.strokeStyle=ghost;
+      ctx.beginPath(); path.forEach(function(p,k){ if(k===0) ctx.moveTo(X(p[0]),Y(p[1])); else ctx.lineTo(X(p[0]),Y(p[1])); }); ctx.stroke();
+      ctx.setLineDash([]);
+      // faded numbered marker at the x-intercept of the ghost
+      ctx.globalAlpha=Math.min(1,0.55+0.12*gi); ctx.fillStyle=ghost;
+      ctx.beginPath(); ctx.arc(X(s.Xmax),Y(0)-9,7,0,7); ctx.fill();
+      ctx.fillStyle=cv('--surface'); ctx.font='bold 10px '+cv('--app-font'); ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(String(gi+1), X(s.Xmax), Y(0)-9);
+      ctx.restore();
+    });
+
+    // ----- attainable region fill (under the live frontier) -----
+    var live=frontierPath(xmax,ymax,mode);
+    ctx.beginPath(); ctx.moveTo(X(0),Y(0));
+    live.forEach(function(p){ ctx.lineTo(X(p[0]),Y(p[1])); });
+    ctx.lineTo(X(xmax),Y(0)); ctx.closePath();
+    ctx.fillStyle=tint(attCol,.10); ctx.fill();
+
+    // axes
+    ctx.strokeStyle=ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(GEO.x0,padT); ctx.lineTo(GEO.x0,GEO.y0); ctx.lineTo(W-padR,GEO.y0); ctx.stroke();
+    // axis titles (the two goods)
+    ctx.fillStyle=ink; ctx.font='12px '+cv('--app-font');
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('Phones (Good A)  →', GEO.x0+GEO.plotW/2, GEO.y0+20);
+    ctx.save(); ctx.translate(13, padT+GEO.plotH/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.textAlign='center'; ctx.fillText('Solar panels (Good B)  →',0,0); ctx.restore();
+
+    // ----- live frontier -----
+    ctx.lineWidth=2.8; ctx.strokeStyle=fcol; ctx.beginPath();
+    live.forEach(function(p,k){ if(k===0) ctx.moveTo(X(p[0]),Y(p[1])); else ctx.lineTo(X(p[0]),Y(p[1])); }); ctx.stroke();
+    // frontier label near the middle of the curve
+    var midx=xmax*0.5, midy=frontierY(midx);
+    ctx.font='bold 12px '+cv('--app-font'); ctx.fillStyle=fcol; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillText('PPF', X(midx)+6, Y(midy)-4);
+
+    // ----- the foregone-output guides from the production point (drop to both axes) -----
+    if(pt.x>0||pt.y>0){
+      ctx.strokeStyle=muted; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(X(pt.x),GEO.y0); ctx.lineTo(X(pt.x),Y(pt.y)); ctx.lineTo(GEO.x0,Y(pt.y)); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // ----- the draggable production point -----
+    var pcol = (status==='efficient') ? dot : (status==='inefficient') ? cv('--amber') : cv('--rose');
+    ctx.fillStyle=pcol; ctx.beginPath(); ctx.arc(X(pt.x),Y(pt.y),7,0,7); ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle=cv('--surface'); ctx.stroke();
+    ctx.fillStyle=pcol; ctx.font='bold 11px '+cv('--app-font'); ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillText('('+Math.round(pt.x)+', '+Math.round(pt.y)+')', X(pt.x)+10, Y(pt.y)-4);
+
+    // teaching note
+    var nm = (mode==='constant')
+      ? 'CONSTANT opportunity cost: the frontier is a straight line, so each extra Phone always costs the SAME '+oppCost(50).toFixed(2)+' Solar - resources are equally good at making either good.'
+      : 'INCREASING opportunity cost: the frontier BOWS OUT. As you make more Phones, each extra Phone costs MORE Solar (slope steepens) - because resources are specialised and the least-suited ones get pulled in last.';
+    var sm = (status==='efficient') ? ' You are ON the curve: productively efficient.'
+           : (status==='inefficient') ? ' You are INSIDE the curve: idle resources / unemployment - you could make more of BOTH.'
+           : ' You are BEYOND the curve: unattainable with today’s resources (you’d need growth or trade).';
+    document.getElementById('note').textContent = 'Drag the point. '+nm+sm;
+
+    // ----- comparison vs the most recent snapshot frontier -----
+    var cmp=document.getElementById('snapCmp');
+    if(snaps.length){
+      var last=snaps[snaps.length-1];
+      var dXm=xmax-last.Xmax, dYm=ymax-last.Ymax;
+      function sgn(x){ return (x>=0?'+':'−')+Math.abs(x).toFixed(0); }
+      cmp.textContent='vs snapshot '+snaps.length+':  Δmax Phones '+sgn(dXm)+' · Δmax Solar '+sgn(dYm);
+    } else { cmp.textContent=''; }
+  }
+
+  // ===== drag (mouse + touch) =====
+  var dragging=false;
+  function ptrXY(ev){
+    var r=canvas.getBoundingClientRect();
+    var t = (ev.touches && ev.touches[0]) ? ev.touches[0] : ev;
+    return { px:t.clientX-r.left, py:t.clientY-r.top };
+  }
+  function nearPoint(px,py){
+    var dx=px-X(pt.x), dy=py-Y(pt.y);
+    return (dx*dx+dy*dy) <= 24*24;   // generous hit radius (touch-friendly)
+  }
+  function setFromPointer(px,py){
+    var x=invX(px), y=invY(py);
+    if(x<0) x=0; if(x>Xm()) x=Xm();
+    if(y<0) y=0; if(y>AX.Ymax) y=AX.Ymax;
+    pt.x=x; pt.y=y;
+  }
+  function onDown(ev){
+    var p=ptrXY(ev);
+    // grab the dot if near it, otherwise jump the point to the cursor and start dragging
+    if(nearPoint(p.px,p.py) || true){ dragging=true; setFromPointer(p.px,p.py); draw(); if(ev.cancelable) ev.preventDefault(); }
+  }
+  function onMove(ev){ if(!dragging) return; var p=ptrXY(ev); setFromPointer(p.px,p.py); draw(); if(ev.cancelable) ev.preventDefault(); }
+  function onUp(){ dragging=false; }
+  canvas.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', onDown, {passive:false});
+  canvas.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('touchend', onUp);
+
+  // ===== mode toggle =====
+  function setMode(m){
+    mode=m;
+    document.getElementById('segConst').setAttribute('aria-pressed', m==='constant'?'true':'false');
+    document.getElementById('segIncr').setAttribute('aria-pressed', m==='increasing'?'true':'false');
+    // re-seat the point onto the new frontier shape at the same x (keeps it "on the curve")
+    pt.y=frontierY(pt.x);
+    draw();
+  }
+  document.getElementById('segConst').addEventListener('click', function(){ setMode('constant'); });
+  document.getElementById('segIncr').addEventListener('click', function(){ setMode('increasing'); });
+
+  // ===== presets (comparative statics) - snapshot first so before/after both show =====
+  function presetGrowth(){
+    snapshot();                                   // photograph the current frontier
+    elXm.value=String(Math.min(160, Math.round(Xm()*1.35/2)*2));
+    elYm.value=String(Math.min(140, Math.round(Ym()*1.35/2)*2));
+    pt.y=frontierY(pt.x);                          // keep the point efficient on the new frontier
+    draw();
+  }
+  function presetTech(){
+    snapshot();                                   // photograph the current frontier
+    elXm.value=String(Math.min(160, Math.round(Xm()*1.4/2)*2));   // ONLY Good A capacity grows → frontier pivots out along X
+    // Ym unchanged → the Solar (Y) intercept stays put; the curve pivots
+    pt.y=frontierY(pt.x);
+    draw();
+  }
+  document.getElementById('presetGrow').addEventListener('click', presetGrowth);
+  document.getElementById('presetTech').addEventListener('click', presetTech);
+
+  // ===== reset =====
+  function reset(){
+    elXm.value=String(BASE.Xmax); elYm.value=String(BASE.Ymax);
+    setMode(BASE.mode);                            // also redraws
+    pt.x=BASE.px; pt.y=frontierY(BASE.px);
+    snaps=[];
+    draw();
+  }
+  document.getElementById('resetBtn').addEventListener('click', reset);
+
+  elXm.addEventListener('input', function(){ if(pt.x>Xm()) pt.x=Xm(); draw(); });
+  elYm.addEventListener('input', draw);
+  document.getElementById('snapBtn').addEventListener('click', snapshot);
+  document.getElementById('clearBtn').addEventListener('click', clearSnaps);
+  window.addEventListener('resize', draw);
+
+  // seat the initial point on the frontier, then draw
+  // (need GEO from a draw first for X/Y, but frontierY is geometry-independent, so this is safe)
+  pt.y=frontierY(pt.x);
+
+  // verification/demo hooks (query params) for headless render checks
+  (function(){
+    try{
+      var q=new URLSearchParams(location.search), dm=q.get('demo');
+      if(dm==='constant'){ setMode('constant'); }
+      if(dm==='inside'){ pt.x=50; pt.y=frontierY(50)*0.5; }      // clearly inefficient
+      if(dm==='outside'){ pt.x=50; pt.y=Math.min(AX.Ymax, frontierY(50)*1.35); } // unattainable
+      if(q.get('snapdemo')==='1'){ snapshot(); presetGrowth(); }  // ghost + Δ readout
+    }catch(e){}
+  })();
+
+  draw();
+})();
+</script>
+</body>
+</html>

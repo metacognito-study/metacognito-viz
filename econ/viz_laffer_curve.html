@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>The Laffer Curve &mdash; Tax Size vs. Revenue</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the viz is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --cue:var(--amber); --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:14px;
+        font-size:calc(15px*var(--fz,1)); -webkit-text-size-adjust:100%; }
+  .kpis{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .kpi{ background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .kpi.wide{ grid-column:1 / -1; }
+  .kpi .lbl{ font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val{ font-size:20px; font-weight:800; color:var(--indigo); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .kpi .val.verdict{ font-size:14.5px; line-height:1.3; }
+  .chartwrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; box-shadow:var(--shadow); margin-bottom:10px; }
+  .panel-title{ font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:2px 2px 4px; }
+  canvas{ display:block; width:100%; height:auto; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.4; margin:8px 2px 12px; }
+  .controls{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:12px; }
+  .ctl{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; }
+  .ctl label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .ctl label b{ color:var(--indigo); font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px;
+    background:color-mix(in srgb, var(--indigo) 18%, var(--line)); outline:none; accent-color:var(--indigo); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; height:20px; width:20px; border-radius:50%;
+    background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); cursor:pointer; box-shadow:0 2px 6px rgba(33,48,86,.35); transition:transform .1s; }
+  input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.18); }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); margin:6px 2px 0; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:14px; height:10px; border-radius:3px; display:inline-block; }
+  .swatch.line{ height:3px; }
+  .snapbar{ display:flex; align-items:center; gap:10px; margin:10px 2px 0; flex-wrap:wrap; }
+  .snap-btn{ font:inherit; font-size:13px; font-weight:700; padding:7px 13px; border-radius:999px; border:none; cursor:pointer;
+    color:#fff; background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); box-shadow:0 2px 7px rgba(33,48,86,.22); transition:transform .1s; }
+  .snap-btn:active{ transform:scale(.93); }
+  .snap-btn.ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .snap-cmp{ font-size:12.5px; font-weight:600; color:var(--correct); font-variant-numeric:tabular-nums; }
+  /* predict-then-reveal */
+  .predict{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-top:12px; }
+  .predict .q{ font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:8px; }
+  .predict .opts{ display:flex; gap:8px; flex-wrap:wrap; }
+  .predict .opt{ font:inherit; font-size:12.5px; font-weight:700; padding:7px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink); transition:transform .1s; }
+  .predict .opt:active{ transform:scale(.95); }
+  .predict .opt.sel{ background:color-mix(in srgb, var(--indigo) 14%, var(--surface)); border-color:var(--indigo); color:var(--indigo); }
+  .predict .verdict{ font-size:12.5px; font-weight:700; margin-top:9px; min-height:1.1em; font-variant-numeric:tabular-nums; }
+  @media (prefers-reduced-motion: reduce){
+    input[type=range]::-webkit-slider-thumb:active{ transform:none; }
+    .snap-btn:active{ transform:none; }
+    .predict .opt:active{ transform:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Tax revenue R = t&middot;Q&#x209C;</div><div class="val" id="kpiRev">&mdash;</div></div>
+    <div class="kpi"><div class="lbl">Deadweight loss</div><div class="val" id="kpiDWL">&mdash;</div></div>
+    <div class="kpi wide"><div class="lbl">Where are we on the Laffer curve?</div><div class="val verdict" id="kpiSide">&mdash;</div></div>
+  </div>
+
+  <div class="chartwrap">
+    <div class="panel-title">Market &mdash; tax wedge, deadweight loss &amp; revenue box</div>
+    <canvas id="cvM"></canvas>
+  </div>
+  <div class="chartwrap">
+    <div class="panel-title">The Laffer curve &mdash; tax revenue vs. tax size</div>
+    <canvas id="cvL"></canvas>
+  </div>
+
+  <div class="legend">
+    <span><i class="swatch line" id="swDem"></i> Demand (P = a &minus; bQ)</span>
+    <span><i class="swatch line" id="swSup"></i> Supply (P = c + dQ)</span>
+    <span><i class="swatch" id="swRev"></i> Tax revenue (t &times; Q&#x209C;)</span>
+    <span><i class="swatch" id="swDwl"></i> Deadweight loss</span>
+  </div>
+  <div class="note" id="note"></div>
+
+  <div class="snapbar">
+    <button type="button" class="snap-btn" id="snapBtn">&#x1F4F8; Snapshot tax</button>
+    <button type="button" class="snap-btn ghost" id="clearBtn">Clear</button>
+    <button type="button" class="snap-btn ghost" id="resetBtn">Reset</button>
+    <span class="snap-cmp" id="snapCmp"></span>
+  </div>
+
+  <div class="predict">
+    <div class="q">Predict first: from the current tax, raising the tax will&hellip;</div>
+    <div class="opts">
+      <button type="button" class="opt" id="predUp" data-pred="up">increase revenue</button>
+      <button type="button" class="opt" id="predDown" data-pred="down">decrease revenue</button>
+    </div>
+    <div class="verdict" id="predVerdict"></div>
+  </div>
+
+  <div class="controls">
+    <div class="ctl"><label>Per-unit excise tax on streaming subscriptions, t ($) <b id="vt">30</b></label><input type="range" id="t" min="0" max="90" value="30" step="1"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // ===== fixed market parameters (original scenario: a per-unit excise tax on streaming subscriptions) =====
+  // Demand  P = a - bQ ,  Supply  P = c + dQ
+  var a=100, b=2, c=10, d=3;
+  // pre-tax equilibrium: Qe=(a-c)/(b+d)=18 , Pe=a-b*Qe=64
+  var Qe=(a-c)/(b+d);        // 18
+  var Pe=a-b*Qe;             // 64
+  var Tmax=a-c;              // 90  -> at/above this the market shuts, R=0
+  var tStar=(a-c)/2;         // 45  -> Laffer peak
+  // R(t)=t*Qt , Qt=(a-c-t)/(b+d). R_max at t*: Q at peak = (a-c-tStar)/(b+d)=Qe/2.
+  var Rmax=tStar*((a-c-tStar)/(b+d));   // 45 * 9 = 405
+
+  // ---- theme/font/scale handoff (query + postMessage) ----
+  function applyTheme(o){
+    if(!o) return;
+    if(o.theme) document.documentElement.dataset.theme = String(o.theme);
+    if(o.font)  document.documentElement.style.setProperty('--app-font', String(o.font));
+    if(o.scale) document.documentElement.style.setProperty('--fz', String(o.scale));
+    if(typeof canM !== 'undefined' && canM) draw();   // skip until canvases are initialised (avoids hoisting crash on the initial query-param call)
+  }
+  (function(){ var q=new URLSearchParams(location.search); applyTheme({theme:q.get('theme'),font:q.get('font'),scale:q.get('scale')}); })();
+  window.addEventListener('message', function(e){ if(e&&e.data&&e.data.__viz) applyTheme(e.data); });
+
+  // ---- color helper (reads live CSS vars so it re-themes) ----
+  function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
+  // translucent rgba from a hex var
+  function rgba(hex, al){
+    hex = (hex||'').replace('#',''); if(hex.length===3){ hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; }
+    var n=parseInt(hex||'888888',16);
+    return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+al+')';
+  }
+
+  var canM=document.getElementById('cvM'), ctxM=canM.getContext('2d');
+  var canL=document.getElementById('cvL'), ctxL=canL.getContext('2d');
+  var st=document.getElementById('t');
+  function curT(){ return parseFloat(st.value); }
+
+  // ===== pure economics model (clamped, never NaN/Inf) =====
+  // Quantity traded after a per-unit tax t (the wedge): Qt = max(0, (a-c-t)/(b+d))
+  function quantityAt(t){ var q=(a-c-t)/(b+d); return q>0 ? q : 0; }
+  // Tax revenue R(t) = t * Qt  (>=0, =0 at t=0 and t>=Tmax)
+  function revenueAt(t){ return t * quantityAt(t); }
+  // Deadweight loss = 1/2 * t * (Qe - Qt)
+  function dwlAt(t){ var qt=quantityAt(t); var loss=0.5*t*(Qe-qt); return loss>0 ? loss : 0; }
+  // expose for the math self-test harness
+  window.__laffer = { a:a,b:b,c:c,d:d,Qe:Qe,Pe:Pe,Tmax:Tmax,tStar:tStar,Rmax:Rmax,
+                      quantityAt:quantityAt, revenueAt:revenueAt, dwlAt:dwlAt };
+
+  // ---- snapshot (ghost the prior tax state on BOTH panels) ----
+  var snaps=[];
+  function snapshot(){
+    var t=curT();
+    snaps.push({ t:t, Qt:quantityAt(t), R:revenueAt(t), DWL:dwlAt(t) });
+    if(snaps.length>3) snaps.shift();
+    draw();
+  }
+  function clearSnaps(){ snaps=[]; draw(); }
+  function resetAll(){ st.value=30; snaps=[]; prediction=null; setPredUI(); draw(); }
+
+  // ---- predict-then-reveal ----
+  var prediction=null;   // 'up' | 'down' | null
+  function setPredUI(){
+    document.getElementById('predUp').classList.toggle('sel', prediction==='up');
+    document.getElementById('predDown').classList.toggle('sel', prediction==='down');
+  }
+  function pickPred(p){ prediction=p; setPredUI(); draw(); }
+
+  function dims(canvas, ctx){
+    var w=canvas.clientWidth||520, h=Math.round(w*0.60);
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w,h:h};
+  }
+
+  function money(v){ return '$'+Math.round(v).toLocaleString(); }
+
+  function draw(){
+    var t=curT();
+    var Qt=quantityAt(t);
+    var R=revenueAt(t);
+    var DWL=dwlAt(t);
+    var Pb=a-b*Qt;             // price buyers pay (on demand curve) at Qt
+    var Ps=c+d*Qt;             // price sellers receive (on supply curve) at Qt
+    var shut=(t>=Tmax-1e-9) || (Qt<=0);
+
+    // ---- KPIs ----
+    document.getElementById('vt').textContent=t.toFixed(0);
+    document.getElementById('kpiRev').textContent=money(R);
+    document.getElementById('kpiDWL').textContent=money(DWL);
+
+    var sideEl=document.getElementById('kpiSide');
+    if(shut){
+      sideEl.textContent='Tax ≥ $'+Tmax+': the market shuts down - nobody trades, so revenue collapses to $0.';
+      sideEl.style.color=cv('--rose');
+    } else if(Math.abs(t-tStar)<0.5){
+      sideEl.textContent='At the PEAK (t* = $'+tStar+'): revenue is maximised at '+money(Rmax)+'. Either direction lowers it.';
+      sideEl.style.color=cv('--amber');
+    } else if(t<tStar){
+      sideEl.textContent='Revenue still RISING - you are left of the peak (t* = $'+tStar+'). A higher tax still collects more.';
+      sideEl.style.color=cv('--correct');
+    } else {
+      sideEl.textContent='PAST THE PEAK - raising the tax now LOWERS revenue. The shrinking tax base outweighs the higher rate.';
+      sideEl.style.color=cv('--rose');
+    }
+
+    // ---- live colors ----
+    var ink=cv('--ink'), muted=cv('--muted'), line=cv('--line');
+    var dem=cv('--indigo'), sup=cv('--rose'), rev=cv('--amber'), dwl=cv('--rose'), pk=cv('--correct');
+    document.getElementById('swDem').style.background=dem;
+    document.getElementById('swSup').style.background=sup;
+    document.getElementById('swRev').style.background=rgba(rev,0.45);
+    document.getElementById('swDwl').style.background=rgba(dwl,0.34);
+
+    drawMarket(t,Qt,R,DWL,Pb,Ps,shut, {ink:ink,muted:muted,line:line,dem:dem,sup:sup,rev:rev,dwl:dwl,pk:pk});
+    drawLaffer(t,R,shut, {ink:ink,muted:muted,line:line,rev:rev,pk:pk,dwl:dwl});
+
+    // teaching note
+    var msg;
+    if(shut){
+      msg='The tax ($'+t.toFixed(0)+') is at least the whole price gap between buyers and sellers ($'+Tmax+'). '+
+          'No quantity can be traded, so both tax revenue and the tax base vanish - revenue is $0 even though the rate is huge.';
+    } else if(t<tStar){
+      msg='Revenue rectangle = t × Qₜ = '+money(R)+'. You are on the UPWARD side of the Laffer curve: the tax base ('+Qt.toFixed(1)+' units) '+
+          'is still large enough that a higher rate raises more revenue. Deadweight loss ('+money(DWL)+') is also growing.';
+    } else {
+      msg='Revenue rectangle = t × Qₜ = '+money(R)+', BELOW the '+money(Rmax)+' peak. You are PAST the peak (t* = $'+tStar+'): '+
+          'each rate hike shrinks the base ('+Qt.toFixed(1)+' units) so much that revenue falls while deadweight loss ('+money(DWL)+') keeps climbing.';
+    }
+    document.getElementById('note').textContent=msg;
+
+    // ---- snapshot comparison (Δ vs the latest snapshot) ----
+    var cmp=document.getElementById('snapCmp');
+    if(snaps.length){
+      var last=snaps[snaps.length-1];
+      var dR=R-last.R, dD=DWL-last.DWL;
+      cmp.textContent='vs snapshot '+snaps.length+' (t=$'+last.t.toFixed(0)+'):  ΔRevenue '+(dR>=0?'+':'−')+money(Math.abs(dR))+
+                      '   ΔDWL '+(dD>=0?'+':'−')+money(Math.abs(dD));
+    } else { cmp.textContent=''; }
+
+    // ---- predict-then-reveal verdict (checks "raising the tax" against side of peak) ----
+    var pv=document.getElementById('predVerdict');
+    if(!prediction){ pv.textContent=''; }
+    else {
+      // truth: raising t from here raises revenue iff we are strictly left of the peak
+      var truthUp = t < tStar - 1e-9;
+      var correct = (prediction==='up')===truthUp;
+      if(Math.abs(t-tStar)<0.5){
+        pv.textContent='You are essentially AT the peak - revenue barely moves either way (t* = $'+tStar+').';
+        pv.style.color=cv('--amber');
+      } else if(correct){
+        pv.textContent='✓ Correct - at t = $'+t.toFixed(0)+' you are '+(truthUp?'BELOW':'ABOVE')+' the peak (t* = $'+tStar+'), so raising the tax '+
+                       (truthUp?'increases':'decreases')+' revenue.';
+        pv.style.color=cv('--correct');
+      } else {
+        pv.textContent='✗ Not quite - at t = $'+t.toFixed(0)+' you are '+(truthUp?'BELOW':'ABOVE')+' the peak (t* = $'+tStar+'), so raising the tax actually '+
+                       (truthUp?'INCREASES':'DECREASES')+' revenue.';
+        pv.style.color=cv('--rose');
+      }
+    }
+  }
+
+  // ===== TOP PANEL: S&D with tax wedge, DWL triangle, revenue rectangle =====
+  function drawMarket(t,Qt,R,DWL,Pb,Ps,shut,c){
+    var D=dims(canM,ctxM), W=D.w, H=D.h;
+    var padL=46, padB=34, padT=12, padR=16;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    var QmaxAx=a/b;            // demand x-intercept = 50
+    var PmaxAx=a*1.04;        // a bit above the demand y-intercept
+    function X(q){ return x0 + (q/QmaxAx)*plotW; }
+    function Y(p){ return y0 - (p/PmaxAx)*plotH; }
+
+    ctxM.clearRect(0,0,W,H);
+    // gridlines + tick labels
+    ctxM.font='11px '+cv('--app-font');
+    ctxM.strokeStyle=c.line; ctxM.lineWidth=1; ctxM.fillStyle=c.muted;
+    var i,gp,gq;
+    for(i=0;i<=5;i++){ gp=PmaxAx*i/5; ctxM.globalAlpha=.5; ctxM.beginPath(); ctxM.moveTo(X(0),Y(gp)); ctxM.lineTo(X(QmaxAx),Y(gp)); ctxM.stroke(); ctxM.globalAlpha=1;
+      ctxM.textAlign='right'; ctxM.textBaseline='middle'; ctxM.fillText('$'+gp.toFixed(0), x0-6, Y(gp)); }
+    for(i=0;i<=5;i++){ gq=QmaxAx*i/5; ctxM.textAlign='center'; ctxM.textBaseline='top'; ctxM.fillText(gq.toFixed(0), X(gq), y0+6); }
+
+    // ----- GHOST snapshots (prior tax states, faded wedge + DWL) drawn UNDER live -----
+    snaps.forEach(function(s,idx){
+      if(s.Qt<=0) return;
+      var sPb=a-b*s.Qt, sPs=c2(s.Qt);
+      ctxM.save(); ctxM.globalAlpha=0.30+0.06*idx;
+      // faded revenue rectangle
+      ctxM.fillStyle=rgba(c.rev,0.18);
+      ctxM.fillRect(X(0), Y(sPb), X(s.Qt)-X(0), Y(sPs)-Y(sPb));
+      // faded DWL triangle (Qt, Pb)-(Qt, Ps)-(Qe, Pe)
+      ctxM.fillStyle=rgba(c.dwl,0.20);
+      ctxM.beginPath(); ctxM.moveTo(X(s.Qt),Y(sPb)); ctxM.lineTo(X(s.Qt),Y(sPs)); ctxM.lineTo(X(Qe),Y(Pe)); ctxM.closePath(); ctxM.fill();
+      // faded vertical at Qt
+      ctxM.setLineDash([3,4]); ctxM.strokeStyle=rgba(c.muted,0.7); ctxM.lineWidth=1;
+      ctxM.beginPath(); ctxM.moveTo(X(s.Qt),y0); ctxM.lineTo(X(s.Qt),Y(sPb)); ctxM.stroke(); ctxM.setLineDash([]);
+      ctxM.fillStyle=rgba(c.muted,0.95); ctxM.font='bold 10px '+cv('--app-font'); ctxM.textAlign='center'; ctxM.textBaseline='bottom';
+      ctxM.fillText(String(idx+1), X(s.Qt), Y(sPb)-3);
+      ctxM.restore();
+    });
+    function c2(q){ return c+d*q; }   // supply price helper (closure over c,d)
+
+    // ----- live revenue rectangle: from Ps up to Pb, width 0..Qt (tint --amber) -----
+    if(!shut && Qt>0){
+      ctxM.fillStyle=rgba(c.rev,0.42);
+      ctxM.fillRect(X(0), Y(Pb), X(Qt)-X(0), Y(Ps)-Y(Pb));
+      ctxM.strokeStyle=rgba(c.rev,0.85); ctxM.lineWidth=1.2;
+      ctxM.strokeRect(X(0), Y(Pb), X(Qt)-X(0), Y(Ps)-Y(Pb));
+    }
+    // ----- live DWL triangle (tint --rose): (Qt,Pb)-(Qt,Ps)-(Qe,Pe) -----
+    if(!shut && Qt>0 && DWL>0){
+      ctxM.fillStyle=rgba(c.dwl,0.30);
+      ctxM.beginPath(); ctxM.moveTo(X(Qt),Y(Pb)); ctxM.lineTo(X(Qt),Y(Ps)); ctxM.lineTo(X(Qe),Y(Pe)); ctxM.closePath(); ctxM.fill();
+      ctxM.strokeStyle=rgba(c.dwl,0.7); ctxM.lineWidth=1; ctxM.stroke();
+    }
+
+    // axes
+    ctxM.strokeStyle=c.ink; ctxM.lineWidth=1.5; ctxM.beginPath(); ctxM.moveTo(x0,padT); ctxM.lineTo(x0,y0); ctxM.lineTo(W-padR,y0); ctxM.stroke();
+    ctxM.fillStyle=c.ink; ctxM.font='12px '+cv('--app-font');
+    ctxM.textAlign='center'; ctxM.textBaseline='top'; ctxM.fillText('Quantity (Q)', x0+plotW/2, y0+18);
+    ctxM.save(); ctxM.translate(13, padT+plotH/2); ctxM.rotate(-Math.PI/2); ctxM.textBaseline='middle'; ctxM.fillText('Price ($)',0,0); ctxM.restore();
+
+    // demand line P=a-bQ : (0,a)->(a/b,0)
+    ctxM.lineWidth=2.6; ctxM.strokeStyle=c.dem; ctxM.beginPath();
+    ctxM.moveTo(X(0),Y(a)); ctxM.lineTo(X(a/b),Y(0)); ctxM.stroke();
+    // supply line P=c+dQ : (0,c)->(QmaxAx, c+d*QmaxAx) clamped to plot
+    ctxM.strokeStyle=c.sup; ctxM.beginPath();
+    ctxM.moveTo(X(0),Y(c));
+    var qSupEnd=Math.min(QmaxAx,(PmaxAx-c)/d);
+    ctxM.lineTo(X(qSupEnd),Y(c+d*qSupEnd)); ctxM.stroke();
+    // curve labels
+    ctxM.font='bold 12px '+cv('--app-font'); ctxM.textAlign='right'; ctxM.textBaseline='top';
+    ctxM.fillStyle=c.dem; ctxM.fillText('D', X(a/b)-4, Y(0)+3);
+    ctxM.textBaseline='bottom'; ctxM.fillStyle=c.sup; ctxM.fillText('S', X(qSupEnd)-3, Y(c+d*qSupEnd)-2);
+
+    // pre-tax equilibrium marker E
+    ctxM.fillStyle=rgba(c.muted,0.9); ctxM.beginPath(); ctxM.arc(X(Qe),Y(Pe),3.2,0,7); ctxM.fill();
+    ctxM.font='10px '+cv('--app-font'); ctxM.fillStyle=c.muted; ctxM.textAlign='left'; ctxM.textBaseline='bottom';
+    ctxM.fillText('E (pre-tax)', X(Qe)+5, Y(Pe)-3);
+
+    // tax wedge: vertical double-headed gap between Pb (on D) and Ps (on S) at Qt
+    if(!shut && Qt>0){
+      ctxM.strokeStyle=c.ink; ctxM.lineWidth=1.6;
+      ctxM.beginPath(); ctxM.moveTo(X(Qt),Y(Pb)); ctxM.lineTo(X(Qt),Y(Ps)); ctxM.stroke();
+      // little arrow caps
+      arrowCap(ctxM,X(Qt),Y(Pb),-1); arrowCap(ctxM,X(Qt),Y(Ps),1);
+      // buyer / seller price dots
+      ctxM.fillStyle=c.dem; ctxM.beginPath(); ctxM.arc(X(Qt),Y(Pb),4,0,7); ctxM.fill();
+      ctxM.fillStyle=c.sup; ctxM.beginPath(); ctxM.arc(X(Qt),Y(Ps),4,0,7); ctxM.fill();
+      // tax-size label beside the wedge
+      ctxM.font='bold 11px '+cv('--app-font'); ctxM.fillStyle=c.ink;
+      ctxM.textAlign='left'; ctxM.textBaseline='middle';
+      var midY=(Y(Pb)+Y(Ps))/2;
+      ctxM.fillText('tax = $'+t.toFixed(0), X(Qt)+8, midY);
+      // area-value labels
+      ctxM.font='bold 10.5px '+cv('--app-font');
+      ctxM.fillStyle=c.ink; ctxM.textAlign='center'; ctxM.textBaseline='middle';
+      if(Qt>3){ ctxM.fillText('R = '+money(R), X(Qt/2), (Y(Pb)+Y(Ps))/2); }
+      if(DWL>0){
+        ctxM.fillStyle=cv('--rose'); ctxM.textAlign='left'; ctxM.textBaseline='middle';
+        var tcx=(X(Qt)+X(Qt)+X(Qe))/3, tcy=(Y(Pb)+Y(Ps)+Y(Pe))/3;
+        ctxM.fillText('DWL '+money(DWL), tcx+4, tcy);
+      }
+    } else {
+      ctxM.font='bold 12px '+cv('--app-font'); ctxM.fillStyle=cv('--rose'); ctxM.textAlign='center'; ctxM.textBaseline='middle';
+      ctxM.fillText('Market shut - Q = 0, no trade', X(Qe), Y(Pe));
+    }
+  }
+  function arrowCap(ctx,x,y,dir){
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-3,y+dir*5); ctx.moveTo(x,y); ctx.lineTo(x+3,y+dir*5); ctx.stroke();
+  }
+
+  // ===== BOTTOM PANEL: the Laffer curve R(t)=t*Qt vs t, moving dot at current t =====
+  function drawLaffer(t,R,shut,c){
+    var D=dims(canL,ctxL), W=D.w, H=D.h;
+    var padL=52, padB=34, padT=14, padR=16;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    var TmaxAx=Tmax;                 // 90
+    var RmaxAx=Rmax*1.12;            // headroom above the peak
+    function X(tt){ return x0 + (tt/TmaxAx)*plotW; }
+    function Y(rr){ return y0 - (rr/RmaxAx)*plotH; }
+
+    ctxL.clearRect(0,0,W,H);
+    // gridlines + tick labels
+    ctxL.font='11px '+cv('--app-font');
+    ctxL.strokeStyle=c.line; ctxL.lineWidth=1; ctxL.fillStyle=c.muted;
+    var i,gr,gt;
+    for(i=0;i<=5;i++){ gr=RmaxAx*i/5; ctxL.globalAlpha=.5; ctxL.beginPath(); ctxL.moveTo(X(0),Y(gr)); ctxL.lineTo(X(TmaxAx),Y(gr)); ctxL.stroke(); ctxL.globalAlpha=1;
+      ctxL.textAlign='right'; ctxL.textBaseline='middle'; ctxL.fillText('$'+Math.round(gr), x0-6, Y(gr)); }
+    for(i=0;i<=6;i++){ gt=TmaxAx*i/6; ctxL.textAlign='center'; ctxL.textBaseline='top'; ctxL.fillText('$'+gt.toFixed(0), X(gt), y0+6); }
+
+    // axes
+    ctxL.strokeStyle=c.ink; ctxL.lineWidth=1.5; ctxL.beginPath(); ctxL.moveTo(x0,padT); ctxL.lineTo(x0,y0); ctxL.lineTo(W-padR,y0); ctxL.stroke();
+    ctxL.fillStyle=c.ink; ctxL.font='12px '+cv('--app-font');
+    ctxL.textAlign='center'; ctxL.textBaseline='top'; ctxL.fillText('Tax size, t ($ per unit)', x0+plotW/2, y0+18);
+    ctxL.save(); ctxL.translate(13, padT+plotH/2); ctxL.rotate(-Math.PI/2); ctxL.textBaseline='middle'; ctxL.fillText('Tax revenue ($)',0,0); ctxL.restore();
+
+    // peak marker (t*, Rmax)
+    ctxL.setLineDash([3,3]); ctxL.strokeStyle=rgba(c.muted,0.8); ctxL.lineWidth=1;
+    ctxL.beginPath(); ctxL.moveTo(X(tStar),y0); ctxL.lineTo(X(tStar),Y(Rmax)); ctxL.stroke(); ctxL.setLineDash([]);
+    ctxL.fillStyle=c.pk; ctxL.font='bold 10px '+cv('--app-font'); ctxL.textAlign='center'; ctxL.textBaseline='bottom';
+    ctxL.fillText('peak  t*=$'+tStar+' · '+money(Rmax), X(tStar), Y(Rmax)-4);
+    // rising / falling region labels
+    ctxL.fillStyle=c.muted; ctxL.font='10px '+cv('--app-font'); ctxL.textBaseline='top';
+    ctxL.fillText('revenue rising', X(tStar/2), y0-15);
+    ctxL.fillText('revenue falling', X(tStar+(Tmax-tStar)/2), y0-15);
+
+    // ----- GHOST snapshots: faded dot + vertical on the Laffer curve -----
+    snaps.forEach(function(s,idx){
+      ctxL.save(); ctxL.globalAlpha=0.32+0.06*idx;
+      ctxL.setLineDash([3,4]); ctxL.strokeStyle=rgba(c.muted,0.8); ctxL.lineWidth=1;
+      ctxL.beginPath(); ctxL.moveTo(X(s.t),y0); ctxL.lineTo(X(s.t),Y(s.R)); ctxL.stroke(); ctxL.setLineDash([]);
+      ctxL.fillStyle=rgba(c.muted,0.95); ctxL.beginPath(); ctxL.arc(X(s.t),Y(s.R),3.6,0,7); ctxL.fill();
+      ctxL.font='bold 10px '+cv('--app-font'); ctxL.textAlign='center'; ctxL.textBaseline='bottom';
+      ctxL.fillText(String(idx+1), X(s.t), Y(s.R)-5);
+      ctxL.restore();
+    });
+
+    // ----- the Laffer parabola: R(t)=t*max(0,(a-c-t)/(b+d)) over t in [0,Tmax] -----
+    ctxL.lineWidth=2.6; ctxL.strokeStyle=c.rev; ctxL.beginPath();
+    var first=true, tt, rr, n=140;
+    for(i=0;i<=n;i++){
+      tt=TmaxAx*i/n; rr=revenueAt(tt);
+      if(first){ ctxL.moveTo(X(tt),Y(rr)); first=false; } else { ctxL.lineTo(X(tt),Y(rr)); }
+    }
+    ctxL.stroke();
+    // peak dot
+    ctxL.fillStyle=rgba(c.rev,0.95); ctxL.beginPath(); ctxL.arc(X(tStar),Y(Rmax),3.6,0,7); ctxL.fill();
+
+    // ----- live moving dot at current (t, R) -----
+    var dotColor = (Math.abs(t-tStar)<0.5) ? c.pk : (t<tStar ? c.pk : cv('--rose'));
+    ctxL.strokeStyle=dotColor; ctxL.lineWidth=1.5; ctxL.setLineDash([5,4]);
+    ctxL.beginPath(); ctxL.moveTo(X(t),y0); ctxL.lineTo(X(t),Y(R)); ctxL.lineTo(x0,Y(R)); ctxL.stroke(); ctxL.setLineDash([]);
+    ctxL.fillStyle=dotColor; ctxL.beginPath(); ctxL.arc(X(t),Y(R),5.5,0,7); ctxL.fill();
+    ctxL.font='bold 11px '+cv('--app-font'); ctxL.fillStyle=dotColor;
+    var lx=X(t)+8, lalign='left';
+    if(lx>W-70){ lx=X(t)-8; lalign='right'; }
+    ctxL.textAlign=lalign; ctxL.textBaseline='bottom';
+    ctxL.fillText('t=$'+t.toFixed(0)+' · '+money(R), lx, Y(R)-6);
+  }
+
+  // ---- events ----
+  st.addEventListener('input', draw);
+  document.getElementById('snapBtn').addEventListener('click', snapshot);
+  document.getElementById('clearBtn').addEventListener('click', clearSnaps);
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
+  document.getElementById('predUp').addEventListener('click', function(){ pickPred('up'); });
+  document.getElementById('predDown').addEventListener('click', function(){ pickPred('down'); });
+  window.addEventListener('resize', draw);
+
+  // verification/demo hook: ?snapdemo=1 -> snapshot a LOW tax, then raise t PAST the peak so the
+  // ghost + a revenue DROP render on both panels.
+  (function(){ try{ if(new URLSearchParams(location.search).get('snapdemo')==='1'){ st.value='20'; snapshot(); st.value='70'; } }catch(e){} })();
+
+  draw();
+})();
+</script>
+</body>
+</html>

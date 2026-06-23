@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Metacognito · The four factors of production</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the clip is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --correct:#22b3a6; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --correct:#22b3a6; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; } html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:12px; -webkit-text-size-adjust:100%; }
+  .stage{ position:relative; width:100%; aspect-ratio:16/9; background:var(--surface); border-radius:18px; overflow:hidden; }
+  .slide{ position:absolute; inset:0; opacity:0; transition:opacity .28s ease; }
+  .slide.on{ opacity:1; }
+  .slide svg{ width:100%; height:100%; display:block; }
+  .bar{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .pp{ flex:none; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer; color:#fff;
+       background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); font-size:18px; box-shadow:var(--shadow); }
+  .pp:active{ transform:scale(.93); }
+  .track{ flex:1; height:6px; border-radius:3px; background:color-mix(in srgb, var(--indigo) 18%, var(--line)); cursor:pointer; position:relative; }
+  .fill{ height:100%; border-radius:3px; background:var(--indigo); width:0%; }
+  .time{ flex:none; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; min-width:74px; text-align:right; }
+  .spd{ flex:none; font:inherit; font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; cursor:pointer;
+        color:var(--ink); background:var(--surface-2); border:1px solid var(--line); }
+  @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } .pp:active{ transform:none; } }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage"></div>
+  <div class="bar">
+    <button class="pp" id="pp" aria-label="Play">▶</button>
+    <div class="track" id="track"><div class="fill" id="fill"></div></div>
+    <button class="spd" id="spd" aria-label="Playback speed">1×</button>
+    <div class="time" id="time">0:00</div>
+  </div>
+  <audio id="au" preload="metadata" src="https://cdn.jsdelivr.net/gh/metacognito-study/metacognito-audioecon@main/mp3/10.mp3"></audio>
+<script>
+(function(){
+  var SLIDES = [{"at":0,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>What are the four factors of production?</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"26\" width=\"89\" height=\"34\" rx=\"17\" fill=\"var(--indigo-soft,#eef0ff)\"/><text x=\"42\" y=\"49\" font-size=\"15\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">factors</text><text x=\"612\" y=\"49\" text-anchor=\"end\" font-size=\"16\" font-weight=\"700\" fill=\"var(--muted,#606b84)\">#10</text><text font-size=\"28\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"150\">What are the four factors of</tspan><tspan x=\"24\" y=\"190\">production?</tspan></text><rect x=\"24\" y=\"300\" width=\"156\" height=\"38\" rx=\"19\" fill=\"var(--indigo,#5545e8)\"/><path d=\"M44 311 L44 327 L56 319 Z\" fill=\"#fff\"/><text x=\"64\" y=\"324\" font-size=\"15\" font-weight=\"700\" fill=\"#fff\">play · 2:02</text></svg>"},{"at":7.76,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>The four factors of production</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text font-size=\"24\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"44\">The four factors of production</tspan></text><g transform=\"translate(24,64)\"><text x='56' y='44' font-size='12' font-weight='700' fill='var(--muted,#606b84)'>FACTOR</text><text x='235' y='44' font-size='12' font-weight='700' fill='var(--muted,#606b84)'>COFFEE-SHOP EXAMPLE</text><text x='500' y='44' text-anchor='middle' font-size='12' font-weight='700' fill='var(--muted,#606b84)'>ROLE</text><line x1='50' y1='52' x2='560' y2='52' stroke='var(--line,#e5eaf2)' stroke-width='1.5'/><text x='56' y='80' font-size='14' font-weight='800' fill='var(--indigo,#5545e8)'>Land</text><text x='235' y='80' font-size='13' font-weight='600' fill='var(--ink,#18213a)'>the storefront's land</text><text x='500' y='80' text-anchor='middle' font-size='12' font-weight='700' fill='var(--muted,#606b84)'>natural base</text><text x='56' y='110' font-size='14' font-weight='800' fill='var(--indigo,#5545e8)'>Labor</text><text x='235' y='110' font-size='13' font-weight='600' fill='var(--ink,#18213a)'>the two baristas</text><text x='500' y='110' text-anchor='middle' font-size='12' font-weight='700' fill='var(--muted,#606b84)'>human effort</text><text x='56' y='140' font-size='14' font-weight='800' fill='var(--indigo,#5545e8)'>Capital</text><text x='235' y='140' font-size='13' font-weight='600' fill='var(--ink,#18213a)'>the espresso machines</text><text x='500' y='140' text-anchor='middle' font-size='12' font-weight='700' fill='var(--muted,#606b84)'>produced tools</text><text x='56' y='170' font-size='14' font-weight='800' fill='var(--indigo,#5545e8)'>Entrepreneurship</text><text x='235' y='170' font-size='13' font-weight='600' fill='var(--ink,#18213a)'>the owner (bears risk)</text><text x='500' y='170' text-anchor='middle' font-size='12' font-weight='700' fill='var(--muted,#606b84)'>organizing</text><text x='300' y='206' text-anchor='middle' font-size='13' font-weight='700' fill='var(--rose,#f43f61)'>money is NOT a factor: it only buys the real factors</text></g><text x=\"24\" y=\"342\" font-size=\"8\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">land (natural base), labor (effort), capital (tools), entrepreneurship (organizing + risk); money is not one</text></svg>"},{"at":26.68,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Storefront land = land; baristas = labor; espresso machines = capital; the owner who bears risk = entrepreneurship.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">MAPPING THE INPUTS</text><text font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"98.5\">Storefront land = land;</tspan><tspan x=\"24\" y=\"137.5\">baristas = labor; espresso</tspan><tspan x=\"24\" y=\"176.5\">machines = capital; the owner</tspan><tspan x=\"24\" y=\"215.5\">who bears</tspan><tspan x=\"24\" y=\"254.5\">risk = entrepreneurship.</tspan></text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">the four limited resources, now named precisely</text></svg>"},{"at":56.86,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Money is NOT a factor: it makes nothing by itself, it just buys the real factors. Swap money for entrepreneurship.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE TRAP</text><text font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"98.5\">Money is NOT a factor: it makes</tspan><tspan x=\"24\" y=\"137.5\">nothing by itself, it just buys</tspan><tspan x=\"24\" y=\"176.5\">the real factors.</tspan><tspan x=\"24\" y=\"215.5\">Swap money for</tspan><tspan x=\"24\" y=\"254.5\">entrepreneurship.</tspan></text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">entrepreneurship = organizing and bearing risk</text></svg>"},{"at":87.92,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Entrepreneurship needs a human who decides, combines the other three factors, and accepts the loss if it fails.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">ENTREPRENEURSHIP</text><text font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"118\">Entrepreneurship needs a human</tspan><tspan x=\"24\" y=\"157\">who decides, combines the other</tspan><tspan x=\"24\" y=\"196\">three factors, and accepts the</tspan><tspan x=\"24\" y=\"235\">loss if it fails.</tspan></text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">a bank account paying bills cannot do that</text></svg>"},{"at":98.58,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Factors of production</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"36\" width=\"8\" height=\"250\" rx=\"4\" fill=\"var(--indigo,#5545e8)\"/><text font-size=\"34\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"48\" y=\"70\">Factors of production</tspan></text><text font-size=\"20\" font-weight=\"500\" fill=\"var(--muted,#606b84)\"><tspan x=\"48\" y=\"128\">Land (natural base), labor (human effort),</tspan><tspan x=\"48\" y=\"157\">capital (produced tools), and entrepreneurship</tspan><tspan x=\"48\" y=\"186\">(organizing and risk). Not money.</tspan></text><rect x=\"24\" y=\"296\" width=\"592\" height=\"46\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"324\" text-anchor=\"middle\" font-size=\"19\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">land   ·   labor   ·   capital   ·   entrepreneurship</text></svg>"}];            // [{svg, at}]  at = start time in seconds
+  var au = document.getElementById('au'), stage = document.getElementById('stage');
+  var pp = document.getElementById('pp'), fill = document.getElementById('fill');
+  var track = document.getElementById('track'), timeEl = document.getElementById('time');
+  var spd = document.getElementById('spd');
+
+  // theme handoff (mirrors the econ visualizers): ?theme/font/scale + postMessage
+  function applyTheme(t,f,s){ var d=document.documentElement;
+    if(t) d.dataset.theme=t; if(f) d.dataset.font=f;
+    if(s) d.style.setProperty('--fz', s); }
+  (function(){ var q=new URLSearchParams(location.search);
+    applyTheme(q.get('theme'), q.get('font'), q.get('scale')); })();
+  window.addEventListener('message', function(e){ var m=e.data||{};
+    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale); } });
+
+  // render slides stacked
+  SLIDES.forEach(function(sl,i){ var d=document.createElement('div');
+    d.className='slide'+(i===0?' on':''); d.id='sl'+i; d.innerHTML=sl.svg; stage.appendChild(d); });
+  var cur=0;
+  function showFor(t){ var idx=0;
+    for(var i=0;i<SLIDES.length;i++){ if(t>=SLIDES[i].at) idx=i; }
+    if(idx!==cur){ var a=document.getElementById('sl'+cur), b=document.getElementById('sl'+idx);
+      if(a)a.classList.remove('on'); if(b)b.classList.add('on'); cur=idx; } }
+
+  function fmt(s){ s=Math.max(0,s|0); return (s/60|0)+':'+('0'+(s%60)).slice(-2); }
+  function tick(){ var d=au.duration||0, t=au.currentTime||0;
+    fill.style.width=(d? (t/d*100):0)+'%'; timeEl.textContent=fmt(t)+' / '+fmt(d); showFor(t); }
+
+  pp.onclick=function(){ if(au.paused){ au.play(); } else { au.pause(); } };
+  au.addEventListener('play', function(){ pp.textContent='⏸'; pp.setAttribute('aria-label','Pause'); });
+  au.addEventListener('pause', function(){ pp.textContent='▶'; pp.setAttribute('aria-label','Play'); });
+  au.addEventListener('timeupdate', tick);
+  au.addEventListener('loadedmetadata', tick);
+  au.addEventListener('ended', function(){ cur=0; SLIDES.forEach(function(_,i){
+    document.getElementById('sl'+i).classList.toggle('on', i===0); }); });
+  track.onclick=function(e){ var r=track.getBoundingClientRect();
+    if(au.duration) au.currentTime=(e.clientX-r.left)/r.width*au.duration; };
+  var speeds=[1,1.25,1.5,0.85], si=0;
+  spd.onclick=function(){ si=(si+1)%speeds.length; au.playbackRate=speeds[si]; spd.textContent=speeds[si]+'×'; };
+})();
+</script>
+</body>
+</html>

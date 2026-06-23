@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Elasticity &amp; the Total-Revenue Test</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the viz is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --cue:var(--amber); --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:14px;
+        font-size:calc(15px*var(--fz,1)); -webkit-text-size-adjust:100%; }
+  .kpis{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px; }
+  .kpi{ background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .kpi .lbl{ font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val{ font-size:20px; font-weight:800; color:var(--indigo); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .kpi .val.region{ font-size:16px; }
+  .chartwrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; box-shadow:var(--shadow); margin-bottom:10px; }
+  .panel-title{ font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:2px 2px 4px; }
+  canvas{ display:block; width:100%; height:auto; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.4; margin:8px 2px 12px; }
+  .controls{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:12px; }
+  .ctl{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; }
+  .ctl label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .ctl label b{ color:var(--indigo); font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px;
+    background:color-mix(in srgb, var(--indigo) 18%, var(--line)); outline:none; accent-color:var(--indigo); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; height:20px; width:20px; border-radius:50%;
+    background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); cursor:pointer; box-shadow:0 2px 6px rgba(33,48,86,.35); transition:transform .1s; }
+  input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.18); }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); margin:6px 2px 0; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:14px; height:10px; border-radius:3px; display:inline-block; }
+  .swatch.line{ height:3px; }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Total revenue (P&times;Q)</div><div class="val" id="kpiTR">&mdash;</div></div>
+    <div class="kpi"><div class="lbl">Elasticity region</div><div class="val region" id="kpiRegion">&mdash;</div></div>
+    <div class="kpi"><div class="lbl">Price elasticity (E&#x2090;)</div><div class="val" id="kpiEd">&mdash;</div></div>
+  </div>
+
+  <div class="chartwrap">
+    <div class="panel-title">Demand &mdash; revenue rectangle at chosen Q</div>
+    <canvas id="cvD"></canvas>
+  </div>
+  <div class="chartwrap">
+    <div class="panel-title">Total revenue vs. quantity</div>
+    <canvas id="cvT"></canvas>
+  </div>
+
+  <div class="legend">
+    <span><i class="swatch line" id="swDem"></i> Demand (P = a &minus; bQ)</span>
+    <span><i class="swatch line" id="swTR"></i> Total revenue</span>
+    <span><i class="swatch" id="swRect"></i> Revenue = P&times;Q</span>
+    <span><i class="swatch" id="swPt"></i> Your point (Q)</span>
+  </div>
+  <div class="note" id="note"></div>
+
+  <div class="controls">
+    <div class="ctl"><label>Quantity of festival tickets sold, Q (thousands) <b id="vQ">20</b></label><input type="range" id="Q" min="0" max="50" value="20" step="0.5"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // fixed demand parameters: P = a - bQ  (a=100, b=2). Q in [0, a/b]=[0,50]. TR peaks at Q*=a/(2b)=25.
+  var a=100, b=2;
+
+  // ---- theme/font/scale handoff (query + postMessage) ----
+  function applyTheme(o){
+    if(!o) return;
+    if(o.theme) document.documentElement.dataset.theme = String(o.theme);
+    if(o.font)  document.documentElement.style.setProperty('--app-font', String(o.font));
+    if(o.scale) document.documentElement.style.setProperty('--fz', String(o.scale));
+    if(typeof canD !== 'undefined' && canD) draw();   // skip until canvases are initialised (avoids hoisting crash on the initial query-param call)
+  }
+  (function(){ var q=new URLSearchParams(location.search); applyTheme({theme:q.get('theme'),font:q.get('font'),scale:q.get('scale')}); })();
+  window.addEventListener('message', function(e){ if(e&&e.data&&e.data.__viz) applyTheme(e.data); });
+
+  // ---- color helper (reads live CSS vars so it re-themes) ----
+  function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
+  // translucent rgba from a hex var
+  function rgba(hex, al){
+    hex = (hex||'').replace('#',''); if(hex.length===3){ hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; }
+    var n=parseInt(hex||'888888',16);
+    return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+al+')';
+  }
+
+  var canD=document.getElementById('cvD'), ctxD=canD.getContext('2d');
+  var canT=document.getElementById('cvT'), ctxT=canT.getContext('2d');
+  var sQ=document.getElementById('Q');
+  function curQ(){ return parseFloat(sQ.value); }
+
+  function dims(canvas, ctx){
+    var w=canvas.clientWidth||520, h=Math.round(w*0.60);
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w,h:h};
+  }
+
+  function draw(){
+    var Q=curQ();
+    var Qmax=a/b;                 // 50
+    var Qstar=a/(2*b);            // 25 (unit elastic / TR peak)
+    var P=a-b*Q;                  // current price
+    var TR=P*Q;                   // current total revenue
+    var TRmax=a*a/(4*b);          // peak TR = 1250
+
+    // point elasticity of P=a-bQ : E_d = P/(b*Q)  (= |dQ/dP|*(P/Q), |dQ/dP|=1/b)
+    var Ed = (Q<=0) ? Infinity : (P/(b*Q));
+    var region, regionColorVar;
+    if(Q<=0){ region='Elastic'; regionColorVar='--correct'; }
+    else if(Math.abs(Q-Qstar)<0.25){ region='Unit-elastic'; regionColorVar='--amber'; }
+    else if(Q<Qstar){ region='Elastic'; regionColorVar='--correct'; }
+    else { region='Inelastic'; regionColorVar='--rose'; }
+
+    // ---- KPIs ----
+    document.getElementById('vQ').textContent=Q.toFixed(1);
+    document.getElementById('kpiTR').textContent='$'+Math.round(TR).toLocaleString();
+    var rk=document.getElementById('kpiRegion');
+    rk.textContent=region; rk.style.color=cv(regionColorVar);
+    document.getElementById('kpiEd').textContent = isFinite(Ed) ? Ed.toFixed(2) : '∞';
+
+    // ---- live colors ----
+    var ink=cv('--ink'), muted=cv('--muted'), line=cv('--line');
+    var dem=cv('--indigo'), trc=cv('--amber'), pt=cv('--correct');
+    document.getElementById('swDem').style.background=dem;
+    document.getElementById('swTR').style.background=trc;
+    document.getElementById('swRect').style.background=rgba(dem,0.55);
+    document.getElementById('swPt').style.background=pt;
+
+    drawDemand(Q,P,Qmax,Qstar, {ink:ink,muted:muted,line:line,dem:dem,pt:pt});
+    drawTR(Q,TR,Qmax,Qstar,TRmax, {ink:ink,muted:muted,line:line,trc:trc,pt:pt});
+
+    // teaching note
+    var msg;
+    if(Q<=0){ msg='At Q = 0 no tickets sell, so revenue is $0. As price falls and Q rises, watch revenue climb while demand is elastic.'; }
+    else if(region==='Elastic'){ msg='Demand is ELASTIC here (Eₐ = '+Ed.toFixed(2)+' > 1): a price cut raises quantity more than enough to lift total revenue. Total revenue is still RISING toward its peak at Q = 25.'; }
+    else if(region==='Unit-elastic'){ msg='Demand is UNIT-ELASTIC (Eₐ = 1) at Q = 25, where P = $50. Total revenue is at its MAXIMUM ($1,250); a small price change leaves revenue unchanged.'; }
+    else { msg='Demand is INELASTIC here (Eₐ = '+Ed.toFixed(2)+' < 1): a further price cut raises quantity too little to compensate, so total revenue is FALLING. To raise revenue now, raise the price.'; }
+    document.getElementById('note').textContent=msg;
+  }
+
+  // ===== TOP PANEL: demand curve + revenue rectangle =====
+  function drawDemand(Q,P,Qmax,Qstar,c){
+    var D=dims(canD,ctxD), W=D.w, H=D.h;
+    var padL=46, padB=34, padT=12, padR=14;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    var QmaxAx=Qmax, PmaxAx=a*1.04;
+    function X(q){ return x0 + (q/QmaxAx)*plotW; }
+    function Y(p){ return y0 - (p/PmaxAx)*plotH; }
+
+    ctxD.clearRect(0,0,W,H);
+    // gridlines + tick labels
+    ctxD.font='11px '+cv('--app-font');
+    ctxD.strokeStyle=c.line; ctxD.lineWidth=1; ctxD.fillStyle=c.muted;
+    var i,gp,gq;
+    for(i=0;i<=5;i++){ gp=PmaxAx*i/5; ctxD.globalAlpha=.5; ctxD.beginPath(); ctxD.moveTo(X(0),Y(gp)); ctxD.lineTo(X(QmaxAx),Y(gp)); ctxD.stroke(); ctxD.globalAlpha=1;
+      ctxD.textAlign='right'; ctxD.textBaseline='middle'; ctxD.fillText('$'+gp.toFixed(0), x0-6, Y(gp)); }
+    for(i=0;i<=5;i++){ gq=QmaxAx*i/5; ctxD.textAlign='center'; ctxD.textBaseline='top'; ctxD.fillText(gq.toFixed(0), X(gq), y0+6); }
+
+    // revenue rectangle (0,P)-(Q,P)-(Q,0)
+    if(Q>0 && P>0){
+      ctxD.fillStyle=rgba(c.dem,0.22);
+      ctxD.fillRect(X(0), Y(P), X(Q)-X(0), y0-Y(P));
+      ctxD.strokeStyle=rgba(c.dem,0.55); ctxD.lineWidth=1.2;
+      ctxD.strokeRect(X(0), Y(P), X(Q)-X(0), y0-Y(P));
+    }
+
+    // axes
+    ctxD.strokeStyle=c.ink; ctxD.lineWidth=1.5; ctxD.beginPath(); ctxD.moveTo(x0,padT); ctxD.lineTo(x0,y0); ctxD.lineTo(W-padR,y0); ctxD.stroke();
+    // axis titles
+    ctxD.fillStyle=c.ink; ctxD.font='12px '+cv('--app-font');
+    ctxD.textAlign='center'; ctxD.textBaseline='top'; ctxD.fillText('Quantity (Q)', x0+plotW/2, y0+18);
+    ctxD.save(); ctxD.translate(13, padT+plotH/2); ctxD.rotate(-Math.PI/2); ctxD.textBaseline='middle'; ctxD.fillText('Price ($)',0,0); ctxD.restore();
+
+    // demand line P=a-bQ from Q=0 (P=a) to Q=Qmax (P=0)
+    ctxD.lineWidth=2.6; ctxD.strokeStyle=c.dem; ctxD.beginPath();
+    ctxD.moveTo(X(0),Y(a)); ctxD.lineTo(X(Qmax),Y(0)); ctxD.stroke();
+    ctxD.font='bold 12px '+cv('--app-font'); ctxD.fillStyle=c.dem; ctxD.textAlign='right'; ctxD.textBaseline='bottom';
+    ctxD.fillText('D', X(Qmax)-4, Y(0)-2);
+
+    // unit-elastic midpoint marker (Q*, a/2)
+    ctxD.setLineDash([3,3]); ctxD.strokeStyle=rgba(c.muted,0.8); ctxD.lineWidth=1;
+    ctxD.beginPath(); ctxD.moveTo(X(Qstar),y0); ctxD.lineTo(X(Qstar),Y(a/2)); ctxD.stroke(); ctxD.setLineDash([]);
+    ctxD.fillStyle=c.muted; ctxD.font='10px '+cv('--app-font'); ctxD.textAlign='center'; ctxD.textBaseline='top';
+    ctxD.fillText('Eₐ=1', X(Qstar), Y(a/2)-14);
+
+    // moving point (Q,P) with dashed guides
+    if(P>=0){
+      ctxD.strokeStyle=c.pt; ctxD.lineWidth=1.4; ctxD.setLineDash([5,4]);
+      ctxD.beginPath(); ctxD.moveTo(X(Q),y0); ctxD.lineTo(X(Q),Y(P)); ctxD.lineTo(x0,Y(P)); ctxD.stroke(); ctxD.setLineDash([]);
+      ctxD.fillStyle=c.pt; ctxD.beginPath(); ctxD.arc(X(Q),Y(P),5,0,7); ctxD.fill();
+      ctxD.font='bold 11px '+cv('--app-font'); ctxD.fillStyle=c.pt;
+      ctxD.textAlign='left'; ctxD.textBaseline='bottom'; ctxD.fillText('$'+P.toFixed(0), X(Q)+7, Y(P)-3);
+    }
+  }
+
+  // ===== BOTTOM PANEL: TR parabola TR=aQ-bQ^2 vs Q =====
+  function drawTR(Q,TR,Qmax,Qstar,TRmax,c){
+    var D=dims(canT,ctxT), W=D.w, H=D.h;
+    var padL=52, padB=34, padT=12, padR=14;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    var QmaxAx=Qmax, TRmaxAx=TRmax*1.08;
+    function X(q){ return x0 + (q/QmaxAx)*plotW; }
+    function Y(t){ return y0 - (t/TRmaxAx)*plotH; }
+
+    ctxT.clearRect(0,0,W,H);
+    // gridlines + tick labels
+    ctxT.font='11px '+cv('--app-font');
+    ctxT.strokeStyle=c.line; ctxT.lineWidth=1; ctxT.fillStyle=c.muted;
+    var i,gt,gq;
+    for(i=0;i<=5;i++){ gt=TRmaxAx*i/5; ctxT.globalAlpha=.5; ctxT.beginPath(); ctxT.moveTo(X(0),Y(gt)); ctxT.lineTo(X(QmaxAx),Y(gt)); ctxT.stroke(); ctxT.globalAlpha=1;
+      ctxT.textAlign='right'; ctxT.textBaseline='middle'; ctxT.fillText('$'+Math.round(gt/100)*100, x0-6, Y(gt)); }
+    for(i=0;i<=5;i++){ gq=QmaxAx*i/5; ctxT.textAlign='center'; ctxT.textBaseline='top'; ctxT.fillText(gq.toFixed(0), X(gq), y0+6); }
+
+    // axes
+    ctxT.strokeStyle=c.ink; ctxT.lineWidth=1.5; ctxT.beginPath(); ctxT.moveTo(x0,padT); ctxT.lineTo(x0,y0); ctxT.lineTo(W-padR,y0); ctxT.stroke();
+    ctxT.fillStyle=c.ink; ctxT.font='12px '+cv('--app-font');
+    ctxT.textAlign='center'; ctxT.textBaseline='top'; ctxT.fillText('Quantity (Q)', x0+plotW/2, y0+18);
+    ctxT.save(); ctxT.translate(13, padT+plotH/2); ctxT.rotate(-Math.PI/2); ctxT.textBaseline='middle'; ctxT.fillText('Total revenue ($)',0,0); ctxT.restore();
+
+    // shade elastic (left of Q*) vs inelastic (right) faintly under the curve baseline band
+    // (subtle: vertical line at the peak)
+    ctxT.setLineDash([3,3]); ctxT.strokeStyle=rgba(c.muted,0.8); ctxT.lineWidth=1;
+    ctxT.beginPath(); ctxT.moveTo(X(Qstar),y0); ctxT.lineTo(X(Qstar),Y(TRmax)); ctxT.stroke(); ctxT.setLineDash([]);
+    ctxT.fillStyle=c.muted; ctxT.font='10px '+cv('--app-font');
+    ctxT.textAlign='center'; ctxT.textBaseline='bottom'; ctxT.fillText('max TR', X(Qstar), Y(TRmax)-3);
+    ctxT.textAlign='center'; ctxT.textBaseline='top';
+    ctxT.fillText('elastic', X(Qstar/2), y0-16);
+    ctxT.fillText('inelastic', X(Qstar+(Qmax-Qstar)/2), y0-16);
+
+    // TR parabola
+    ctxT.lineWidth=2.6; ctxT.strokeStyle=c.trc; ctxT.beginPath();
+    var first=true, q, t;
+    for(q=0; q<=Qmax+1e-9; q+=Qmax/120){
+      t=(a-b*q)*q;
+      if(first){ ctxT.moveTo(X(q),Y(t)); first=false; } else { ctxT.lineTo(X(q),Y(t)); }
+    }
+    ctxT.stroke();
+
+    // peak dot
+    ctxT.fillStyle=rgba(c.trc,0.9); ctxT.beginPath(); ctxT.arc(X(Qstar),Y(TRmax),3.5,0,7); ctxT.fill();
+
+    // synchronized moving dot at (Q,TR)
+    if(TR>=0){
+      ctxT.strokeStyle=c.pt; ctxT.lineWidth=1.4; ctxT.setLineDash([5,4]);
+      ctxT.beginPath(); ctxT.moveTo(X(Q),y0); ctxT.lineTo(X(Q),Y(TR)); ctxT.lineTo(x0,Y(TR)); ctxT.stroke(); ctxT.setLineDash([]);
+      ctxT.fillStyle=c.pt; ctxT.beginPath(); ctxT.arc(X(Q),Y(TR),5,0,7); ctxT.fill();
+      ctxT.font='bold 11px '+cv('--app-font'); ctxT.fillStyle=c.pt;
+      ctxT.textAlign='left'; ctxT.textBaseline='bottom';
+      var lx=X(Q)+7; if(lx>W-58) { ctxT.textAlign='right'; lx=X(Q)-7; }
+      ctxT.fillText('$'+Math.round(TR), lx, Y(TR)-3);
+    }
+  }
+
+  sQ.addEventListener('input', draw);
+  window.addEventListener('resize', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

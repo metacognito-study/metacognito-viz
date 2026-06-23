@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Price Controls &amp; Disequilibrium</title>
+<style>
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the viz is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --cue:var(--amber); --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:14px;
+        font-size:calc(15px*var(--fz,1)); -webkit-text-size-adjust:100%; }
+  .kpis{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px; }
+  .kpi{ background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .kpi .lbl{ font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val{ font-size:18px; font-weight:800; color:var(--indigo); font-variant-numeric:tabular-nums; margin-top:2px; line-height:1.15; }
+  .chartwrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; box-shadow:var(--shadow); }
+  canvas{ display:block; width:100%; height:auto; }
+  .note{ font-size:12px; color:var(--muted); line-height:1.4; margin:8px 2px 12px; }
+  .controls{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .ctl{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; }
+  .ctl.full{ grid-column:1 / -1; }
+  .ctl label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .ctl label b{ color:var(--indigo); font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px;
+    background:color-mix(in srgb, var(--indigo) 18%, var(--line)); outline:none; accent-color:var(--indigo); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; height:20px; width:20px; border-radius:50%;
+    background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); cursor:pointer; box-shadow:0 2px 6px rgba(33,48,86,.35); transition:transform .1s; }
+  input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.18); }
+  /* segmented ceiling/floor toggle */
+  .seg{ display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:var(--surface); }
+  .seg button{ font:inherit; font-size:12.5px; font-weight:700; padding:6px 14px; border:none; cursor:pointer; background:transparent; color:var(--muted); transition:background .12s,color .12s; }
+  .seg button[aria-pressed="true"]{ background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); color:#fff; }
+  .row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:10px 2px 0; }
+  .row .rlabel{ font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .chips{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{ font:inherit; font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:var(--indigo-soft); color:var(--indigo); transition:transform .1s; }
+  .chip:active{ transform:scale(.94); }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); margin:6px 2px 0; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:14px; height:10px; border-radius:3px; display:inline-block; }
+  .swatch.line{ height:3px; }
+  .snapbar{ display:flex; align-items:center; gap:10px; margin:10px 2px 0; flex-wrap:wrap; }
+  .snap-btn{ font:inherit; font-size:13px; font-weight:700; padding:7px 13px; border-radius:999px; border:none; cursor:pointer;
+    color:#fff; background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); box-shadow:0 2px 7px rgba(33,48,86,.22); transition:transform .1s; }
+  .snap-btn:active{ transform:scale(.93); }
+  .snap-btn.ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .snap-cmp{ font-size:12.5px; font-weight:600; color:var(--correct); font-variant-numeric:tabular-nums; }
+  /* predict-then-reveal */
+  .predict{ background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:9px 12px; margin:10px 2px 0; }
+  .predict .ptitle{ font-size:12px; font-weight:700; color:var(--ink); margin-bottom:7px; }
+  .predict .pbtns{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pbtn{ font:inherit; font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:var(--surface); color:var(--muted); transition:transform .1s,background .12s,color .12s; }
+  .pbtn[aria-pressed="true"]{ background:color-mix(in srgb, var(--amber) 26%, var(--surface)); color:var(--ink); border-color:var(--amber); }
+  .pbtn:active{ transform:scale(.94); }
+  .pfeedback{ font-size:12.5px; font-weight:700; margin-top:8px; min-height:1.2em; }
+  .pfeedback.right{ color:var(--correct); }
+  .pfeedback.wrong{ color:var(--rose); }
+  @media (prefers-reduced-motion: reduce){
+    .snap-btn:active,.chip:active,.pbtn:active{ transform:none; }
+    input[type=range]::-webkit-slider-thumb:active{ transform:none; }
+    input[type=range]::-webkit-slider-thumb,.snap-btn,.chip,.pbtn,.seg button{ transition:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Status</div><div class="val" id="kpiStatus">-</div></div>
+    <div class="kpi"><div class="lbl" id="lblGap">Shortage / Surplus</div><div class="val" id="kpiGap">-</div></div>
+    <div class="kpi"><div class="lbl">Deadweight loss</div><div class="val" id="kpiDwl">-</div></div>
+  </div>
+  <div class="chartwrap"><canvas id="cv"></canvas></div>
+  <div class="legend">
+    <span><i class="swatch line" id="swD"></i> Demand</span>
+    <span><i class="swatch line" id="swS"></i> Supply</span>
+    <span><i class="swatch line" id="swMand"></i> Mandated price</span>
+    <span><i class="swatch" id="swDwl"></i> Deadweight loss</span>
+  </div>
+  <div class="row">
+    <span class="rlabel">Control type</span>
+    <div class="seg" id="seg" role="group" aria-label="Control type">
+      <button type="button" id="segCeil" aria-pressed="true">Ceiling</button>
+      <button type="button" id="segFloor" aria-pressed="false">Floor</button>
+    </div>
+  </div>
+  <div class="snapbar">
+    <button type="button" class="snap-btn" id="snapBtn">📸 Snapshot</button>
+    <button type="button" class="snap-btn ghost" id="clearBtn">Clear</button>
+    <button type="button" class="snap-btn ghost" id="resetBtn">Reset</button>
+    <span class="snap-cmp" id="snapCmp"></span>
+  </div>
+  <div class="predict">
+    <div class="ptitle">Predict first: with this control in place, will there be a…</div>
+    <div class="pbtns" id="predict" role="group" aria-label="Predict the outcome">
+      <button type="button" class="pbtn" data-p="shortage" aria-pressed="false">Shortage</button>
+      <button type="button" class="pbtn" data-p="surplus" aria-pressed="false">Surplus</button>
+      <button type="button" class="pbtn" data-p="none" aria-pressed="false">No effect</button>
+    </div>
+    <div class="pfeedback" id="pfeedback"></div>
+  </div>
+  <div class="row">
+    <span class="rlabel">Scenarios</span>
+    <div class="chips">
+      <button type="button" class="chip" id="chipRent">🏠 Rent control</button>
+      <button type="button" class="chip" id="chipWage">💵 Minimum wage</button>
+    </div>
+  </div>
+  <div class="note" id="note"></div>
+  <div class="controls">
+    <div class="ctl full"><label>Mandated price (P<sub>m</sub>) <b id="vPm">40</b></label><input type="range" id="Pm" min="10" max="100" value="40" step="1"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // ---- fixed market (AP scenario): Demand P = a - bQ, Supply P = c + dQ ----
+  // a=100,b=2,c=10,d=3  ->  Qe=(a-c)/(b+d)=18, Pe=a-b*Qe=64
+  var A=100, B=2, C=10, D=3;
+  var DEFAULT_PM=40, DEFAULT_MODE='ceiling';
+
+  // ---- theme/font/scale handoff (query + postMessage) ----
+  function applyTheme(o){
+    if(!o) return;
+    if(o.theme) document.documentElement.dataset.theme = String(o.theme);
+    if(o.font)  document.documentElement.style.setProperty('--app-font', String(o.font));
+    if(o.scale) document.documentElement.style.setProperty('--fz', String(o.scale));
+    if(typeof canvas !== 'undefined' && canvas) draw();   // GUARD: skip until chart is initialised (avoids hoisting crash on the initial query-param call)
+  }
+  (function(){ var q=new URLSearchParams(location.search); applyTheme({theme:q.get('theme'),font:q.get('font'),scale:q.get('scale')}); })();
+  window.addEventListener('message', function(e){ if(e&&e.data&&e.data.__viz) applyTheme(e.data); });
+
+  // ---- color helpers (read live CSS vars so they re-theme) ----
+  function cvar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
+  function tint(name, alpha){
+    var c=cvar(name);
+    if(c[0]==='#'){
+      var h=c.slice(1);
+      if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+      return 'rgba('+r+','+g+','+b+','+alpha+')';
+    }
+    var m=c.match(/rgba?\(([^)]+)\)/);
+    if(m){ var p=m[1].split(',').map(function(s){return s.trim();}); return 'rgba('+p[0]+','+p[1]+','+p[2]+','+alpha+')'; }
+    return 'rgba(136,136,136,'+alpha+')';
+  }
+
+  var canvas=document.getElementById('cv'), ctx=canvas.getContext('2d');
+  var elPm=document.getElementById('Pm');
+  var mode=DEFAULT_MODE;          // 'ceiling' | 'floor'
+  var prediction=null;            // 'shortage' | 'surplus' | 'none' | null
+
+  function valPm(){ return parseFloat(elPm.value); }
+
+  // ---- pure math (also unit-tested headlessly) ----
+  // Equilibrium: Qe=(a-c)/(b+d), Pe=a-b*Qe
+  // Qd=(a-Pm)/b  (demand at Pm),  Qs=(Pm-c)/d  (supply at Pm)
+  // CEILING binds only when Pm<Pe -> traded Q=Qs (supply-limited), shortage=Qd-Qs
+  // FLOOR   binds only when Pm>Pe -> traded Q=Qd (demand-limited), surplus =Qs-Qd
+  // DWL = 1/2 * (Pd_at_Qtraded - Ps_at_Qtraded) * (Qe - Qtraded)
+  function compute(pm, m){
+    var Qe=(A-C)/(B+D);                 // 18
+    var Pe=A-B*Qe;                      // 64
+    var Qd=Math.max(0,(A-pm)/B);        // demand quantity at the mandated price
+    var Qs=Math.max(0,(pm-C)/D);        // supply quantity at the mandated price
+    var binding=false, kind='none', Qtraded=Qe, gap=0, dwl=0;
+    if(m==='ceiling' && pm<Pe){
+      binding=true; kind='shortage';
+      Qtraded=Qs;                        // supply-limited
+      gap=Math.max(0, Qd-Qs);
+    } else if(m==='floor' && pm>Pe){
+      binding=true; kind='surplus';
+      Qtraded=Qd;                        // demand-limited
+      gap=Math.max(0, Qs-Qd);
+    } else {
+      binding=false; kind='none';
+      Qtraded=Qe; gap=0;
+    }
+    Qtraded=Math.max(0,Math.min(Qtraded,Qe)); // clamp to [0,Qe]
+    var PdQt=A-B*Qtraded;               // demand price (willingness to pay) at traded Q
+    var PsQt=C+D*Qtraded;               // supply price (marginal cost) at traded Q
+    dwl=Math.max(0, 0.5*(PdQt-PsQt)*(Qe-Qtraded));
+    if(!isFinite(dwl)) dwl=0;
+    if(!isFinite(gap)) gap=0;
+    return {Qe:Qe,Pe:Pe,Qd:Qd,Qs:Qs,binding:binding,kind:kind,Qtraded:Qtraded,gap:gap,dwl:dwl,PdQt:PdQt,PsQt:PsQt,pm:pm,mode:m};
+  }
+  if(typeof window!=='undefined') window.__pcCompute = compute; // expose for the headless math test
+
+  // ---- comparative-statics snapshots: "photograph" the before-state, then move on top ----
+  var snaps=[];
+  function snapshot(){
+    var pm=valPm(); var r=compute(pm,mode);
+    snaps.push({pm:pm,mode:mode,Qtraded:r.Qtraded,gap:r.gap,kind:r.kind,dwl:r.dwl,Qd:r.Qd,Qs:r.Qs,binding:r.binding,PdQt:r.PdQt,PsQt:r.PsQt});
+    if(snaps.length>3) snaps.shift();
+    draw();
+  }
+  function clearSnaps(){ snaps=[]; draw(); }
+
+  function dims(){
+    var w=canvas.clientWidth||520, h=Math.round(w*0.74);
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w,h:h};
+  }
+
+  function draw(){
+    var pm=valPm();
+    document.getElementById('vPm').textContent='$'+pm.toFixed(0);
+
+    var m=compute(pm,mode);
+    var Qe=m.Qe, Pe=m.Pe, Qd=m.Qd, Qs=m.Qs, Qt=m.Qtraded;
+
+    // ---- KPIs ----
+    var statusEl=document.getElementById('kpiStatus');
+    var gapLblEl=document.getElementById('lblGap');
+    var gapEl=document.getElementById('kpiGap');
+    if(m.binding && m.kind==='shortage'){
+      statusEl.textContent='Binding ceiling';
+      gapLblEl.textContent='Shortage';
+      gapEl.textContent=m.gap.toFixed(1)+' units';
+    } else if(m.binding && m.kind==='surplus'){
+      statusEl.textContent='Binding floor';
+      gapLblEl.textContent='Surplus';
+      gapEl.textContent=m.gap.toFixed(1)+' units';
+    } else {
+      statusEl.textContent='Not binding';
+      gapLblEl.textContent='Shortage / Surplus';
+      gapEl.textContent='0.0 units';
+    }
+    document.getElementById('kpiDwl').textContent='$'+m.dwl.toFixed(0);
+
+    // ---- colors ----
+    var ink=cvar('--ink'), muted=cvar('--muted'), line=cvar('--line');
+    var dem=cvar('--indigo'), sup=cvar('--rose'), eqc=cvar('--correct'), amb=cvar('--amber');
+    document.getElementById('swD').style.background=dem;
+    document.getElementById('swS').style.background=sup;
+    document.getElementById('swMand').style.background=amb;
+    document.getElementById('swDwl').style.background=tint('--rose',.4);
+
+    var Dd=dims(), W=Dd.w, H=Dd.h;
+    var padL=48, padB=36, padT=14, padR=16;
+    var x0=padL, y0=H-padB, plotW=W-padL-padR, plotH=H-padT-padB;
+    var Qmax=Math.max(A/B, Qe*1.7, 5);                 // demand x-intercept frames it
+    var Pmax=Math.max(A, C+D*(A/B))*1.02;
+    function X(q){ return x0 + (Math.max(0,q)/Qmax)*plotW; }
+    function Y(p){ return y0 - (Math.max(0,p)/Pmax)*plotH; }
+
+    ctx.clearRect(0,0,W,H);
+    // gridlines + axis ticks
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.font='11px '+cvar('--app-font'); ctx.fillStyle=muted;
+    var i, gp, gq;
+    for(i=0;i<=5;i++){ gp=Pmax*i/5; ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(X(0),Y(gp)); ctx.lineTo(X(Qmax),Y(gp)); ctx.stroke(); ctx.globalAlpha=1;
+      ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText('$'+gp.toFixed(0), x0-6, Y(gp)); }
+    for(i=0;i<=5;i++){ gq=Qmax*i/5; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(gq.toFixed(0), X(gq), y0+6); }
+    // axes
+    ctx.strokeStyle=ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x0,padT); ctx.lineTo(x0,y0); ctx.lineTo(W-padR,y0); ctx.stroke();
+    // axis titles
+    ctx.fillStyle=ink; ctx.font='12px '+cvar('--app-font');
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('Quantity', x0+plotW/2, y0+18);
+    ctx.save(); ctx.translate(13, padT+plotH/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText('Price ($)',0,0); ctx.restore();
+
+    // ---- ghost snapshots (comparative statics: prior mandated line + gap span + DWL faded UNDER the live) ----
+    snaps.forEach(function(s,gi){
+      ctx.save();
+      var ga=0.24+0.08*gi;
+      // ghost DWL triangle (faded)
+      if(s.binding && s.Qtraded<Qe){
+        ctx.globalAlpha=ga*0.9; ctx.fillStyle=tint('--rose',.22);
+        ctx.beginPath(); ctx.moveTo(X(s.Qtraded),Y(A-B*s.Qtraded)); ctx.lineTo(X(s.Qtraded),Y(C+D*s.Qtraded)); ctx.lineTo(X(Qe),Y(Pe)); ctx.closePath(); ctx.fill();
+      }
+      // ghost mandated-price line (dotted, faded)
+      ctx.globalAlpha=Math.min(1,0.5+0.1*gi); ctx.setLineDash([3,4]); ctx.lineWidth=2; ctx.strokeStyle=amb;
+      ctx.beginPath(); ctx.moveTo(x0,Y(s.pm)); ctx.lineTo(X(Qmax),Y(s.pm)); ctx.stroke();
+      // ghost shortage/surplus span at the prior mandated price
+      if(s.binding){
+        var gQa=Math.min(s.Qd,s.Qs), gQb=Math.max(s.Qd,s.Qs);
+        ctx.strokeStyle=muted; ctx.lineWidth=1.6; ctx.setLineDash([2,3]);
+        ctx.beginPath(); ctx.moveTo(X(gQa),Y(s.pm)); ctx.lineTo(X(gQb),Y(s.pm)); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      // numbered marker on the ghost line
+      ctx.globalAlpha=Math.min(1,0.55+0.12*gi); ctx.fillStyle=muted;
+      ctx.beginPath(); ctx.arc(X(Math.max(s.Qtraded,0.3)),Y(s.pm),3.4,0,7); ctx.fill();
+      ctx.font='bold 10px '+cvar('--app-font'); ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(String(gi+1), X(Math.max(s.Qtraded,0.3)), Y(s.pm)-9);
+      ctx.restore();
+    });
+
+    // ---- live DWL triangle (drawn under the curves): (Qt,Pd@Qt),(Qt,Ps@Qt),(Qe,Pe) ----
+    if(m.binding && Qt<Qe){
+      ctx.fillStyle=tint('--rose',.34);
+      ctx.beginPath();
+      ctx.moveTo(X(Qt),Y(m.PdQt)); ctx.lineTo(X(Qt),Y(m.PsQt)); ctx.lineTo(X(Qe),Y(Pe)); ctx.closePath(); ctx.fill();
+      // area-value label at the triangle centroid
+      var cxA=(X(Qt)+X(Qt)+X(Qe))/3, cyA=(Y(m.PdQt)+Y(m.PsQt)+Y(Pe))/3;
+      ctx.fillStyle=sup; ctx.font='bold 10.5px '+cvar('--app-font'); ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText('DWL $'+m.dwl.toFixed(0), cxA+4, cyA);
+    }
+
+    // ---- demand line P=a-bQ (Q: 0..a/b) ----
+    ctx.lineWidth=2.6; ctx.strokeStyle=dem; ctx.beginPath();
+    var QdEnd=Math.min(A/B,Qmax);
+    ctx.moveTo(X(0),Y(Math.min(A,Pmax))); ctx.lineTo(X(QdEnd), Y(Math.max(0,A-B*QdEnd))); ctx.stroke();
+    // ---- supply line P=c+dQ ----
+    ctx.strokeStyle=sup; ctx.beginPath();
+    ctx.moveTo(X(0),Y(C)); ctx.lineTo(X(Qmax), Y(Math.min(C+D*Qmax,Pmax))); ctx.stroke();
+    // curve labels
+    ctx.font='bold 12px '+cvar('--app-font'); ctx.textAlign='left';
+    ctx.fillStyle=dem; ctx.textBaseline='bottom'; ctx.fillText('D', X(QdEnd)-14, Y(2)-2);
+    ctx.fillStyle=sup; ctx.textBaseline='top';  ctx.fillText('S', X(Qmax)-14, Y(Math.min(C+D*Qmax,Pmax))+2);
+
+    // ---- equilibrium marker (dashed reference) ----
+    if(Qe>0 && Pe>0){
+      ctx.strokeStyle=eqc; ctx.lineWidth=1.2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(x0,Y(Pe)); ctx.lineTo(X(Qe),Y(Pe)); ctx.lineTo(X(Qe),y0); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=eqc; ctx.beginPath(); ctx.arc(X(Qe),Y(Pe),3.8,0,7); ctx.fill();
+      ctx.font='bold 11px '+cvar('--app-font'); ctx.fillStyle=eqc; ctx.textAlign='left'; ctx.textBaseline='bottom';
+      ctx.fillText('E (P*=$'+Pe.toFixed(0)+')', X(Qe)+6, Y(Pe)-3);
+    }
+
+    // ---- mandated-price line (thick horizontal) ----
+    ctx.strokeStyle=amb; ctx.lineWidth=3.4; ctx.beginPath();
+    ctx.moveTo(x0,Y(pm)); ctx.lineTo(X(Qmax),Y(pm)); ctx.stroke();
+    // mandated-price axis label + role
+    ctx.fillStyle=amb; ctx.font='bold 11px '+cvar('--app-font'); ctx.textAlign='left'; ctx.textBaseline='bottom';
+    var roleTxt = (mode==='ceiling') ? 'Ceiling P_m=$'+pm.toFixed(0) : 'Floor P_m=$'+pm.toFixed(0);
+    ctx.fillText(roleTxt, x0+4, Y(pm)-3);
+
+    // ---- drop verticals at Qd and Qs + the shortage/surplus span at P_m ----
+    if(m.binding){
+      // verticals down to the axis at Qd (demand-side qty) and Qs (supply-side qty)
+      ctx.setLineDash([4,4]); ctx.lineWidth=1.2;
+      ctx.strokeStyle=dem; ctx.beginPath(); ctx.moveTo(X(Qd),Y(pm)); ctx.lineTo(X(Qd),y0); ctx.stroke(); // demand side
+      ctx.strokeStyle=sup; ctx.beginPath(); ctx.moveTo(X(Qs),Y(pm)); ctx.lineTo(X(Qs),y0); ctx.stroke(); // supply side
+      ctx.setLineDash([]);
+      // traded-quantity vertical (solid) = the binding side
+      ctx.strokeStyle=ink; ctx.lineWidth=2.0; ctx.beginPath(); ctx.moveTo(X(Qt),Y(pm)); ctx.lineTo(X(Qt),y0); ctx.stroke();
+      // span bracket between Qs and Qd along the mandated line
+      var Qa=Math.min(Qd,Qs), Qb=Math.max(Qd,Qs);
+      ctx.strokeStyle=ink; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(X(Qa),Y(pm)); ctx.lineTo(X(Qb),Y(pm)); ctx.stroke();
+      // span end ticks
+      ctx.beginPath(); ctx.moveTo(X(Qa),Y(pm)-4); ctx.lineTo(X(Qa),Y(pm)+4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X(Qb),Y(pm)-4); ctx.lineTo(X(Qb),Y(pm)+4); ctx.stroke();
+      // span label
+      ctx.fillStyle=ink; ctx.font='bold 11px '+cvar('--app-font'); ctx.textAlign='center'; ctx.textBaseline='bottom';
+      var spanTxt=(m.kind==='shortage'?'SHORTAGE ':'SURPLUS ')+m.gap.toFixed(1);
+      ctx.fillText(spanTxt, (X(Qa)+X(Qb))/2, Y(pm)-9);
+      // Qd / Qs / Qt tick labels
+      ctx.font='10px '+cvar('--app-font'); ctx.textBaseline='top';
+      ctx.fillStyle=dem; ctx.textAlign='center'; ctx.fillText('Qd='+Qd.toFixed(1), X(Qd), y0+18);
+      ctx.fillStyle=sup; ctx.fillText('Qs='+Qs.toFixed(1), X(Qs), y0+18);
+    }
+
+    // ---- teaching note ----
+    var noteTxt;
+    if(!m.binding){
+      if(mode==='ceiling') noteTxt='A price CEILING at or above the equilibrium ($'+Pe.toFixed(0)+') is NOT binding - sellers can still charge up to P*, so the market clears at E. A ceiling only bites when set BELOW P*.';
+      else noteTxt='A price FLOOR at or below the equilibrium ($'+Pe.toFixed(0)+') is NOT binding - buyers can still pay down to P*, so the market clears at E. A floor only bites when set ABOVE P*.';
+    } else if(m.kind==='shortage'){
+      noteTxt='Binding CEILING ($'+pm.toFixed(0)+' < P*=$'+Pe.toFixed(0)+'): sellers supply only Qs='+Qs.toFixed(1)+', but buyers want Qd='+Qd.toFixed(1)+'. Quantity traded is supply-limited (Qs). The SHORTAGE = Qd−Qs = '+m.gap.toFixed(1)+'. Lost gains-from-trade = the shaded deadweight-loss triangle.';
+    } else {
+      noteTxt='Binding FLOOR ($'+pm.toFixed(0)+' > P*=$'+Pe.toFixed(0)+'): buyers demand only Qd='+Qd.toFixed(1)+', but sellers offer Qs='+Qs.toFixed(1)+'. Quantity traded is demand-limited (Qd). The SURPLUS = Qs−Qd = '+m.gap.toFixed(1)+'. Lost gains-from-trade = the shaded deadweight-loss triangle.';
+    }
+    document.getElementById('note').textContent=noteTxt;
+
+    // ---- comparison vs the most recent snapshot (comparative statics) ----
+    var cmp=document.getElementById('snapCmp');
+    if(snaps.length){
+      var last=snaps[snaps.length-1];
+      var dGap=m.gap-last.gap, dDwl=m.dwl-last.dwl;
+      var gLbl=(m.kind==='surplus'||last.kind==='surplus')?'surplus/shortage':'shortage';
+      cmp.textContent='vs snapshot '+snaps.length+':  Δ'+gLbl+' '+(dGap>=0?'+':'−')+Math.abs(dGap).toFixed(1)+
+                      '   ΔDWL '+(dDwl>=0?'+':'−')+'$'+Math.abs(dDwl).toFixed(0);
+    } else { cmp.textContent=''; }
+
+    // keep predict-feedback in sync if a prediction is live
+    refreshPredictFeedback(m);
+  }
+
+  // ---- predict-then-reveal logic ----
+  function setPrediction(p){
+    prediction = (prediction===p) ? null : p;
+    Array.prototype.forEach.call(document.querySelectorAll('#predict .pbtn'), function(btn){
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-p')===prediction ? 'true':'false');
+    });
+    draw();
+  }
+  function refreshPredictFeedback(m){
+    var fb=document.getElementById('pfeedback');
+    if(!prediction){ fb.textContent=''; fb.className='pfeedback'; return; }
+    var actual = m.binding ? m.kind : 'none';   // 'shortage' | 'surplus' | 'none'
+    var actualWord = actual==='shortage' ? 'a shortage' : actual==='surplus' ? 'a surplus' : 'no effect (market clears at E)';
+    if(prediction===actual){
+      fb.className='pfeedback right';
+      fb.textContent='✓ Correct - there is '+actualWord+' here.';
+    } else {
+      var predWord = prediction==='shortage' ? 'a shortage' : prediction==='surplus' ? 'a surplus' : 'no effect';
+      fb.className='pfeedback wrong';
+      fb.textContent='✗ Not quite - you predicted '+predWord+', but the math gives '+actualWord+'.';
+    }
+  }
+
+  // ---- control type toggle ----
+  function setMode(m){
+    mode=m;
+    document.getElementById('segCeil').setAttribute('aria-pressed', m==='ceiling'?'true':'false');
+    document.getElementById('segFloor').setAttribute('aria-pressed', m==='floor'?'true':'false');
+    draw();
+  }
+
+  // ---- preset scenarios (labelled binding states) ----
+  function presetRent(){      // rent control = a binding CEILING below P*
+    setMode('ceiling'); elPm.value='40'; draw();
+  }
+  function presetWage(){      // minimum wage = a binding FLOOR above P*
+    setMode('floor'); elPm.value='85'; draw();
+  }
+
+  // ---- reset to base case ----
+  function reset(){
+    mode=DEFAULT_MODE; elPm.value=String(DEFAULT_PM);
+    snaps=[]; prediction=null;
+    Array.prototype.forEach.call(document.querySelectorAll('#predict .pbtn'), function(btn){ btn.setAttribute('aria-pressed','false'); });
+    setMode(DEFAULT_MODE);
+  }
+
+  // ---- wiring ----
+  elPm.addEventListener('input', draw);
+  document.getElementById('segCeil').addEventListener('click', function(){ setMode('ceiling'); });
+  document.getElementById('segFloor').addEventListener('click', function(){ setMode('floor'); });
+  document.getElementById('snapBtn').addEventListener('click', snapshot);
+  document.getElementById('clearBtn').addEventListener('click', clearSnaps);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  document.getElementById('chipRent').addEventListener('click', presetRent);
+  document.getElementById('chipWage').addEventListener('click', presetWage);
+  Array.prototype.forEach.call(document.querySelectorAll('#predict .pbtn'), function(btn){
+    btn.addEventListener('click', function(){ setPrediction(btn.getAttribute('data-p')); });
+  });
+  window.addEventListener('resize', draw);
+
+  // verification/demo hooks (query params): exercise the toggle/preset paths for headless render checks
+  (function(){ try{
+    var q=new URLSearchParams(location.search);
+    // ?snapdemo=1 -> snapshot a binding ceiling, then move the price (shows ghost + Δ)
+    if(q.get('snapdemo')==='1'){ setMode('ceiling'); elPm.value='40'; snapshot(); elPm.value='25'; }
+    // ?demo=floor -> binding floor (minimum-wage preset); ?demo=ceiling-na -> non-binding ceiling
+    var dm=q.get('demo');
+    if(dm==='floor'){ presetWage(); }
+    else if(dm==='ceiling-na'){ setMode('ceiling'); elPm.value='80'; draw(); }
+    else if(dm==='floor-na'){ setMode('floor'); elPm.value='40'; draw(); }
+  }catch(e){} })();
+
+  draw();
+})();
+</script>
+</body>
+</html>
