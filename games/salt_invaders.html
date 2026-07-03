@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Salt Invaders</title>
+<!--
+============================================================================
+  SALT INVADERS  -  P1 solo review build  (2026-07-03)
+============================================================================
+  REVIEW NOTE
+  -----------
+  ENGINE / LICENSE
+    Hand-rolled vanilla Canvas2D game loop, ZERO external dependencies. No CDN,
+    no engine, no network at all -> it runs fully OFFLINE the first time the
+    file is opened (nothing to cache; there is nothing external to fetch).
+
+    Why not the LittleJS CDN adopted in _research/ARCADE_SHELLS.md ?
+    ARCADE_SHELLS.md chose LittleJS (MIT) as the shared shell, and it remains
+    the right call for the SHIPPED multi-game bundle. For THIS single reviewable
+    P1 file the mandate ("a SINGLE file that runs offline-after-first-load")
+    is better served by a self-contained canvas loop: no CDN-failure surface,
+    no WebGL fallback risk on old iPads (ARCADE_SHELLS.md open question #2),
+    and the target-rule mechanic here is a ~30-line delta on a spawn loop +
+    collision handler -- exactly the injection pattern that research verified
+    generalizes across shells (ARCADE_SHELLS.md, "Target-rule injection
+    pattern"). The particle-burst + screenshake + score-popup "juice" that
+    LittleJS gives for free is reproduced here directly. Everything below is
+    original code, so no third-party license attaches to this file.
+
+    If a reviewer prefers the LittleJS route for engine consistency with the
+    rest of the catalog, the entity spawn loop (spawnWave_) and the hit branch
+    (resolveHit_) are the two functions to port onto LittleJS EngineObject +
+    ParticleEmitter; the pool/opts contract below is engine-agnostic.
+
+  HOW THE HOST PASSES A CHAPTER-CAPPED POOL  (drop-in with the existing games)
+    The host calls, exactly like cgOpenGamePicker_ in _align/core/Index.core.html
+    calls mod.open(pool, {...}) for SpeedSwipe/Sniper/Sequence:
+
+        window.SALT_INVADERS.open(pool, {
+          enabled: true,                 // REQUIRED flag gate; open() no-ops otherwise
+          subject: 'Chemistry',          // cosmetic
+          chapterLabel: 'Up to chapter 12',
+          rtl: false,                    // mirrors HUD/layout for Arabic
+          onEmit:  cgEmitMicrotaskSignal_,   // onEmit(rowId, lo, tool, score, itemCount)
+          onClose: function (summary) { ... } // summary = {subject,chapterLabel,seen,
+                                              //   correct,score,tool:'saltinvaders'}
+        });
+
+    pool is an array of { label, category, rowId?, lo? } items ALREADY capped to
+    the student's furthest chapter by the host's furthestChapter() filter (the
+    same #95 gate cgOpenGamePicker_ applies before it hands the pool over). This
+    module never reads a global bank and never filters by chapter itself -- it
+    trusts the pool it is given, staying decoupled exactly like the SpeedSwipe
+    module. window.SALT_INVADERS.start is an alias for .open per the P1 brief.
+
+    Per-wave the module picks a rule axis, then draws "target" items (matching
+    the rule's target category) and "decoy" items (the other categories on that
+    axis) straight from the passed pool -- so richer host pools = richer waves,
+    with no code change.
+
+  DEMO POOL
+    A small built-in ~24-item demo pool (DEMO_POOL) across 4 axes is used ONLY
+    when the host passes no pool (standalone review). It is chemistry
+    first-encounter simple and checked correct (see item comments).
+
+  WHAT REMAINS FOR MULTIPLAYER  (NOT in this P1 file, per PRD)
+    PRD_ARCADE_GAMES.md P2: co-op via RTDB /gameRooms/<id> + #86 5-digit codes,
+    with an AUTHORITATIVE HOST (session creator owns wave transitions via RTDB
+    transactions + server timestamps; other clients render, never derive; late
+    joiners hydrate from a state summary node). Scores batched per 500ms per
+    client. Deterministic seeds are for CONTENT generation only; wave STATE is
+    host-authoritative with a lag catch-up indicator. None of that networking is
+    present here -- this is the solo P1 shell only.
+
+  ASCII-only visible text. No em-dashes / underscores in labels. Halal-safe:
+  entities shatter into geometric particles, no violence/gore theming.
+============================================================================
+-->
+<style>
+  :root {
+    /* Host page injects these vars; standalone review falls back to the hex. */
+    --si-bg1: var(--surface-2, #0d1220);
+    --si-bg2: var(--surface, #131a2c);
+    --si-ink: var(--ink, #eaf0ff);
+    --si-muted: var(--muted, #9aa7c7);
+    --si-indigo: var(--indigo, #6c5cff);
+    --si-green: var(--green, #22c58b);
+    --si-rose: var(--rose, #ff5470);
+    --si-amber: var(--amber, #ffb020);
+    --si-line: var(--line, #2a3355);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #06070d; color: var(--si-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #si-root { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #si-wrap {
+    position: relative; width: 100%; height: 100%; max-width: 900px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #si-canvas {
+    display: block; width: 100%; height: 100%;
+    touch-action: none; background: radial-gradient(120% 90% at 50% 0%, var(--si-bg2), var(--si-bg1) 70%, #06070d);
+    image-rendering: optimizeSpeed;
+  }
+  /* Top HUD + rule banner + buttons are DOM (crisp text, easy a11y), overlaid on canvas */
+  #si-hud {
+    position: absolute; top: 0; left: 0; right: 0; padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px; pointer-events: none;
+    font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  }
+  #si-hud .si-pill {
+    background: rgba(10,14,26,.55); border: 1px solid var(--si-line); border-radius: 999px;
+    padding: 5px 11px; display: inline-flex; gap: 6px; align-items: center; backdrop-filter: blur(3px);
+  }
+  #si-hud .si-lives { color: var(--si-rose); }
+  #si-hud .si-score { color: var(--si-amber); }
+  #si-hud .si-wave { color: var(--si-indigo); }
+  #si-spacer { flex: 1 1 auto; }
+  .si-iconbtn {
+    pointer-events: auto; width: 40px; height: 40px; min-width: 40px; border-radius: 12px;
+    border: 1px solid var(--si-line); background: rgba(10,14,26,.6); color: var(--si-ink);
+    font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .si-iconbtn:active { transform: scale(.94); }
+  #si-banner {
+    position: absolute; left: 50%; top: 58px; transform: translateX(-50%);
+    max-width: 92%; text-align: center; pointer-events: none;
+    background: rgba(12,16,30,.72); border: 1.5px solid var(--si-indigo); border-radius: 14px;
+    padding: 9px 16px; backdrop-filter: blur(4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  #si-banner .si-banner-rule { font-size: 15px; font-weight: 850; letter-spacing: -.01em; }
+  #si-banner .si-banner-sub { font-size: 11.5px; color: var(--si-muted); margin-top: 2px; font-weight: 600; }
+  #si-banner .si-banner-target { color: var(--si-green); }
+  #si-banner .si-banner-spare { color: var(--si-rose); }
+  #si-banner.si-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+
+  /* Overlays: start / pause / gameover / error, all centered cards */
+  .si-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(6,8,14,.7); backdrop-filter: blur(3px); text-align: center;
+  }
+  .si-overlay[hidden] { display: none; }
+  .si-card {
+    background: var(--si-bg2); border: 1.5px solid var(--si-line); border-radius: 20px;
+    padding: 22px 20px; max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 12px; align-items: center;
+  }
+  .si-card h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+  .si-card h1 .si-accent { color: var(--si-indigo); }
+  .si-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--si-muted); }
+  .si-card .si-big { font-size: 46px; font-weight: 900; color: var(--si-amber); line-height: 1; }
+  .si-card ul { margin: 4px 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--si-muted); line-height: 1.6; text-align: left; }
+  .si-card ul b { color: var(--si-ink); }
+  .si-primary {
+    min-height: 50px; padding: 0 26px; border-radius: 14px; border: 0; cursor: pointer;
+    background: var(--si-indigo); color: #fff; font-size: 15px; font-weight: 850; width: 100%;
+  }
+  .si-primary:active { transform: scale(.98); }
+  .si-ghost {
+    min-height: 44px; padding: 0 20px; border-radius: 12px; cursor: pointer;
+    background: transparent; color: var(--si-muted); border: 1px solid var(--si-line);
+    font-size: 13px; font-weight: 700; width: 100%;
+  }
+  .si-row { display: flex; gap: 10px; width: 100%; }
+  .si-row > * { flex: 1 1 0; }
+  [dir="rtl"] #si-hud { flex-direction: row-reverse; }
+</style>
+</head>
+<body>
+<div id="si-root">
+  <div id="si-wrap">
+    <canvas id="si-canvas"></canvas>
+
+    <div id="si-hud">
+      <span class="si-pill si-wave">Wave <span id="si-wave-n">1</span></span>
+      <span class="si-pill si-score">Score <span id="si-score-n">0</span></span>
+      <span class="si-pill si-lives">&#9829; <span id="si-lives-n">3</span></span>
+      <span id="si-spacer"></span>
+      <button type="button" class="si-iconbtn" id="si-pause-btn" aria-label="Pause">&#10073;&#10073;</button>
+      <button type="button" class="si-iconbtn" id="si-fs-btn" aria-label="Fullscreen">&#9974;</button>
+      <button type="button" class="si-iconbtn" id="si-close-btn" aria-label="Close">&#10005;</button>
+    </div>
+
+    <div id="si-banner" class="si-hide" aria-live="polite">
+      <div class="si-banner-rule" id="si-banner-rule"></div>
+      <div class="si-banner-sub" id="si-banner-sub"></div>
+    </div>
+
+    <!-- START -->
+    <div class="si-overlay" id="si-start">
+      <div class="si-card">
+        <h1>Salt <span class="si-accent">Invaders</span></h1>
+        <p>Labelled particles drop from the top. Each wave shows a RULE.
+           Shoot only the ones the rule says to destroy. Shooting the wrong
+           kind, or letting a target slip past, costs you.</p>
+        <ul>
+          <li><b>Move:</b> drag, or arrow keys / A D</li>
+          <li><b>Fire:</b> tap the screen, or Space</li>
+          <li><b>Goal:</b> read the label, decide, shoot fast</li>
+        </ul>
+        <button type="button" class="si-primary" id="si-start-btn">Start</button>
+      </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="si-overlay" id="si-pause" hidden>
+      <div class="si-card">
+        <h1>Paused</h1>
+        <p id="si-pause-rule"></p>
+        <button type="button" class="si-primary" id="si-resume-btn">Resume</button>
+        <button type="button" class="si-ghost" id="si-quit-btn">Quit game</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="si-overlay" id="si-over" hidden>
+      <div class="si-card">
+        <h1>Game Over</h1>
+        <div class="si-big" id="si-final-score">0</div>
+        <p id="si-final-line"></p>
+        <div class="si-row">
+          <button type="button" class="si-ghost" id="si-done-btn">Done</button>
+          <button type="button" class="si-primary" id="si-again-btn">Play again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR / EMPTY POOL -->
+    <div class="si-overlay" id="si-error" hidden>
+      <div class="si-card">
+        <h1>Not ready</h1>
+        <p id="si-error-msg">No game content available yet.</p>
+        <button type="button" class="si-primary" id="si-error-btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function (global) {
+  'use strict';
+
+  // ======================================================================
+  //  DEMO POOL  (standalone review only; host normally passes its own pool)
+  //  4 axes; first-encounter simple + chemistry-correct. category values are
+  //  the canonical class strings the RULES map onto.
+  // ======================================================================
+  var DEMO_POOL = [
+    // --- salt vs acid vs base ---
+    { label: 'NaCl',    category: 'salt' },   // table salt: neutral ionic salt
+    { label: 'KNO3',    category: 'salt' },   // potassium nitrate: a salt
+    { label: 'CaCO3',   category: 'salt' },   // calcium carbonate: a salt
+    { label: 'Na2SO4',  category: 'salt' },   // sodium sulfate: a salt
+    { label: 'HCl',     category: 'acid' },   // hydrochloric acid
+    { label: 'H2SO4',   category: 'acid' },   // sulfuric acid
+    { label: 'HNO3',    category: 'acid' },   // nitric acid
+    { label: 'NaOH',    category: 'base' },   // sodium hydroxide: strong base
+    { label: 'KOH',     category: 'base' },   // potassium hydroxide: base
+    { label: 'NH3',     category: 'base' },   // ammonia: weak base
+    // --- ionic vs covalent (bonding) ---
+    { label: 'NaCl',    category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'MgO',     category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'KBr',     category: 'ionic' },     // ionic
+    { label: 'CO2',     category: 'covalent' },  // two nonmetals = covalent
+    { label: 'H2O',     category: 'covalent' },  // covalent (molecular)
+    { label: 'CH4',     category: 'covalent' },  // covalent
+    // --- element vs compound ---
+    { label: 'O2',      category: 'element' },   // one kind of atom = element
+    { label: 'Fe',      category: 'element' },   // iron: element
+    { label: 'He',      category: 'element' },   // helium: element
+    { label: 'H2O',     category: 'compound' },  // 2 elements bonded = compound
+    { label: 'CO2',     category: 'compound' },  // compound
+    { label: 'NaCl',    category: 'compound' },  // compound
+    // --- endothermic vs exothermic (first-encounter energy sign) ---
+    { label: 'Combustion',    category: 'exothermic' },  // releases heat
+    { label: 'Freezing',      category: 'exothermic' },  // releases heat
+    { label: 'Neutralize',    category: 'exothermic' },  // acid+base releases heat
+    { label: 'Melting ice',   category: 'endothermic' }, // absorbs heat
+    { label: 'Photosynth',    category: 'endothermic' }, // absorbs light energy
+    { label: 'Evaporate',     category: 'endothermic' }  // absorbs heat
+  ];
+
+  // Rule axes: each has a set of categories. A wave picks an axis, then a
+  // TARGET category on that axis; everything else on that axis is a decoy.
+  var AXES = [
+    { id: 'saltab',  cats: ['salt', 'acid', 'base'],
+      nice: { salt: 'SALTS', acid: 'acids', base: 'bases' } },
+    { id: 'bond',    cats: ['ionic', 'covalent'],
+      nice: { ionic: 'IONIC compounds', covalent: 'COVALENT compounds' } },
+    { id: 'ec',      cats: ['element', 'compound'],
+      nice: { element: 'ELEMENTS', compound: 'COMPOUNDS' } },
+    { id: 'energy',  cats: ['endothermic', 'exothermic'],
+      nice: { endothermic: 'ENDOTHERMIC changes', exothermic: 'EXOTHERMIC changes' } }
+  ];
+
+  // ---------------------------------------------------------------- helpers
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function cssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+      v = v && v.trim();
+      return v || fallback;
+    } catch (e) { return fallback; }
+  }
+
+  // Keep only pool items whose category belongs to one of our axes; index by category.
+  function buildAxisIndex(pool) {
+    var byCat = {};
+    var axisHas = {};
+    for (var i = 0; i < pool.length; i++) {
+      var it = pool[i];
+      if (!it || !it.label || !it.category) continue;
+      var cat = String(it.category).toLowerCase();
+      var label = String(it.label);
+      // guard: strip any accidental underscores / em-dashes from visible labels
+      label = label.replace(/[_—–]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!label) continue;
+      (byCat[cat] || (byCat[cat] = [])).push({ label: label, category: cat, rowId: it.rowId, lo: it.lo });
+    }
+    var usableAxes = [];
+    for (var a = 0; a < AXES.length; a++) {
+      var ax = AXES[a];
+      var present = ax.cats.filter(function (c) { return byCat[c] && byCat[c].length; });
+      // an axis is playable if the TARGET can be drawn AND at least one decoy exists
+      if (present.length >= 2) { usableAxes.push({ axis: ax, present: present }); axisHas[ax.id] = true; }
+    }
+    return { byCat: byCat, usableAxes: usableAxes };
+  }
+
+  // =====================================================================
+  //  The module
+  // =====================================================================
+  var SI = {};
+  var live = null; // single active instance guard
+
+  SI.open = function (pool, opts) {
+    opts = opts || {};
+    if (opts.enabled !== true) return null;            // flag gate, matches other modules
+    if (typeof document === 'undefined') return null;
+
+    var usePool = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
+    var idx = buildAxisIndex(usePool);
+    if (!idx.usableAxes.length) {
+      showError('This game needs at least two categories from a topic (like salts and acids). Study a little further and it will unlock.');
+      return null;
+    }
+    if (live) { try { live.destroy(); } catch (e) {} live = null; }
+    live = new Game(idx, opts);
+    return live;
+  };
+  // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
+  SI.start = SI.open;
+  SI.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+
+  // ---- error overlay used before a Game exists -------------------------
+  function showError(msg) {
+    var el = document.getElementById('si-error');
+    var m = document.getElementById('si-error-msg');
+    if (m) m.textContent = msg;
+    if (el) el.hidden = false;
+  }
+
+  // =====================================================================
+  //  Game instance
+  // =====================================================================
+  function Game(idx, opts) {
+    var self = this;
+    this.idx = idx;
+    this.opts = opts;
+    this.rtl = !!opts.rtl;
+    this.reduced = false;
+    try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
+    this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+    this.closed = false;
+
+    // DOM
+    this.canvas = document.getElementById('si-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.root = document.getElementById('si-root');
+    if (this.rtl) document.documentElement.setAttribute('dir', 'rtl');
+
+    // theme colors (resolved once; standalone falls back to hex)
+    this.col = {
+      ink: cssVar('--si-ink', '#eaf0ff'),
+      muted: cssVar('--si-muted', '#9aa7c7'),
+      indigo: cssVar('--si-indigo', '#6c5cff'),
+      green: cssVar('--si-green', '#22c58b'),
+      rose: cssVar('--si-rose', '#ff5470'),
+      amber: cssVar('--si-amber', '#ffb020'),
+      line: cssVar('--si-line', '#2a3355')
+    };
+
+    // state
+    this.state = 'start';   // start | playing | paused | over
+    this.score = 0;
+    this.lives = 3;
+    this.wave = 0;
+    this.seen = 0;          // targets that appeared (for accuracy summary)
+    this.correct = 0;       // correct target destructions
+    this.rule = null;
+
+    this.entities = [];     // descending labelled items
+    this.bullets = [];
+    this.particles = [];
+    this.popups = [];       // floating score text
+    this.shake = 0;
+    this.flash = 0;         // red damage flash 0..1
+    this.goodFlash = 0;
+
+    // shooter
+    this.shooter = { x: 0.5, w: 54, h: 18, cooldown: 0 };  // x is 0..1 fraction
+    this.moveDir = 0;
+
+    this.W = 0; this.H = 0; this.dpr = 1;
+    this.last = 0; this.spawnTimer = 0; this.spawnGap = 1.1; this.waveLeft = 0;
+
+    this._bind();
+    this._resize();
+    this._showOverlay('si-start');
+    // main loop
+    this._raf = requestAnimationFrame(function (t) { self._loop(t); });
+  }
+
+  Game.prototype._byId = function (id) { return document.getElementById(id); };
+
+  Game.prototype._bind = function () {
+    var self = this;
+    this._handlers = [];
+    function on(el, ev, fn, opt) { if (!el) return; el.addEventListener(ev, fn, opt); self._handlers.push([el, ev, fn, opt]); }
+
+    // buttons
+    on(this._byId('si-start-btn'), 'click', function () { self._begin(); });
+    on(this._byId('si-again-btn'), 'click', function () { self._reset(); self._begin(); });
+    on(this._byId('si-done-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('si-error-btn'), 'click', function () { self._byId('si-error').hidden = true; self.destroy(); if (self.onClose) { try { self.onClose(self._summary()); } catch (e) {} } });
+    on(this._byId('si-pause-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('si-resume-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('si-quit-btn'), 'click', function () { self._gameOver(true); });
+    on(this._byId('si-close-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('si-fs-btn'), 'click', function () { self._toggleFullscreen(); });
+
+    // keyboard
+    this._onKey = function (e) {
+      if (self.state !== 'playing') {
+        if (e.key === 'Enter' && self.state === 'start') { self._begin(); }
+        return;
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { self.moveDir = self.rtl ? 1 : -1; e.preventDefault(); }
+      else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { self.moveDir = self.rtl ? -1 : 1; e.preventDefault(); }
+      else if (e.key === ' ' || e.key === 'Spacebar') { self._fire(); e.preventDefault(); }
+      else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { self._togglePause(); }
+    };
+    this._onKeyUp = function (e) {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') self.moveDir = 0;
+    };
+    on(document, 'keydown', this._onKey);
+    on(document, 'keyup', this._onKeyUp);
+
+    // pointer: drag to move shooter, tap to fire
+    this._ptr = { down: false, moved: false, id: null, startX: 0, startT: 0 };
+    this._onDown = function (e) {
+      if (self.state !== 'playing') return;
+      var r = self.canvas.getBoundingClientRect();
+      self._ptr.down = true; self._ptr.moved = false; self._ptr.id = e.pointerId;
+      self._ptr.startX = e.clientX; self._ptr.startT = performance.now();
+      self.shooter.x = clamp((e.clientX - r.left) / r.width, 0.04, 0.96);
+      try { self.canvas.setPointerCapture(e.pointerId); } catch (er) {}
+      e.preventDefault();
+    };
+    this._onMove = function (e) {
+      if (!self._ptr.down || e.pointerId !== self._ptr.id) return;
+      var r = self.canvas.getBoundingClientRect();
+      if (Math.abs(e.clientX - self._ptr.startX) > 6) self._ptr.moved = true;
+      self.shooter.x = clamp((e.clientX - r.left) / r.width, 0.04, 0.96);
+      e.preventDefault();
+    };
+    this._onUp = function (e) {
+      if (!self._ptr.down) return;
+      self._ptr.down = false;
+      var dt = performance.now() - self._ptr.startT;
+      // a quick tap (little movement, short duration) = fire
+      if (!self._ptr.moved && dt < 350) self._fire();
+      try { self.canvas.releasePointerCapture(e.pointerId); } catch (er) {}
+    };
+    on(this.canvas, 'pointerdown', this._onDown);
+    on(this.canvas, 'pointermove', this._onMove);
+    on(this.canvas, 'pointerup', this._onUp);
+    on(this.canvas, 'pointercancel', this._onUp);
+
+    this._onResize = function () { self._resize(); };
+    on(global, 'resize', this._onResize);
+    on(global, 'orientationchange', this._onResize);
+
+    // pause when tab hidden
+    this._onVis = function () { if (document.hidden && self.state === 'playing') self._togglePause(); };
+    on(document, 'visibilitychange', this._onVis);
+  };
+
+  Game.prototype._resize = function () {
+    var wrap = document.getElementById('si-wrap');
+    var r = wrap.getBoundingClientRect();
+    this.dpr = clamp(global.devicePixelRatio || 1, 1, 2.5);
+    this.W = Math.round(r.width);
+    this.H = Math.round(r.height);
+    this.canvas.width = Math.round(this.W * this.dpr);
+    this.canvas.height = Math.round(this.H * this.dpr);
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+  };
+
+  // ---- lifecycle -------------------------------------------------------
+  Game.prototype._showOverlay = function (id) {
+    ['si-start', 'si-pause', 'si-over', 'si-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = (o !== id);
+    });
+  };
+  Game.prototype._hideOverlays = function () {
+    ['si-start', 'si-pause', 'si-over', 'si-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = true;
+    });
+  };
+
+  Game.prototype._reset = function () {
+    this.score = 0; this.lives = 3; this.wave = 0; this.seen = 0; this.correct = 0;
+    this.entities.length = 0; this.bullets.length = 0; this.particles.length = 0; this.popups.length = 0;
+    this.shake = 0; this.flash = 0; this.goodFlash = 0; this.shooter.x = 0.5;
+  };
+
+  Game.prototype._begin = function () {
+    this._hideOverlays();
+    this.state = 'playing';
+    this._syncHud();
+    this._nextWave();
+  };
+
+  Game.prototype._togglePause = function () {
+    if (this.state === 'playing') {
+      this.state = 'paused';
+      var p = document.getElementById('si-pause-rule');
+      if (p && this.rule) p.textContent = this._ruleSentence();
+      this._showOverlay('si-pause');
+    } else if (this.state === 'paused') {
+      this.state = 'playing';
+      this._hideOverlays();
+      this.last = 0; // avoid a big dt jump
+    }
+  };
+
+  // ---- waves + rules ---------------------------------------------------
+  Game.prototype._nextWave = function () {
+    this.wave++;
+    var choice = pick(this.idx.usableAxes);
+    var axis = choice.axis;
+    // target category must be a present one with a decoy available
+    var target = pick(choice.present);
+    var decoys = choice.present.filter(function (c) { return c !== target; });
+    this.rule = { axis: axis, target: target, decoys: decoys };
+
+    // difficulty ramps gently: faster fall + more items per wave
+    var count = clamp(6 + this.wave, 6, 16);
+    var speedBase = 22 + this.wave * 2.4;   // px/sec at wave 1 ~ 24
+    this.spawnGap = clamp(1.25 - this.wave * 0.05, 0.55, 1.25);
+    this.spawnTimer = 0.35;
+    this.waveLeft = count;
+    this.waveSpeed = speedBase;
+
+    // build the shuffled queue of items to spawn for this wave (targets + decoys mixed)
+    var byCat = this.idx.byCat;
+    var queue = [];
+    var wantTargets = Math.max(3, Math.round(count * 0.5));
+    var i;
+    for (i = 0; i < wantTargets; i++) queue.push(pick(byCat[target]));
+    for (i = wantTargets; i < count; i++) { var dc = pick(decoys); queue.push(pick(byCat[dc])); }
+    this.spawnQueue = shuffle(queue);
+
+    this._showBanner();
+    this._syncHud();
+  };
+
+  Game.prototype._ruleSentence = function () {
+    var ax = this.rule.axis;
+    var tgt = ax.nice[this.rule.target];
+    var spare = this.rule.decoys.map(function (c) { return ax.nice[c]; }).join(' and ');
+    return 'Destroy the ' + tgt + '. Spare the ' + spare + '.';
+  };
+
+  Game.prototype._showBanner = function () {
+    var ax = this.rule.axis;
+    var rEl = document.getElementById('si-banner-rule');
+    var sEl = document.getElementById('si-banner-sub');
+    var banner = document.getElementById('si-banner');
+    if (rEl) {
+      rEl.innerHTML = 'Destroy the <span class="si-banner-target">' + esc(ax.nice[this.rule.target]) + '</span>';
+    }
+    if (sEl) {
+      var spare = this.rule.decoys.map(function (c) { return esc(ax.nice[c]); }).join(' and ');
+      sEl.innerHTML = 'Spare the <span class="si-banner-spare">' + spare + '</span>';
+    }
+    if (banner) {
+      banner.classList.remove('si-hide');
+      clearTimeout(this._bannerT);
+      var self = this;
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('si-hide'); }, 2600);
+    }
+  };
+
+  // ---- firing ----------------------------------------------------------
+  Game.prototype._fire = function () {
+    if (this.state !== 'playing') return;
+    if (this.shooter.cooldown > 0) return;
+    this.shooter.cooldown = 0.18;
+    var sx = this.shooter.x * this.W;
+    var sy = this.H - 42;
+    this.bullets.push({ x: sx, y: sy, vy: -560, r: 3.5 });
+  };
+
+  // ---- update ----------------------------------------------------------
+  Game.prototype._update = function (dt) {
+    var i, e;
+    // shooter movement (keyboard)
+    if (this.moveDir) this.shooter.x = clamp(this.shooter.x + this.moveDir * 0.9 * dt, 0.04, 0.96);
+    if (this.shooter.cooldown > 0) this.shooter.cooldown -= dt;
+
+    // spawn from wave queue
+    if (this.spawnQueue && this.spawnQueue.length) {
+      this.spawnTimer -= dt;
+      if (this.spawnTimer <= 0) {
+        this.spawnTimer = this.spawnGap;
+        this._spawnOne(this.spawnQueue.shift());
+      }
+    }
+
+    // bullets
+    for (i = this.bullets.length - 1; i >= 0; i--) {
+      var b = this.bullets[i];
+      b.y += b.vy * dt;
+      if (b.y < -10) { this.bullets.splice(i, 1); continue; }
+    }
+
+    // entities fall
+    for (i = this.entities.length - 1; i >= 0; i--) {
+      e = this.entities[i];
+      e.y += e.vy * dt;
+      e.wob += dt;
+      // reached bottom?
+      if (e.y > this.H - 30) {
+        this.entities.splice(i, 1);
+        this._entityEscaped(e);
+        continue;
+      }
+      // bullet collision
+      for (var j = this.bullets.length - 1; j >= 0; j--) {
+        var bl = this.bullets[j];
+        if (Math.abs(bl.x - e.x) < e.w * 0.5 + 6 && Math.abs(bl.y - e.y) < e.h * 0.5 + 6) {
+          this.bullets.splice(j, 1);
+          this.entities.splice(i, 1);
+          this._resolveHit(e);
+          break;
+        }
+      }
+    }
+
+    // particles
+    for (i = this.particles.length - 1; i >= 0; i--) {
+      var p = this.particles[i];
+      p.life -= dt;
+      if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.rot += p.vr * dt;
+    }
+    // popups
+    for (i = this.popups.length - 1; i >= 0; i--) {
+      var pp = this.popups[i];
+      pp.life -= dt; pp.y += pp.vy * dt;
+      if (pp.life <= 0) this.popups.splice(i, 1);
+    }
+
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 34);
+    if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.2);
+    if (this.goodFlash > 0) this.goodFlash = Math.max(0, this.goodFlash - dt * 3.5);
+
+    // wave complete? (queue drained AND no entities left on screen)
+    if (this.state === 'playing' && this.spawnQueue && this.spawnQueue.length === 0 && this.entities.length === 0) {
+      this._nextWave();
+    }
+  };
+
+  Game.prototype._spawnOne = function (item) {
+    if (!item) return;
+    var isTarget = item.category === this.rule.target;
+    var w = 62, h = 34;
+    var x = rand(w * 0.6, this.W - w * 0.6);
+    this.entities.push({
+      label: item.label, category: item.category, rowId: item.rowId, lo: item.lo,
+      isTarget: isTarget, x: x, y: -h, w: w, h: h,
+      vy: this.waveSpeed * rand(0.9, 1.15), wob: rand(0, 6.28), hue: isTarget ? 't' : 'd'
+    });
+    if (isTarget) this.seen++;
+  };
+
+  // ---- hit resolution (the CORE educational branch) --------------------
+  Game.prototype._resolveHit = function (e) {
+    if (e.isTarget) {
+      // correct: destroy + points + green burst + popup
+      this.score += 10;
+      this.correct++;
+      this.goodFlash = 0.5;
+      this.shake = Math.min(this.shake + 4, 10);
+      this._burst(e.x, e.y, this.col.green, 16);
+      this._popup(e.x, e.y, '+10', this.col.green);
+      this._emit(e, 1);
+    } else {
+      // wrong: this was a "spare" item -> lose a life + red flash
+      this.lives--;
+      this.flash = 0.9;
+      this.shake = Math.min(this.shake + 9, 16);
+      this._burst(e.x, e.y, this.col.rose, 14);
+      this._popup(e.x, e.y, 'wrong -1 life', this.col.rose);
+      this._emit(e, 0);
+      if (this.lives <= 0) { this._gameOver(false); return; }
+    }
+    this._syncHud();
+  };
+
+  Game.prototype._entityEscaped = function (e) {
+    if (e.isTarget) {
+      // a target that should have been shot slipped past = a miss (costs a life)
+      this.lives--;
+      this.flash = 0.7;
+      this.shake = Math.min(this.shake + 6, 12);
+      this._popup(e.x, this.H - 44, 'missed target', this.col.amber);
+      this._emit(e, 0);
+      if (this.lives <= 0) { this._gameOver(false); return; }
+      this._syncHud();
+    }
+    // a spared (non-target) item reaching the bottom safely = fine, no penalty
+  };
+
+  Game.prototype._emit = function (e, score) {
+    if (!this.onEmit || e.rowId == null) return;
+    try { this.onEmit(e.rowId, e.lo || null, 'saltinvaders', score ? 1 : 0, 1); } catch (er) {}
+  };
+
+  // ---- juice -----------------------------------------------------------
+  Game.prototype._burst = function (x, y, color, n) {
+    if (this.reduced) n = Math.min(n, 5);
+    for (var i = 0; i < n; i++) {
+      var a = rand(0, 6.2832), sp = rand(50, 240);
+      this.particles.push({
+        x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
+        life: rand(0.35, 0.7), color: color, size: rand(3, 7),
+        rot: rand(0, 6.28), vr: rand(-8, 8), shape: (Math.random() < 0.5) ? 'sq' : 'tri'
+      });
+    }
+  };
+  Game.prototype._popup = function (x, y, text, color) {
+    this.popups.push({ x: x, y: y, text: text, color: color, life: 0.9, vy: -46 });
+  };
+
+  // ---- render ----------------------------------------------------------
+  Game.prototype._draw = function () {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.save();
+    if (this.shake > 0.2 && !this.reduced) {
+      ctx.translate(rand(-this.shake, this.shake), rand(-this.shake, this.shake));
+    }
+
+    // starfield-ish faint dots (cheap ambiance)
+    // (skipped per-frame heavy work; keep it clean)
+
+    // entities
+    for (var i = 0; i < this.entities.length; i++) this._drawEntity(this.entities[i]);
+
+    // bullets
+    ctx.fillStyle = this.col.amber;
+    for (i = 0; i < this.bullets.length; i++) {
+      var b = this.bullets[i];
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.2832); ctx.fill();
+    }
+
+    // particles
+    for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
+
+    // shooter
+    this._drawShooter();
+
+    // popups
+    ctx.textAlign = 'center'; ctx.font = '800 14px -apple-system, sans-serif';
+    for (i = 0; i < this.popups.length; i++) {
+      var pp = this.popups[i];
+      ctx.globalAlpha = clamp(pp.life / 0.9, 0, 1);
+      ctx.fillStyle = pp.color;
+      ctx.fillText(pp.text, pp.x, pp.y);
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+
+    // damage flash (full screen, over the shake transform)
+    if (this.flash > 0) {
+      ctx.fillStyle = 'rgba(255,84,112,' + (this.flash * 0.32).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (this.goodFlash > 0) {
+      ctx.fillStyle = 'rgba(34,197,139,' + (this.goodFlash * 0.16).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+  };
+
+  Game.prototype._drawEntity = function (e) {
+    var ctx = this.ctx;
+    var bob = Math.sin(e.wob * 2) * 2;
+    var x = e.x, y = e.y + bob;
+    var isT = e.isTarget;
+    // Halal-safe: geometric capsule, no character/creature. Target = indigo ring, decoy = neutral.
+    var fill = isT ? 'rgba(108,92,255,0.20)' : 'rgba(154,167,199,0.14)';
+    var stroke = isT ? this.col.indigo : this.col.line;
+    this._roundRect(x - e.w / 2, y - e.h / 2, e.w, e.h, 9);
+    ctx.fillStyle = fill; ctx.fill();
+    ctx.lineWidth = 1.6; ctx.strokeStyle = stroke; ctx.stroke();
+    // label
+    ctx.fillStyle = this.col.ink;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var fs = e.label.length > 8 ? 12 : 15;
+    ctx.font = '800 ' + fs + 'px -apple-system, "Segoe UI", sans-serif';
+    ctx.fillText(e.label, x, y + 1);
+    ctx.textBaseline = 'alphabetic';
+  };
+
+  Game.prototype._drawShooter = function () {
+    var ctx = this.ctx;
+    var x = this.shooter.x * this.W;
+    var y = this.H - 30;
+    // a simple indigo turret triangle + base (no weapon/violence imagery, just an abstract shooter)
+    ctx.fillStyle = this.col.indigo;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 16);
+    ctx.lineTo(x - 18, y + 8);
+    ctx.lineTo(x + 18, y + 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(108,92,255,0.35)';
+    this._roundRect(x - 22, y + 6, 44, 8, 4); ctx.fill();
+    // aim line
+    ctx.strokeStyle = 'rgba(108,92,255,0.25)';
+    ctx.lineWidth = 1.5; ctx.setLineDash([3, 7]);
+    ctx.beginPath(); ctx.moveTo(x, y - 16); ctx.lineTo(x, 60); ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  Game.prototype._drawParticle = function (p) {
+    var ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = clamp(p.life * 1.6, 0, 1);
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.fillStyle = p.color;
+    if (p.shape === 'sq') {
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(0, -p.size); ctx.lineTo(p.size, p.size); ctx.lineTo(-p.size, p.size); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  };
+
+  Game.prototype._roundRect = function (x, y, w, h, r) {
+    var ctx = this.ctx;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+
+  // ---- HUD -------------------------------------------------------------
+  Game.prototype._syncHud = function () {
+    var s = document.getElementById('si-score-n'); if (s) s.textContent = this.score;
+    var l = document.getElementById('si-lives-n'); if (l) l.textContent = Math.max(0, this.lives);
+    var w = document.getElementById('si-wave-n'); if (w) w.textContent = this.wave;
+  };
+
+  // ---- game over / close ----------------------------------------------
+  Game.prototype._gameOver = function (quit) {
+    if (this.state === 'over') return;
+    this.state = 'over';
+    var fs = document.getElementById('si-final-score'); if (fs) fs.textContent = this.score;
+    var fl = document.getElementById('si-final-line');
+    if (fl) {
+      var acc = this.seen ? Math.round((this.correct / this.seen) * 100) : 0;
+      fl.textContent = quit
+        ? 'You reached wave ' + this.wave + '. Score ' + this.score + '.'
+        : 'Wave ' + this.wave + '. You destroyed ' + this.correct + ' of ' + this.seen + ' targets (' + acc + '%).';
+    }
+    this._showOverlay('si-over');
+    // fire onEmit-independent onClose ONLY when the host closes; keep onClose for _finishAndClose.
+  };
+
+  Game.prototype._summary = function () {
+    return {
+      subject: this.opts.subject || null,
+      chapterLabel: this.opts.chapterLabel || null,
+      seen: this.seen,
+      correct: this.correct,
+      score: this.score,
+      wave: this.wave,
+      tool: 'saltinvaders'
+    };
+  };
+
+  Game.prototype._finishAndClose = function () {
+    var sum = this._summary();
+    this.destroy();
+    if (this.onClose) { try { this.onClose(sum); } catch (e) {} }
+  };
+
+  Game.prototype._loop = function (t) {
+    if (this.destroyed) return;
+    var self = this;
+    this._raf = requestAnimationFrame(function (tt) { self._loop(tt); });
+    if (!this.last) this.last = t;
+    var dt = (t - this.last) / 1000;
+    this.last = t;
+    dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
+    if (this.state === 'playing') this._update(dt);
+    this._draw();
+  };
+
+  Game.prototype._toggleFullscreen = function () {
+    var el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); // Safari desktop
+        else {
+          // iOS Safari has no element fullscreen for arbitrary DOM. Fallback:
+          // hint the user + rely on the already-fullscreen fixed overlay layout.
+          try { showToastLike('Add to Home Screen for fullscreen on iPhone/iPad.'); } catch (e) {}
+        }
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    } catch (e) {
+      try { showToastLike('Fullscreen not available here.'); } catch (er) {}
+    }
+    var self = this; setTimeout(function () { self._resize(); }, 120);
+  };
+
+  Game.prototype.destroy = function () {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.state = 'over';
+    if (this._raf) cancelAnimationFrame(this._raf);
+    clearTimeout(this._bannerT);
+    if (this._handlers) {
+      for (var i = 0; i < this._handlers.length; i++) {
+        var h = this._handlers[i];
+        try { h[0].removeEventListener(h[1], h[2], h[3]); } catch (e) {}
+      }
+      this._handlers.length = 0;
+    }
+    // clear canvas
+    try { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); } catch (e) {}
+    this._hideOverlays();
+    if (live === this) live = null;
+  };
+
+  // small helper: esc + a toast-ish fallback that does not depend on host
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function showToastLike(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(12,16,30,.92);color:#eaf0ff;padding:10px 16px;border-radius:12px;font:600 13px -apple-system,sans-serif;z-index:200000;border:1px solid #2a3355;max-width:80%;text-align:center';
+    document.body.appendChild(t);
+    setTimeout(function () { try { document.body.removeChild(t); } catch (e) {} }, 3200);
+  }
+
+  global.SALT_INVADERS = SI;
+
+  // ---- standalone auto-boot: if opened directly (no host), start on Start btn.
+  // The host will call SALT_INVADERS.open(pool, opts) itself and this no-ops.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoBoot);
+  } else { autoBoot(); }
+  function autoBoot() {
+    // Only auto-open the standalone demo if nobody has opened an instance yet
+    // AND we appear to be running as a top-level standalone page (not embedded/driven).
+    setTimeout(function () {
+      if (!live && global.SALT_INVADERS && !global.__SI_HOST_DRIVEN__) {
+        global.SALT_INVADERS.open(null, {
+          enabled: true,
+          subject: 'Chemistry',
+          chapterLabel: 'Demo pool',
+          rtl: (document.documentElement.getAttribute('dir') === 'rtl'),
+          onEmit: function () {},
+          onClose: function (s) { try { showToastLike('Session score ' + (s && s.score) + '. Reopen to play again.'); } catch (e) {} }
+        });
+      }
+    }, 30);
+  }
+
+})(typeof window !== 'undefined' ? window : this);
+</script>
+</body>
+</html>
