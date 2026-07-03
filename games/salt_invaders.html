@@ -6,14 +6,15 @@
 <title>Salt Invaders</title>
 <!--
 ============================================================================
-  SALT INVADERS  -  P1 solo review build  (2026-07-03)
+  SALT INVADERS  -  P1 solo review build  (2026-07-04, arcade rebuild)
 ============================================================================
   REVIEW NOTE
   -----------
   ENGINE / LICENSE
     Hand-rolled vanilla Canvas2D game loop, ZERO external dependencies. No CDN,
     no engine, no network at all -> it runs fully OFFLINE the first time the
-    file is opened (nothing to cache; there is nothing external to fetch).
+    file is opened (nothing to cache; there is nothing external to fetch). All
+    sound is synthesised at runtime with the WebAudio API -> no audio assets.
 
     Why not the LittleJS CDN adopted in _research/ARCADE_SHELLS.md ?
     ARCADE_SHELLS.md chose LittleJS (MIT) as the shared shell, and it remains
@@ -33,6 +34,18 @@
     (resolveHit_) are the two functions to port onto LittleJS EngineObject +
     ParticleEmitter; the pool/opts contract below is engine-agnostic.
 
+  OWNER-PLAYTEST FIXES BAKED IN (2026-07-04)
+    1. PRESSURE: per-wave speed +8% (cap 200%), spawn density climbs, combo
+       multiplier 1.5x -> 3x after a streak, near-miss bonus, 3 hearts that
+       pulse on hit, boss wave every 5th wave under a 30s countdown.
+    2. NO COLOR-MATCH EXPLOIT: every entity is the SAME metallic capsule with an
+       ASCII label. Category (green target / red spared) is NEVER shown while it
+       falls -- the green/red reveal happens ONLY at the instant of the shot, as
+       feedback. A Scanner powerup (~5% spawn) briefly reveals all categories.
+    3. ARCADE FEEL: 3-layer parallax starfield, a drawn ship with a gradient hull
+       and an animated thruster flame, prerendered particle sprites, explosions,
+       screenshake, hitstop, bold score popups, wave title cards, synth SFX.
+
   HOW THE HOST PASSES A CHAPTER-CAPPED POOL  (drop-in with the existing games)
     The host calls, exactly like cgOpenGamePicker_ in _align/core/Index.core.html
     calls mod.open(pool, {...}) for SpeedSwipe/Sniper/Sequence:
@@ -44,7 +57,7 @@
           rtl: false,                    // mirrors HUD/layout for Arabic
           onEmit:  cgEmitMicrotaskSignal_,   // onEmit(rowId, lo, tool, score, itemCount)
           onClose: function (summary) { ... } // summary = {subject,chapterLabel,seen,
-                                              //   correct,score,tool:'saltinvaders'}
+                                              //   correct,score,wave,tool:'saltinvaders'}
         });
 
     pool is an array of { label, category, rowId?, lo? } items ALREADY capped to
@@ -62,7 +75,7 @@
   DEMO POOL
     A small built-in ~24-item demo pool (DEMO_POOL) across 4 axes is used ONLY
     when the host passes no pool (standalone review). It is chemistry
-    first-encounter simple and checked correct (see item comments).
+    first-encounter simple and checked correct (see item comments). DO NOT edit.
 
   WHAT REMAINS FOR MULTIPLAYER  (NOT in this P1 file, per PRD)
     PRD_ARCADE_GAMES.md P2: co-op via RTDB /gameRooms/<id> + #86 5-digit codes,
@@ -111,16 +124,29 @@
   /* Top HUD + rule banner + buttons are DOM (crisp text, easy a11y), overlaid on canvas */
   #si-hud {
     position: absolute; top: 0; left: 0; right: 0; padding: 10px 12px;
-    display: flex; align-items: center; gap: 10px; pointer-events: none;
+    display: flex; align-items: center; gap: 8px; pointer-events: none;
     font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6);
   }
   #si-hud .si-pill {
     background: rgba(10,14,26,.55); border: 1px solid var(--si-line); border-radius: 999px;
     padding: 5px 11px; display: inline-flex; gap: 6px; align-items: center; backdrop-filter: blur(3px);
+    transition: transform .12s ease;
   }
   #si-hud .si-lives { color: var(--si-rose); }
   #si-hud .si-score { color: var(--si-amber); }
   #si-hud .si-wave { color: var(--si-indigo); }
+  #si-hud .si-combo {
+    color: var(--si-green); opacity: 0; transform: scale(.85);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  #si-hud .si-combo.si-on { opacity: 1; transform: scale(1); }
+  .si-lives.si-pulse { animation: si-heartpulse .32s ease; }
+  @keyframes si-heartpulse { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+  /* boss countdown pill */
+  #si-hud .si-timer { color: var(--si-rose); display: none; }
+  #si-hud .si-timer.si-on { display: inline-flex; }
+  #si-hud .si-timer.si-low { animation: si-timerblink .6s steps(1) infinite; }
+  @keyframes si-timerblink { 50% { opacity: .35; } }
   #si-spacer { flex: 1 1 auto; }
   .si-iconbtn {
     pointer-events: auto; width: 40px; height: 40px; min-width: 40px; border-radius: 12px;
@@ -142,6 +168,18 @@
   #si-banner .si-banner-target { color: var(--si-green); }
   #si-banner .si-banner-spare { color: var(--si-rose); }
   #si-banner.si-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+
+  /* teaching toast: the "why was that wrong" line, appears bottom-center briefly */
+  #si-teach {
+    position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%) translateY(6px);
+    max-width: 90%; text-align: center; pointer-events: none; opacity: 0;
+    background: rgba(20,10,16,.86); border: 1.5px solid var(--si-rose); border-radius: 12px;
+    color: var(--si-ink); font-size: 13px; font-weight: 750; padding: 8px 14px;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6); box-shadow: 0 10px 26px rgba(0,0,0,.45);
+    transition: opacity .22s ease, transform .22s ease; z-index: 5;
+  }
+  #si-teach.si-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #si-teach b { color: var(--si-amber); }
 
   /* Overlays: start / pause / gameover / error, all centered cards */
   .si-overlay {
@@ -183,8 +221,11 @@
     <div id="si-hud">
       <span class="si-pill si-wave">Wave <span id="si-wave-n">1</span></span>
       <span class="si-pill si-score">Score <span id="si-score-n">0</span></span>
-      <span class="si-pill si-lives">&#9829; <span id="si-lives-n">3</span></span>
+      <span class="si-pill si-lives" id="si-lives-pill">&#9829; <span id="si-lives-n">3</span></span>
+      <span class="si-pill si-combo" id="si-combo-pill">x<span id="si-combo-n">1</span></span>
+      <span class="si-pill si-timer" id="si-timer-pill">&#9200; <span id="si-timer-n">30</span></span>
       <span id="si-spacer"></span>
+      <button type="button" class="si-iconbtn" id="si-mute-btn" aria-label="Mute">&#128266;</button>
       <button type="button" class="si-iconbtn" id="si-pause-btn" aria-label="Pause">&#10073;&#10073;</button>
       <button type="button" class="si-iconbtn" id="si-fs-btn" aria-label="Fullscreen">&#9974;</button>
       <button type="button" class="si-iconbtn" id="si-close-btn" aria-label="Close">&#10005;</button>
@@ -195,17 +236,21 @@
       <div class="si-banner-sub" id="si-banner-sub"></div>
     </div>
 
+    <div id="si-teach" aria-live="polite"></div>
+
     <!-- START -->
     <div class="si-overlay" id="si-start">
       <div class="si-card">
         <h1>Salt <span class="si-accent">Invaders</span></h1>
-        <p>Labelled particles drop from the top. Each wave shows a RULE.
-           Shoot only the ones the rule says to destroy. Shooting the wrong
-           kind, or letting a target slip past, costs you.</p>
+        <p>Metallic capsules drop from the top -- and they all look the same.
+           Each wave shows a RULE. Read the label, decide, and shoot only the
+           ones the rule says to destroy. The colour tells you if you were right
+           only AFTER you fire. Speed climbs every wave. Bosses hit at 5, 10, 15.</p>
         <ul>
           <li><b>Move:</b> drag, or arrow keys / A D</li>
           <li><b>Fire:</b> tap the screen, or Space</li>
-          <li><b>Goal:</b> read the label, decide, shoot fast</li>
+          <li><b>Combo:</b> chain correct hits for a score multiplier</li>
+          <li><b>Scanner:</b> grab the glowing blue capsule to reveal answers</li>
         </ul>
         <button type="button" class="si-primary" id="si-start-btn">Start</button>
       </div>
@@ -252,7 +297,7 @@
   // ======================================================================
   //  DEMO POOL  (standalone review only; host normally passes its own pool)
   //  4 axes; first-encounter simple + chemistry-correct. category values are
-  //  the canonical class strings the RULES map onto.
+  //  the canonical class strings the RULES map onto.  DO NOT EDIT CONTENTS.
   // ======================================================================
   var DEMO_POOL = [
     // --- salt vs acid vs base ---
@@ -291,15 +336,20 @@
 
   // Rule axes: each has a set of categories. A wave picks an axis, then a
   // TARGET category on that axis; everything else on that axis is a decoy.
+  // `one` is the singular class noun used to TEACH a wrong shot ("NH3 is a BASE").
   var AXES = [
     { id: 'saltab',  cats: ['salt', 'acid', 'base'],
-      nice: { salt: 'SALTS', acid: 'acids', base: 'bases' } },
+      nice: { salt: 'SALTS', acid: 'acids', base: 'bases' },
+      one:  { salt: 'SALT', acid: 'ACID', base: 'BASE' } },
     { id: 'bond',    cats: ['ionic', 'covalent'],
-      nice: { ionic: 'IONIC compounds', covalent: 'COVALENT compounds' } },
+      nice: { ionic: 'IONIC compounds', covalent: 'COVALENT compounds' },
+      one:  { ionic: 'IONIC compound', covalent: 'COVALENT compound' } },
     { id: 'ec',      cats: ['element', 'compound'],
-      nice: { element: 'ELEMENTS', compound: 'COMPOUNDS' } },
+      nice: { element: 'ELEMENTS', compound: 'COMPOUNDS' },
+      one:  { element: 'ELEMENT', compound: 'COMPOUND' } },
     { id: 'energy',  cats: ['endothermic', 'exothermic'],
-      nice: { endothermic: 'ENDOTHERMIC changes', exothermic: 'EXOTHERMIC changes' } }
+      nice: { endothermic: 'ENDOTHERMIC changes', exothermic: 'EXOTHERMIC changes' },
+      one:  { endothermic: 'ENDOTHERMIC change', exothermic: 'EXOTHERMIC change' } }
   ];
 
   // ---------------------------------------------------------------- helpers
@@ -317,6 +367,15 @@
       v = v && v.trim();
       return v || fallback;
     } catch (e) { return fallback; }
+  }
+  // parse "#rrggbb" (or a browser-resolved rgb string) into {r,g,b} for sprite tinting
+  function toRGB(c) {
+    c = String(c || '').trim();
+    var m = c.match(/^#?([0-9a-f]{6})$/i);
+    if (m) { var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+    m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+    if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+    return { r: 200, g: 200, b: 200 };
   }
 
   // Keep only pool items whose category belongs to one of our axes; index by category.
@@ -341,6 +400,71 @@
       if (present.length >= 2) { usableAxes.push({ axis: ax, present: present }); axisHas[ax.id] = true; }
     }
     return { byCat: byCat, usableAxes: usableAxes };
+  }
+
+  // =====================================================================
+  //  Tiny WebAudio synth  (no assets; all SFX generated on the fly)
+  // =====================================================================
+  function Sfx() { this.ctx = null; this.muted = false; }
+  Sfx.prototype._ac = function () {
+    if (this.ctx) return this.ctx;
+    try {
+      var AC = global.AudioContext || global.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+    } catch (e) { this.ctx = null; }
+    return this.ctx;
+  };
+  Sfx.prototype.resume = function () { var c = this._ac(); if (c && c.state === 'suspended') { try { c.resume(); } catch (e) {} } };
+  // one blip: type, start freq, end freq, duration, gain
+  Sfx.prototype._blip = function (type, f0, f1, dur, gain) {
+    if (this.muted) return;
+    var c = this._ac(); if (!c) return;
+    try {
+      var t = c.currentTime;
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t);
+      if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  };
+  Sfx.prototype.shoot   = function () { this._blip('square',  660, 240, 0.09, 0.06); };
+  Sfx.prototype.hit     = function () { this._blip('triangle',520, 900, 0.12, 0.11); this._blip('square', 300, 120, 0.10, 0.05); };
+  Sfx.prototype.wrong   = function () { this._blip('sawtooth',180, 70,  0.22, 0.13); };
+  Sfx.prototype.miss    = function () { this._blip('sine',    300, 120, 0.16, 0.08); };
+  Sfx.prototype.wave    = function () { var s = this; this._blip('triangle', 440, 660, 0.10, 0.08); setTimeout(function () { s._blip('triangle', 660, 880, 0.14, 0.09); }, 90); };
+  Sfx.prototype.powerup = function () { var s = this; [0, 60, 120].forEach(function (d, i) { setTimeout(function () { s._blip('sine', 700 + i * 260, 700 + i * 260, 0.10, 0.07); }, d); }); };
+  // rising "scanner active" beep loop tick
+  Sfx.prototype.scan    = function (k) { this._blip('sine', 900 + k * 40, 1100 + k * 40, 0.05, 0.04); };
+  Sfx.prototype.boss    = function () { this._blip('sawtooth', 90, 60, 0.5, 0.12); };
+
+  // =====================================================================
+  //  Prerendered sprites (offscreen canvases) so hot loops just blit
+  // =====================================================================
+  function makeParticleSprite(rgb, shape, px) {
+    var c = document.createElement('canvas');
+    c.width = px; c.height = px;
+    var x = c.getContext('2d');
+    x.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+    var h = px / 2;
+    if (shape === 'sq') {
+      x.fillRect(px * 0.18, px * 0.18, px * 0.64, px * 0.64);
+    } else {
+      x.beginPath(); x.moveTo(h, px * 0.12); x.lineTo(px * 0.9, px * 0.88); x.lineTo(px * 0.1, px * 0.88); x.closePath(); x.fill();
+    }
+    return c;
+  }
+  function makeStarSprite() {
+    var c = document.createElement('canvas'); c.width = 4; c.height = 4;
+    var x = c.getContext('2d');
+    var g = x.createRadialGradient(2, 2, 0, 2, 2, 2);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 4, 4);
+    return c;
   }
 
   // =====================================================================
@@ -376,6 +500,30 @@
     if (el) el.hidden = false;
   }
 
+  // ---- tuning constants (owner-playtest spec) --------------------------
+  var TUNE = {
+    baseSpeed: 30,          // px/sec fall speed, wave 1
+    speedStep: 0.08,        // +8% per wave
+    speedCapMul: 2.0,       // cap at 200%
+    baseCount: 7,           // items in wave 1
+    countStep: 3,           // +3 spawned per wave (density up)
+    maxOnScreen: 20,        // hard cap of live entities on screen
+    spawnGapBase: 0.95,     // seconds between spawns, wave 1
+    spawnGapMin: 0.30,      // fastest spawn gap
+    comboStart: 5,          // consecutive correct before multiplier kicks up
+    comboMin: 1.5,          // first multiplier tier
+    comboMax: 3.0,          // multiplier ceiling
+    hearts: 3,
+    bossEvery: 5,           // boss wave cadence
+    bossTime: 30,           // boss countdown seconds
+    scannerChance: 0.05,    // ~5% of spawns are the scanner powerup
+    scannerReveal: 3.0,     // seconds the scanner reveals categories
+    nearMissPx: 26,         // bullet passing this close to a SPARED item = near miss bonus
+    hitstopMs: 80,          // freeze on a destruction
+    shakePx: 3,             // screenshake magnitude (spec: 3px)
+    shakeMs: 60
+  };
+
   // =====================================================================
   //  Game instance
   // =====================================================================
@@ -407,34 +555,66 @@
       amber: cssVar('--si-amber', '#ffb020'),
       line: cssVar('--si-line', '#2a3355')
     };
+    this.rgb = {
+      green: toRGB(this.col.green), rose: toRGB(this.col.rose),
+      amber: toRGB(this.col.amber), indigo: toRGB(this.col.indigo),
+      steel: { r: 176, g: 190, b: 220 }
+    };
+
+    // audio
+    this.sfx = new Sfx();
+
+    // prerendered sprites (built once)
+    this.sprites = {
+      pGreenSq: makeParticleSprite(this.rgb.green, 'sq', 10),
+      pGreenTri: makeParticleSprite(this.rgb.green, 'tri', 10),
+      pRoseSq: makeParticleSprite(this.rgb.rose, 'sq', 10),
+      pRoseTri: makeParticleSprite(this.rgb.rose, 'tri', 10),
+      pSteelSq: makeParticleSprite(this.rgb.steel, 'sq', 10),
+      pSteelTri: makeParticleSprite(this.rgb.steel, 'tri', 10),
+      pAmberSq: makeParticleSprite(this.rgb.amber, 'sq', 10),
+      star: makeStarSprite()
+    };
 
     // state
     this.state = 'start';   // start | playing | paused | over
     this.score = 0;
-    this.lives = 3;
+    this.lives = TUNE.hearts;
     this.wave = 0;
     this.seen = 0;          // targets that appeared (for accuracy summary)
     this.correct = 0;       // correct target destructions
     this.rule = null;
+    this.streak = 0;        // consecutive correct hits (drives combo)
+    this.combo = 1;         // current score multiplier
 
     this.entities = [];     // descending labelled items
     this.bullets = [];
     this.particles = [];
     this.popups = [];       // floating score text
-    this.shake = 0;
+    this.stars = [];        // parallax starfield (built on resize)
+    this.shake = 0;         // remaining shake time (s)
+    this.hitstop = 0;       // remaining freeze time (s)
     this.flash = 0;         // red damage flash 0..1
     this.goodFlash = 0;
+    this.reveal = 0;        // scanner reveal timer (s); >0 => categories shown
+    this._scanTick = 0;
+
+    // boss wave
+    this.boss = false;
+    this.bossTimer = 0;
 
     // shooter
     this.shooter = { x: 0.5, w: 54, h: 18, cooldown: 0 };  // x is 0..1 fraction
     this.moveDir = 0;
+    this.thrust = 0;        // animated thruster phase
 
-    this.W = 0; this.H = 0; this.dpr = 1;
-    this.last = 0; this.spawnTimer = 0; this.spawnGap = 1.1; this.waveLeft = 0;
+    this.W = 0; this.H = 0; this.dpr = 1; this.t = 0;
+    this.last = 0; this.spawnTimer = 0; this.spawnGap = TUNE.spawnGapBase; this.waveLeft = 0;
 
     this._bind();
     this._resize();
     this._showOverlay('si-start');
+    this._syncHud();
     // main loop
     this._raf = requestAnimationFrame(function (t) { self._loop(t); });
   }
@@ -447,8 +627,8 @@
     function on(el, ev, fn, opt) { if (!el) return; el.addEventListener(ev, fn, opt); self._handlers.push([el, ev, fn, opt]); }
 
     // buttons
-    on(this._byId('si-start-btn'), 'click', function () { self._begin(); });
-    on(this._byId('si-again-btn'), 'click', function () { self._reset(); self._begin(); });
+    on(this._byId('si-start-btn'), 'click', function () { self.sfx.resume(); self._begin(); });
+    on(this._byId('si-again-btn'), 'click', function () { self.sfx.resume(); self._reset(); self._begin(); });
     on(this._byId('si-done-btn'), 'click', function () { self._finishAndClose(); });
     on(this._byId('si-error-btn'), 'click', function () { self._byId('si-error').hidden = true; self.destroy(); if (self.onClose) { try { self.onClose(self._summary()); } catch (e) {} } });
     on(this._byId('si-pause-btn'), 'click', function () { self._togglePause(); });
@@ -456,17 +636,19 @@
     on(this._byId('si-quit-btn'), 'click', function () { self._gameOver(true); });
     on(this._byId('si-close-btn'), 'click', function () { self._finishAndClose(); });
     on(this._byId('si-fs-btn'), 'click', function () { self._toggleFullscreen(); });
+    on(this._byId('si-mute-btn'), 'click', function () { self._toggleMute(); });
 
     // keyboard
     this._onKey = function (e) {
       if (self.state !== 'playing') {
-        if (e.key === 'Enter' && self.state === 'start') { self._begin(); }
+        if (e.key === 'Enter' && self.state === 'start') { self.sfx.resume(); self._begin(); }
         return;
       }
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { self.moveDir = self.rtl ? 1 : -1; e.preventDefault(); }
       else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { self.moveDir = self.rtl ? -1 : 1; e.preventDefault(); }
       else if (e.key === ' ' || e.key === 'Spacebar') { self._fire(); e.preventDefault(); }
       else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { self._togglePause(); }
+      else if (e.key === 'm' || e.key === 'M') { self._toggleMute(); }
     };
     this._onKeyUp = function (e) {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') self.moveDir = 0;
@@ -478,6 +660,7 @@
     this._ptr = { down: false, moved: false, id: null, startX: 0, startT: 0 };
     this._onDown = function (e) {
       if (self.state !== 'playing') return;
+      self.sfx.resume();
       var r = self.canvas.getBoundingClientRect();
       self._ptr.down = true; self._ptr.moved = false; self._ptr.id = e.pointerId;
       self._ptr.startX = e.clientX; self._ptr.startT = performance.now();
@@ -523,6 +706,24 @@
     this.canvas.width = Math.round(this.W * this.dpr);
     this.canvas.height = Math.round(this.H * this.dpr);
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this._buildStars();
+  };
+
+  // ---- parallax starfield (3 layers) -----------------------------------
+  Game.prototype._buildStars = function () {
+    this.stars = [];
+    if (this.reduced) return;   // reduced-motion kills parallax (keeps play)
+    var layers = [
+      { n: 100, sp: 10, a: 0.30, s: 1.4 },
+      { n: 50,  sp: 22, a: 0.15, s: 2.1 },
+      { n: 25,  sp: 40, a: 0.05, s: 3.0 }
+    ];
+    for (var L = 0; L < layers.length; L++) {
+      var cfg = layers[L];
+      for (var i = 0; i < cfg.n; i++) {
+        this.stars.push({ x: rand(0, this.W), y: rand(0, this.H), sp: cfg.sp, a: cfg.a, s: cfg.s });
+      }
+    }
   };
 
   // ---- lifecycle -------------------------------------------------------
@@ -538,9 +739,10 @@
   };
 
   Game.prototype._reset = function () {
-    this.score = 0; this.lives = 3; this.wave = 0; this.seen = 0; this.correct = 0;
+    this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
+    this.streak = 0; this.combo = 1; this.reveal = 0; this.boss = false; this.bossTimer = 0;
     this.entities.length = 0; this.bullets.length = 0; this.particles.length = 0; this.popups.length = 0;
-    this.shake = 0; this.flash = 0; this.goodFlash = 0; this.shooter.x = 0.5;
+    this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0; this.shooter.x = 0.5;
   };
 
   Game.prototype._begin = function () {
@@ -563,9 +765,17 @@
     }
   };
 
+  Game.prototype._toggleMute = function () {
+    this.sfx.muted = !this.sfx.muted;
+    var b = this._byId('si-mute-btn');
+    if (b) { b.innerHTML = this.sfx.muted ? '&#128263;' : '&#128266;'; b.setAttribute('aria-label', this.sfx.muted ? 'Unmute' : 'Mute'); }
+  };
+
   // ---- waves + rules ---------------------------------------------------
   Game.prototype._nextWave = function () {
     this.wave++;
+    this.boss = (this.wave % TUNE.bossEvery === 0);
+
     var choice = pick(this.idx.usableAxes);
     var axis = choice.axis;
     // target category must be a present one with a decoy available
@@ -573,25 +783,33 @@
     var decoys = choice.present.filter(function (c) { return c !== target; });
     this.rule = { axis: axis, target: target, decoys: decoys };
 
-    // difficulty ramps gently: faster fall + more items per wave
-    var count = clamp(6 + this.wave, 6, 16);
-    var speedBase = 22 + this.wave * 2.4;   // px/sec at wave 1 ~ 24
-    this.spawnGap = clamp(1.25 - this.wave * 0.05, 0.55, 1.25);
-    this.spawnTimer = 0.35;
+    // ESCALATION: +8%/wave speed, capped at 200%; density up +3/wave capped.
+    var speedMul = Math.min(TUNE.speedCapMul, Math.pow(1 + TUNE.speedStep, this.wave - 1));
+    this.waveSpeed = TUNE.baseSpeed * speedMul;
+    var count = TUNE.baseCount + (this.wave - 1) * TUNE.countStep;
+    if (this.boss) count = Math.round(count * 1.4);       // bosses spawn a denser swarm
+    // spawn gap shrinks with wave -> more on screen at once (bounded by maxOnScreen at spawn time)
+    this.spawnGap = clamp(TUNE.spawnGapBase - (this.wave - 1) * 0.07, TUNE.spawnGapMin, TUNE.spawnGapBase);
+    this.spawnTimer = 0.4;
     this.waveLeft = count;
-    this.waveSpeed = speedBase;
 
     // build the shuffled queue of items to spawn for this wave (targets + decoys mixed)
     var byCat = this.idx.byCat;
     var queue = [];
     var wantTargets = Math.max(3, Math.round(count * 0.5));
     var i;
-    for (i = 0; i < wantTargets; i++) queue.push(pick(byCat[target]));
-    for (i = wantTargets; i < count; i++) { var dc = pick(decoys); queue.push(pick(byCat[dc])); }
+    for (i = 0; i < wantTargets; i++) queue.push({ item: pick(byCat[target]), scanner: false });
+    for (i = wantTargets; i < count; i++) { var dc = pick(decoys); queue.push({ item: pick(byCat[dc]), scanner: false }); }
+    // sprinkle ~scannerChance of the queue as scanner powerups (mark, not extra items)
+    for (i = 0; i < queue.length; i++) { if (Math.random() < TUNE.scannerChance) queue[i].scanner = true; }
     this.spawnQueue = shuffle(queue);
+
+    // boss timer
+    if (this.boss) { this.bossTimer = TUNE.bossTime; this.sfx.boss(); }
 
     this._showBanner();
     this._syncHud();
+    this.sfx.wave();
   };
 
   Game.prototype._ruleSentence = function () {
@@ -607,39 +825,97 @@
     var sEl = document.getElementById('si-banner-sub');
     var banner = document.getElementById('si-banner');
     if (rEl) {
-      rEl.innerHTML = 'Destroy the <span class="si-banner-target">' + esc(ax.nice[this.rule.target]) + '</span>';
+      var lead = this.boss
+        ? 'BOSS WAVE ' + this.wave + ' -- destroy the '
+        : 'WAVE ' + this.wave + ' -- destroy the ';
+      rEl.innerHTML = esc(lead) + '<span class="si-banner-target">' + esc(ax.nice[this.rule.target]) + '</span>';
     }
     if (sEl) {
       var spare = this.rule.decoys.map(function (c) { return esc(ax.nice[c]); }).join(' and ');
-      sEl.innerHTML = 'Spare the <span class="si-banner-spare">' + spare + '</span>';
+      var tail = this.boss ? ' &middot; beat the 30s clock' : '';
+      sEl.innerHTML = 'Spare the <span class="si-banner-spare">' + spare + '</span>' + tail;
     }
     if (banner) {
       banner.classList.remove('si-hide');
       clearTimeout(this._bannerT);
       var self = this;
-      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('si-hide'); }, 2600);
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('si-hide'); }, this.boss ? 3200 : 2600);
     }
+  };
+
+  // brief teaching toast built from the entity's OWN category + the wave rule
+  Game.prototype._teach = function (e) {
+    var ax = this.rule.axis;
+    var el = document.getElementById('si-teach');
+    if (!el) return;
+    var cls = ax.one[e.category] || String(e.category).toUpperCase();
+    var wanted = ax.nice[this.rule.target];
+    var article = /^[AEIOU]/.test(cls) ? 'an' : 'a';
+    // e.g. "NH3 is a BASE -- the rule was SALTS"  (a/an picked off the class noun)
+    el.innerHTML = esc(e.label) + ' is ' + article + ' <b>' + esc(cls) + '</b> -- the rule was ' + esc(wanted);
+    el.classList.add('si-on');
+    clearTimeout(this._teachT);
+    var self = this;
+    this._teachT = setTimeout(function () { if (el) el.classList.remove('si-on'); }, 2200);
   };
 
   // ---- firing ----------------------------------------------------------
   Game.prototype._fire = function () {
     if (this.state !== 'playing') return;
     if (this.shooter.cooldown > 0) return;
-    this.shooter.cooldown = 0.18;
+    this.shooter.cooldown = 0.17;
     var sx = this.shooter.x * this.W;
-    var sy = this.H - 42;
-    this.bullets.push({ x: sx, y: sy, vy: -560, r: 3.5 });
+    var sy = this.H - 46;
+    this.bullets.push({ x: sx, y: sy, vy: -600, r: 3.5, nearFlag: {} });
+    this.sfx.shoot();
   };
 
   // ---- update ----------------------------------------------------------
   Game.prototype._update = function (dt) {
     var i, e;
+
+    // hitstop: freeze gameplay a beat on a destruction (but let timers wind down)
+    if (this.hitstop > 0) {
+      this.hitstop = Math.max(0, this.hitstop - dt);
+      // still tick shooter cooldown + shake so it feels responsive
+      if (this.shooter.cooldown > 0) this.shooter.cooldown -= dt;
+      if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
+      this.thrust += dt * 12;
+      return;
+    }
+
+    // boss countdown
+    if (this.boss && this.state === 'playing') {
+      this.bossTimer -= dt;
+      if (this.bossTimer <= 0) { this.bossTimer = 0; this._bossTimeout(); return; }
+    }
+
+    // scanner reveal timer + rising beep
+    if (this.reveal > 0) {
+      var before = this.reveal;
+      this.reveal = Math.max(0, this.reveal - dt);
+      this._scanTick += dt;
+      if (this._scanTick > 0.28) { this._scanTick = 0; this.sfx.scan(Math.round((TUNE.scannerReveal - this.reveal) * 3)); }
+      if (before > 0 && this.reveal === 0) { /* reveal ended */ }
+    }
+
+    this.thrust += dt * 12;
+
     // shooter movement (keyboard)
-    if (this.moveDir) this.shooter.x = clamp(this.shooter.x + this.moveDir * 0.9 * dt, 0.04, 0.96);
+    if (this.moveDir) this.shooter.x = clamp(this.shooter.x + this.moveDir * 0.95 * dt, 0.04, 0.96);
     if (this.shooter.cooldown > 0) this.shooter.cooldown -= dt;
 
-    // spawn from wave queue
-    if (this.spawnQueue && this.spawnQueue.length) {
+    // parallax stars fall
+    if (this.stars.length) {
+      for (i = 0; i < this.stars.length; i++) {
+        var st = this.stars[i];
+        st.y += st.sp * dt;
+        if (st.y > this.H) { st.y = -2; st.x = rand(0, this.W); }
+      }
+    }
+
+    // spawn from wave queue (respect maxOnScreen)
+    if (this.spawnQueue && this.spawnQueue.length && this.entities.length < TUNE.maxOnScreen) {
       this.spawnTimer -= dt;
       if (this.spawnTimer <= 0) {
         this.spawnTimer = this.spawnGap;
@@ -651,7 +927,12 @@
     for (i = this.bullets.length - 1; i >= 0; i--) {
       var b = this.bullets[i];
       b.y += b.vy * dt;
-      if (b.y < -10) { this.bullets.splice(i, 1); continue; }
+      if (b.y < -10) {
+        // near-miss bonus: a bullet that flew past a SPARED item closely (and hit nothing)
+        this._checkNearMiss(b);
+        this.bullets.splice(i, 1);
+        continue;
+      }
     }
 
     // entities fall
@@ -659,8 +940,9 @@
       e = this.entities[i];
       e.y += e.vy * dt;
       e.wob += dt;
+      if (e.aura) e.aura += dt;   // scanner powerup rotating aura
       // reached bottom?
-      if (e.y > this.H - 30) {
+      if (e.y > this.H - 34) {
         this.entities.splice(i, 1);
         this._entityEscaped(e);
         continue;
@@ -668,7 +950,10 @@
       // bullet collision
       for (var j = this.bullets.length - 1; j >= 0; j--) {
         var bl = this.bullets[j];
-        if (Math.abs(bl.x - e.x) < e.w * 0.5 + 6 && Math.abs(bl.y - e.y) < e.h * 0.5 + 6) {
+        var dx = Math.abs(bl.x - e.x), dy = Math.abs(bl.y - e.y);
+        // track near-passes of spared items for the near-miss bonus
+        if (!e.isTarget && !e.scanner && dx < TUNE.nearMissPx && dy < e.h) bl.nearFlag[i] = true;
+        if (dx < e.w * 0.5 + 6 && dy < e.h * 0.5 + 6) {
           this.bullets.splice(j, 1);
           this.entities.splice(i, 1);
           this._resolveHit(e);
@@ -691,60 +976,130 @@
       if (pp.life <= 0) this.popups.splice(i, 1);
     }
 
-    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 34);
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
     if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.2);
     if (this.goodFlash > 0) this.goodFlash = Math.max(0, this.goodFlash - dt * 3.5);
 
     // wave complete? (queue drained AND no entities left on screen)
     if (this.state === 'playing' && this.spawnQueue && this.spawnQueue.length === 0 && this.entities.length === 0) {
+      if (this.boss) {  // survived the boss under the clock -> reward
+        this.boss = false;
+        this.score += 100;
+        this._popup(this.W * 0.5, this.H * 0.42, 'BOSS CLEARED +100', this.col.amber);
+        this.sfx.powerup();
+      }
       this._nextWave();
     }
   };
 
-  Game.prototype._spawnOne = function (item) {
-    if (!item) return;
+  Game.prototype._bossTimeout = function () {
+    // boss clock ran out -> costs a heart, then rolls into the next wave
+    this.boss = false;
+    this._loseLife(0.8);
+    this._popup(this.W * 0.5, this.H * 0.4, 'TIME UP -1 life', this.col.rose);
+    this.sfx.wrong();
+    if (this.lives <= 0) return;
+    this.spawnQueue = [];
+    this.entities.length = 0;
+    this._nextWave();
+  };
+
+  Game.prototype._spawnOne = function (q) {
+    if (!q || !q.item) return;
+    var item = q.item;
     var isTarget = item.category === this.rule.target;
-    var w = 62, h = 34;
-    var x = rand(w * 0.6, this.W - w * 0.6);
-    this.entities.push({
+    var w = 44, h = 40;   // ~40px uniform capsule (spec)
+    var x = rand(w * 0.7, this.W - w * 0.7);
+    var ent = {
       label: item.label, category: item.category, rowId: item.rowId, lo: item.lo,
-      isTarget: isTarget, x: x, y: -h, w: w, h: h,
-      vy: this.waveSpeed * rand(0.9, 1.15), wob: rand(0, 6.28), hue: isTarget ? 't' : 'd'
-    });
-    if (isTarget) this.seen++;
+      isTarget: isTarget, scanner: !!q.scanner,
+      x: x, y: -h, w: w, h: h,
+      vy: this.waveSpeed * rand(0.92, 1.12), wob: rand(0, 6.28),
+      aura: q.scanner ? 0 : 0
+    };
+    this.entities.push(ent);
+    // scanner capsules are neither target nor decoy for accounting; count real targets only
+    if (isTarget && !q.scanner) this.seen++;
+  };
+
+  // ---- near-miss bonus -------------------------------------------------
+  Game.prototype._checkNearMiss = function (b) {
+    var keys = b.nearFlag ? Object.keys(b.nearFlag) : [];
+    // count as a near miss only if the bullet grazed a SPARED item and hit nothing
+    if (keys.length) {
+      this.score += 3;
+      this._popup(b.x, 78, 'near miss +3', this.col.amber);
+    }
   };
 
   // ---- hit resolution (the CORE educational branch) --------------------
   Game.prototype._resolveHit = function (e) {
+    // SCANNER powerup: shooting it grants a 3s reveal, no life cost
+    if (e.scanner) {
+      this.reveal = TUNE.scannerReveal;
+      this._scanTick = 0;
+      this.goodFlash = 0.4;
+      this._burst(e.x, e.y, this.rgb.indigo, 14, 'steel');
+      this._popup(e.x, e.y, 'SCANNER', this.col.indigo);
+      this.sfx.powerup();
+      this._hitstop();
+      this._syncHud();
+      return;
+    }
+
     if (e.isTarget) {
-      // correct: destroy + points + green burst + popup
-      this.score += 10;
+      // correct: destroy + points * combo + green burst (color revealed NOW)
+      this.streak++;
+      this._updateCombo();
+      var gain = Math.round(10 * this.combo);
+      this.score += gain;
       this.correct++;
       this.goodFlash = 0.5;
-      this.shake = Math.min(this.shake + 4, 10);
-      this._burst(e.x, e.y, this.col.green, 16);
-      this._popup(e.x, e.y, '+10', this.col.green);
+      this._addShake();
+      this._burst(e.x, e.y, this.rgb.green, 15, 'green');
+      this._popup(e.x, e.y, '+' + gain + (this.combo > 1 ? ' x' + this.combo.toFixed(1) : ''), this.col.green);
+      this._hitstop();
+      this.sfx.hit();
       this._emit(e, 1);
     } else {
-      // wrong: this was a "spare" item -> lose a life + red flash
-      this.lives--;
-      this.flash = 0.9;
-      this.shake = Math.min(this.shake + 9, 16);
-      this._burst(e.x, e.y, this.col.rose, 14);
-      this._popup(e.x, e.y, 'wrong -1 life', this.col.rose);
+      // wrong: this was a "spare" item -> lose a life + red flash + TEACH
+      this.streak = 0; this.combo = 1;
+      this._loseLife(0.9);
+      this._burst(e.x, e.y, this.rgb.rose, 14, 'rose');
+      this._popup(e.x, e.y, 'WRONG', this.col.rose);
+      this._teach(e);
+      this._hitstop();
+      this.sfx.wrong();
       this._emit(e, 0);
       if (this.lives <= 0) { this._gameOver(false); return; }
     }
     this._syncHud();
   };
 
+  Game.prototype._updateCombo = function () {
+    if (this.streak < TUNE.comboStart) { this.combo = 1; return; }
+    // ramp 1.5x -> 3x as the streak grows past the threshold
+    var over = this.streak - TUNE.comboStart;
+    this.combo = clamp(TUNE.comboMin + over * 0.25, TUNE.comboMin, TUNE.comboMax);
+  };
+
+  Game.prototype._loseLife = function (flashAmt) {
+    this.lives--;
+    this.flash = flashAmt || 0.8;
+    this._addShake(true);
+    // pulse the hearts pill
+    var pill = this._byId('si-lives-pill');
+    if (pill) { pill.classList.remove('si-pulse'); void pill.offsetWidth; pill.classList.add('si-pulse'); }
+  };
+
   Game.prototype._entityEscaped = function (e) {
+    if (e.scanner) return;   // a missed scanner is fine
     if (e.isTarget) {
       // a target that should have been shot slipped past = a miss (costs a life)
-      this.lives--;
-      this.flash = 0.7;
-      this.shake = Math.min(this.shake + 6, 12);
-      this._popup(e.x, this.H - 44, 'missed target', this.col.amber);
+      this.streak = 0; this.combo = 1;
+      this._loseLife(0.7);
+      this._popup(e.x, this.H - 50, 'missed target', this.col.amber);
+      this.sfx.miss();
       this._emit(e, 0);
       if (this.lives <= 0) { this._gameOver(false); return; }
       this._syncHud();
@@ -758,57 +1113,75 @@
   };
 
   // ---- juice -----------------------------------------------------------
-  Game.prototype._burst = function (x, y, color, n) {
-    if (this.reduced) n = Math.min(n, 5);
+  Game.prototype._addShake = function (big) {
+    if (this.reduced) return;
+    this.shake = TUNE.shakeMs / 1000 * (big ? 1.6 : 1);
+  };
+  Game.prototype._hitstop = function () {
+    if (this.reduced) return;
+    this.hitstop = TUNE.hitstopMs / 1000;
+  };
+  Game.prototype._burst = function (x, y, rgb, n, kind) {
+    if (this.reduced) n = Math.min(n, 6);
+    var sq = this.sprites['p' + cap(kind) + 'Sq'] || this.sprites.pSteelSq;
+    var tri = this.sprites['p' + cap(kind) + 'Tri'] || this.sprites.pSteelTri;
     for (var i = 0; i < n; i++) {
-      var a = rand(0, 6.2832), sp = rand(50, 240);
+      var a = rand(0, 6.2832), sp = rand(60, 260);
       this.particles.push({
         x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
-        life: rand(0.35, 0.7), color: color, size: rand(3, 7),
-        rot: rand(0, 6.28), vr: rand(-8, 8), shape: (Math.random() < 0.5) ? 'sq' : 'tri'
+        life: rand(0.28, 0.55), size: rand(6, 12),   // spec: ~15 particles, ~300ms
+        rot: rand(0, 6.28), vr: rand(-9, 9),
+        spr: (Math.random() < 0.5) ? sq : tri
       });
     }
   };
   Game.prototype._popup = function (x, y, text, color) {
-    this.popups.push({ x: x, y: y, text: text, color: color, life: 0.9, vy: -46 });
+    this.popups.push({ x: x, y: y, text: text, color: color, life: 0.95, vy: -50, born: 0 });
   };
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
   // ---- render ----------------------------------------------------------
   Game.prototype._draw = function () {
     var ctx = this.ctx, W = this.W, H = this.H;
     ctx.clearRect(0, 0, W, H);
 
-    ctx.save();
-    if (this.shake > 0.2 && !this.reduced) {
-      ctx.translate(rand(-this.shake, this.shake), rand(-this.shake, this.shake));
-    }
+    // starfield (behind the shake transform so it stays anchored)
+    this._drawStars();
 
-    // starfield-ish faint dots (cheap ambiance)
-    // (skipped per-frame heavy work; keep it clean)
+    ctx.save();
+    if (this.shake > 0 && !this.reduced) {
+      var m = TUNE.shakePx * (this.shake / (TUNE.shakeMs / 1000));
+      ctx.translate(rand(-m, m), rand(-m, m));
+    }
 
     // entities
     for (var i = 0; i < this.entities.length; i++) this._drawEntity(this.entities[i]);
 
-    // bullets
+    // bullets (amber tracer with a soft glow, cheap)
     ctx.fillStyle = this.col.amber;
+    ctx.shadowColor = this.col.amber; ctx.shadowBlur = this.reduced ? 0 : 4;
     for (i = 0; i < this.bullets.length; i++) {
       var b = this.bullets[i];
       ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.2832); ctx.fill();
     }
+    ctx.shadowBlur = 0;
 
-    // particles
+    // particles (blit prerendered sprites)
     for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
 
-    // shooter
+    // shooter (drawn ship + thruster)
     this._drawShooter();
 
     // popups
-    ctx.textAlign = 'center'; ctx.font = '800 14px -apple-system, sans-serif';
+    ctx.textAlign = 'center'; ctx.font = '900 16px -apple-system, sans-serif';
     for (i = 0; i < this.popups.length; i++) {
       var pp = this.popups[i];
-      ctx.globalAlpha = clamp(pp.life / 0.9, 0, 1);
+      var k = clamp(pp.life / 0.95, 0, 1);
+      ctx.globalAlpha = k;
       ctx.fillStyle = pp.color;
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = this.reduced ? 0 : 3;
       ctx.fillText(pp.text, pp.x, pp.y);
+      ctx.shadowBlur = 0;
     }
     ctx.globalAlpha = 1;
 
@@ -823,24 +1196,81 @@
       ctx.fillStyle = 'rgba(34,197,139,' + (this.goodFlash * 0.16).toFixed(3) + ')';
       ctx.fillRect(0, 0, W, H);
     }
+    // scanner reveal tint (subtle blue wash while active)
+    if (this.reveal > 0) {
+      var rk = clamp(this.reveal / TUNE.scannerReveal, 0, 1) * 0.08;
+      ctx.fillStyle = 'rgba(108,92,255,' + rk.toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+  };
+
+  Game.prototype._drawStars = function () {
+    if (!this.stars.length || this.reduced) return;
+    var ctx = this.ctx, spr = this.sprites.star;
+    for (var i = 0; i < this.stars.length; i++) {
+      var st = this.stars[i];
+      ctx.globalAlpha = st.a;
+      ctx.drawImage(spr, st.x - st.s, st.y - st.s, st.s * 2, st.s * 2);
+    }
+    ctx.globalAlpha = 1;
   };
 
   Game.prototype._drawEntity = function (e) {
     var ctx = this.ctx;
     var bob = Math.sin(e.wob * 2) * 2;
     var x = e.x, y = e.y + bob;
-    var isT = e.isTarget;
-    // Halal-safe: geometric capsule, no character/creature. Target = indigo ring, decoy = neutral.
-    var fill = isT ? 'rgba(108,92,255,0.20)' : 'rgba(154,167,199,0.14)';
-    var stroke = isT ? this.col.indigo : this.col.line;
-    this._roundRect(x - e.w / 2, y - e.h / 2, e.w, e.h, 9);
-    ctx.fillStyle = fill; ctx.fill();
-    ctx.lineWidth = 1.6; ctx.strokeStyle = stroke; ctx.stroke();
-    // label
-    ctx.fillStyle = this.col.ink;
+    var w = e.w, h = e.h;
+
+    // Scanner powerup: rotating blue aura ring around a steel capsule
+    if (e.scanner && !this.reduced) {
+      ctx.save();
+      ctx.translate(x, y); ctx.rotate(e.aura * 2.2);
+      ctx.strokeStyle = 'rgba(108,92,255,0.85)';
+      ctx.lineWidth = 2.4; ctx.setLineDash([6, 6]);
+      ctx.beginPath(); ctx.arc(0, 0, w * 0.72, 0, 6.2832); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // UNIFORM metallic capsule. category color is revealed ONLY when:
+    //   (a) the scanner powerup is active (this.reveal>0), or
+    //   (b) never while falling for a normal decoy/target -> keeps reading honest.
+    var revealed = this.reveal > 0 && !e.scanner;
+    var edge, glowR = 0, glowG = 0, glowB = 0;
+    if (revealed) {
+      var rc = e.isTarget ? this.rgb.green : this.rgb.rose;
+      edge = 'rgba(' + rc.r + ',' + rc.g + ',' + rc.b + ',0.95)';
+      glowR = rc.r; glowG = rc.g; glowB = rc.b;
+    } else {
+      edge = 'rgba(150,166,205,0.55)';  // neutral steel edge for EVERYONE
+    }
+
+    // metallic vertical gradient hull (same for all -> no color-match tell)
+    var g = ctx.createLinearGradient(0, y - h / 2, 0, y + h / 2);
+    g.addColorStop(0, 'rgba(206,214,236,0.92)');
+    g.addColorStop(0.45, 'rgba(120,132,168,0.90)');
+    g.addColorStop(0.55, 'rgba(96,108,146,0.92)');
+    g.addColorStop(1, 'rgba(150,162,196,0.90)');
+
+    this._roundRect(x - w / 2, y - h / 2, w, h, 12);
+    ctx.fillStyle = g; ctx.fill();
+    // top specular highlight (metal sheen)
+    ctx.save();
+    this._roundRect(x - w / 2, y - h / 2, w, h, 12); ctx.clip();
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    ctx.fillRect(x - w / 2, y - h / 2, w, h * 0.32);
+    ctx.restore();
+    // edge (neutral, or category glow when revealed)
+    if (revealed && !this.reduced) { ctx.shadowColor = 'rgb(' + glowR + ',' + glowG + ',' + glowB + ')'; ctx.shadowBlur = 4; }
+    this._roundRect(x - w / 2, y - h / 2, w, h, 12);
+    ctx.lineWidth = revealed ? 2.4 : 1.4; ctx.strokeStyle = edge; ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // ASCII label
+    ctx.fillStyle = '#0c1020';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    var fs = e.label.length > 8 ? 12 : 15;
-    ctx.font = '800 ' + fs + 'px -apple-system, "Segoe UI", sans-serif';
+    var fs = e.label.length > 8 ? 10 : (e.label.length > 5 ? 12 : 14);
+    ctx.font = '900 ' + fs + 'px -apple-system, "Segoe UI", sans-serif';
     ctx.fillText(e.label, x, y + 1);
     ctx.textBaseline = 'alphabetic';
   };
@@ -848,36 +1278,55 @@
   Game.prototype._drawShooter = function () {
     var ctx = this.ctx;
     var x = this.shooter.x * this.W;
-    var y = this.H - 30;
-    // a simple indigo turret triangle + base (no weapon/violence imagery, just an abstract shooter)
-    ctx.fillStyle = this.col.indigo;
+    var y = this.H - 34;
+
+    // animated thruster flame first (behind hull)
+    if (!this.reduced) {
+      var fl = 10 + Math.sin(this.thrust) * 5 + Math.random() * 4;
+      var fg = ctx.createLinearGradient(0, y + 10, 0, y + 10 + fl);
+      fg.addColorStop(0, 'rgba(255,176,32,0.95)');
+      fg.addColorStop(0.5, 'rgba(255,84,112,0.75)');
+      fg.addColorStop(1, 'rgba(255,84,112,0)');
+      ctx.fillStyle = fg;
+      ctx.beginPath();
+      ctx.moveTo(x - 6, y + 10); ctx.lineTo(x + 6, y + 10); ctx.lineTo(x, y + 10 + fl);
+      ctx.closePath(); ctx.fill();
+    }
+
+    // gradient hull ship (rounded arrowhead, abstract craft; no weapon/violence imagery)
+    var hg = ctx.createLinearGradient(0, y - 18, 0, y + 12);
+    hg.addColorStop(0, '#9d92ff');
+    hg.addColorStop(0.5, this.col.indigo);
+    hg.addColorStop(1, '#4b3fd6');
+    ctx.fillStyle = hg;
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.4;
+    if (!this.reduced) { ctx.shadowColor = this.col.indigo; ctx.shadowBlur = 4; }
     ctx.beginPath();
-    ctx.moveTo(x, y - 16);
-    ctx.lineTo(x - 18, y + 8);
-    ctx.lineTo(x + 18, y + 8);
+    ctx.moveTo(x, y - 20);
+    ctx.lineTo(x - 16, y + 6);
+    ctx.lineTo(x - 8, y + 10);
+    ctx.lineTo(x + 8, y + 10);
+    ctx.lineTo(x + 16, y + 6);
     ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(108,92,255,0.35)';
-    this._roundRect(x - 22, y + 6, 44, 8, 4); ctx.fill();
-    // aim line
-    ctx.strokeStyle = 'rgba(108,92,255,0.25)';
-    ctx.lineWidth = 1.5; ctx.setLineDash([3, 7]);
-    ctx.beginPath(); ctx.moveTo(x, y - 16); ctx.lineTo(x, 60); ctx.stroke();
+    ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+    // cockpit dot
+    ctx.fillStyle = 'rgba(234,240,255,0.9)';
+    ctx.beginPath(); ctx.arc(x, y - 6, 3, 0, 6.2832); ctx.fill();
+
+    // faint aim line
+    ctx.strokeStyle = 'rgba(108,92,255,0.22)';
+    ctx.lineWidth = 1.5; ctx.setLineDash([3, 8]);
+    ctx.beginPath(); ctx.moveTo(x, y - 20); ctx.lineTo(x, 64); ctx.stroke();
     ctx.setLineDash([]);
   };
 
   Game.prototype._drawParticle = function (p) {
     var ctx = this.ctx;
     ctx.save();
-    ctx.globalAlpha = clamp(p.life * 1.6, 0, 1);
+    ctx.globalAlpha = clamp(p.life * 2.4, 0, 1);
     ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-    ctx.fillStyle = p.color;
-    if (p.shape === 'sq') {
-      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(0, -p.size); ctx.lineTo(p.size, p.size); ctx.lineTo(-p.size, p.size); ctx.closePath(); ctx.fill();
-    }
+    ctx.drawImage(p.spr, -p.size / 2, -p.size / 2, p.size, p.size);
     ctx.restore();
   };
 
@@ -897,6 +1346,22 @@
     var s = document.getElementById('si-score-n'); if (s) s.textContent = this.score;
     var l = document.getElementById('si-lives-n'); if (l) l.textContent = Math.max(0, this.lives);
     var w = document.getElementById('si-wave-n'); if (w) w.textContent = this.wave;
+    // combo pill
+    var cp = document.getElementById('si-combo-pill'), cn = document.getElementById('si-combo-n');
+    if (cp && cn) {
+      if (this.combo > 1) { cn.textContent = this.combo.toFixed(1); cp.classList.add('si-on'); }
+      else cp.classList.remove('si-on');
+    }
+    // boss timer pill
+    var tp = document.getElementById('si-timer-pill'), tn = document.getElementById('si-timer-n');
+    if (tp && tn) {
+      if (this.boss) {
+        tp.classList.add('si-on');
+        var secs = Math.ceil(this.bossTimer);
+        tn.textContent = secs;
+        if (secs <= 10) tp.classList.add('si-low'); else tp.classList.remove('si-low');
+      } else { tp.classList.remove('si-on'); tp.classList.remove('si-low'); }
+    }
   };
 
   // ---- game over / close ----------------------------------------------
@@ -941,7 +1406,8 @@
     var dt = (t - this.last) / 1000;
     this.last = t;
     dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
-    if (this.state === 'playing') this._update(dt);
+    this.t += dt;
+    if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
     this._draw();
   };
 
@@ -972,6 +1438,7 @@
     this.state = 'over';
     if (this._raf) cancelAnimationFrame(this._raf);
     clearTimeout(this._bannerT);
+    clearTimeout(this._teachT);
     if (this._handlers) {
       for (var i = 0; i < this._handlers.length; i++) {
         var h = this._handlers[i];
@@ -979,8 +1446,11 @@
       }
       this._handlers.length = 0;
     }
+    try { if (this.sfx && this.sfx.ctx && this.sfx.ctx.close) this.sfx.ctx.close(); } catch (e) {}
     // clear canvas
     try { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); } catch (e) {}
+    // hide the teaching toast if it was up
+    var te = document.getElementById('si-teach'); if (te) te.classList.remove('si-on');
     this._hideOverlays();
     if (live === this) live = null;
   };
