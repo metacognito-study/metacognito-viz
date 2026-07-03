@@ -105,10 +105,12 @@
     else if (m.cmd === 'clear') { A = null; B = null; st = 0; }
     else if (m.cmd === 'play') { try { au.play(); } catch(e2){} }
     else if (m.cmd === 'pause') { try { au.pause(); } catch(e2){} }
+    else if (m.cmd === 'setRate') { try { au.playbackRate = Number(m.v) || 1; } catch(e2){} }
     rep();
   });
   setInterval(function(){ if (st === 2 && A != null && B != null && (au.currentTime||0) >= B) { try { au.currentTime = A; } catch(e){} } rep(); }, 250);
   au.addEventListener('ended', function(){ post({ type:'ended' }); });
+  au.addEventListener('ratechange', function(){ post({ type:'rate', v: au.playbackRate }); });
   post({ type:'ready' }); rep();
 })();
 </script>
