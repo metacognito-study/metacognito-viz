@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Boss Blurt</title>
+<!--
+============================================================================
+  BOSS BLURT  -  flagship CO-OP title, P1 solo review build  (2026-07-04)
+============================================================================
+  REVIEW NOTE
+  -----------
+  ENGINE / LICENSE
+    Hand-rolled vanilla Canvas2D game loop, ZERO external dependencies in the
+    SOLO path. No CDN, no engine, no network at all when BB_COOP=false (the
+    shipped state) -> it runs fully OFFLINE the first time the file is opened.
+    All sound is synthesised at runtime with the WebAudio API -> no audio
+    assets. Same house engine as salt_invaders.html / gate_flyer.html /
+    concept_asteroids.html / formula_ninja.html / retrieval_racer.html: the
+    pool/opts contract, the byte-frozen DEMO_POOL, the subscript renderer and
+    the arcade kit (parallax starfield, prerendered particles, screenshake
+    3px/60ms, hitstop 80ms, synth SFX + mute, combo, fullscreen + iOS
+    fallback, reduced-motion, RTL) are the SAME patterns, ported to a new
+    mechanic. Everything here is original code, so no third-party license
+    attaches to this file.
+
+  THE MECHANIC  (why "boss" and not another shooter)
+    An abstract crystalline MISCONCEPTION BOSS (pure geometry -- a rotating
+    faceted crystal core with orbiting shards; halal-safe, NO creature, no
+    face, no gore) hangs at the top with a big HP bar. Questions are built
+    live from the pool on the same 4 category axes as the siblings:
+
+      YES/NO   "Is NaCl a SALT?"                       (2 buttons)
+      WHAT     "What is NaCl?"  -> SALT / ACID / BASE   (up to 3 buttons)
+      WHICH    "Which of these is a SALT?" -> 3 labels  (3 buttons)
+
+    CORRECT  = a damage beam fires into the boss: damage x combo (1.5x-3x
+               after a streak), green shatter particles, shake + hitstop.
+    WRONG    = the boss HEALS (rose wisps rise into the core), the combo
+               breaks, a heart is lost, and a subscripted teaching toast
+               explains the fact ("NH3 is a BASE, not an ACID").
+    TIMEOUT  = SOFT 30s question clock: the boss heals a smaller amount and
+               the combo breaks, but no heart is lost (soft by design).
+
+    Questions run in 10-question WAVES; each wave rotates the rule axis.
+    SHARD-SHIELD PHASES: at 66% and 33% HP the boss raises 3 orbiting shard
+    shields and damage is blocked -- a brief SPEED ROUND (8s yes/no
+    questions) where each correct answer shatters one shard. Break all 3 to
+    resume the damage phase.
+
+    VICTORY = the boss shatters into geometric fragments. Five bosses total
+    (PRISM -> LATTICE -> OBELISK -> HELIX -> FRACTAL CORE), each with more
+    HP, stronger healing and a shorter clock. Defeat all five to win the run.
+    Hearts: you start with 3 and gain +1 (cap 4) for each boss shattered.
+
+  DIFFICULTY  (self-calibrated via sim/bb_sim.js Monte-Carlo, N=5000/config;
+    same HCI human model family as sim/SI_REPORT.md + sim/CA_REPORT.md:
+    250ms/reading-unit + 350ms decide + 250ms act, knowledge accuracy 0.85
+    competent / 0.92 strong, guess when the clock beats the read, accuracy
+    degraded x0.85 under time pressure)
+      target:   competent beats BOSS 1 ~60-70%;  full 5-boss run ~10-20%
+      landed (N=10000, shipped constants):
+                competent boss-1 clear 61.6%;    full-run clear 11.3%
+                  (median boss reached 2, median 33 questions/session)
+                strong reader boss-1 clear 91.7%; full-run clear 69.1%
+                guesser (50/33% random taps) boss-1 clear 0.0% -- the heal
+                economics wall random play out entirely, as designed
+      key sim finding: carrying depleted hearts into later bosses collapsed
+      the full-run rate to 1-4% under EVERY hp/heal ladder tried, so a boss
+      shatter now RESTORES hearts to full (4 per boss = 5 near-independent
+      trials); and raw boss hp stays FLAT at 140 (the bar renders %, ramps
+      only sank the run rate below the 10% floor) -- felt escalation is the
+      heal multiplier 1.0->1.4 and the 30s->12s clock.
+    Tuned constants carry "sim-tuned" comments below (dmgBase 10, healWrong
+    16, hearts 4 restored per boss, hp 140 flat, healMul 1.0-1.4).
+
+  HOW THE HOST PASSES A CHAPTER-CAPPED POOL  (drop-in with the siblings)
+    Identical to SpeedSwipe / Salt Invaders / Gate Flyer:
+
+        window.BOSS_BLURT.open(pool, {
+          enabled: true,                 // REQUIRED flag gate; open() no-ops otherwise
+          subject: 'Chemistry',          // cosmetic
+          chapterLabel: 'Up to chapter 12',
+          rtl: false,                    // mirrors HUD/layout for Arabic
+          onEmit:  cgEmitMicrotaskSignal_,   // onEmit(rowId, lo, 'boss', score, itemCount)
+          onClose: function (summary) { ... } // summary = {subject,chapterLabel,seen,
+                                              //   correct,score,wave,tool:'boss'}
+        });
+
+    pool is an array of { label, category, rowId?, lo? } items ALREADY capped
+    to the student's furthest chapter by the host's furthestChapter() filter
+    (the same #95 gate). This module never reads a global bank and never
+    filters by chapter itself -- it trusts the pool it is given, staying
+    decoupled exactly like SpeedSwipe. onEmit fires per resolved question,
+    gated on rowId != null. window.BOSS_BLURT.start is an alias for .open.
+
+  DEMO POOL
+    The SAME built-in 28-item demo pool (DEMO_POOL) across 4 axes used by all
+    siblings, copied VERBATIM from salt_invaders.html (chemistry
+    first-encounter simple + checked correct). Used ONLY when the host passes
+    no pool. DO NOT edit.
+
+  CO-OP STATUS  (honesty rule: shipped SOLO-COMPLETE; co-op wiring present
+    but OFF behind BB_COOP=false)
+    PRD_ARCADE_GAMES.md P2 + council amendments (2026-07-03, ADOPTED):
+      - AUTHORITATIVE HOST: the session creator's client owns boss HP + wave
+        transitions via RTDB transactions + server timestamps; other clients
+        render, never derive. Late joiners hydrate from a state summary node.
+      - Room: /gameRooms/<gid> { seed, wave, hp (host-transactional), boss,
+        scores/$uid (batched per 500ms per client), roster/$uid, summary }.
+      - Join: 5-digit code in the shared registry /whiteboards/main/codes/
+        <code> = { gid, ts, kind:'game' } (same registry as boards, #86).
+      - Deterministic seed is for CONTENT generation only; wave/hp STATE is
+        host-authoritative with a lag catch-up indicator.
+    The Coop object below implements that wiring (firebase compat bootstrap
+    pattern from _align/core/whiteboard.module.js; config values from
+    Index.core.html FIREBASE_CONFIG) but every entry point returns
+    immediately while BB_COOP === false: no SDK script is ever injected, no
+    network is touched, and the solo game never awaits it. Flipping the flag
+    is a deliberate later step gated on the /gameRooms rules deploy (PRD
+    "staged into database.rules.json for Ibrahim's NEXT rules deploy").
+
+  ASCII-only visible text. No em-dashes / underscores in labels. Halal-safe:
+  the boss is abstract geometry that shatters into particles; beams are
+  light, not weapons imagery; no violence/gore theming.
+============================================================================
+-->
+<style>
+  :root {
+    /* Host page injects these vars; standalone review falls back to the hex. */
+    --bb-bg1: var(--surface-2, #0d1220);
+    --bb-bg2: var(--surface, #131a2c);
+    --bb-ink: var(--ink, #eaf0ff);
+    --bb-muted: var(--muted, #9aa7c7);
+    --bb-indigo: var(--indigo, #6c5cff);
+    --bb-green: var(--green, #22c58b);
+    --bb-rose: var(--rose, #ff5470);
+    --bb-amber: var(--amber, #ffb020);
+    --bb-line: var(--line, #2a3355);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #06070d; color: var(--bb-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #bb-root { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #bb-wrap {
+    position: relative; width: 100%; height: 100%; max-width: 900px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #bb-canvas {
+    display: block; width: 100%; height: 100%;
+    touch-action: none; background: radial-gradient(120% 90% at 50% 0%, var(--bb-bg2), var(--bb-bg1) 70%, #06070d);
+    image-rendering: optimizeSpeed;
+  }
+  /* Top HUD is DOM (crisp text, easy a11y), overlaid on canvas */
+  #bb-hud {
+    position: absolute; top: 0; left: 0; right: 0; padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; pointer-events: none;
+    font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6); z-index: 6;
+  }
+  #bb-hud .bb-pill {
+    background: rgba(10,14,26,.55); border: 1px solid var(--bb-line); border-radius: 999px;
+    padding: 5px 11px; display: inline-flex; gap: 6px; align-items: center; backdrop-filter: blur(3px);
+    transition: transform .12s ease;
+  }
+  #bb-hud .bb-hearts { color: var(--bb-rose); }
+  #bb-hud .bb-score { color: var(--bb-amber); }
+  #bb-hud .bb-boss { color: var(--bb-indigo); }
+  #bb-hud .bb-combo {
+    color: var(--bb-green); opacity: 0; transform: scale(.85);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  #bb-hud .bb-combo.bb-on { opacity: 1; transform: scale(1); }
+  .bb-hearts.bb-pulse { animation: bb-heartpulse .32s ease; }
+  @keyframes bb-heartpulse { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+  #bb-hud .bb-timer { color: var(--bb-amber); }
+  #bb-hud .bb-timer.bb-low { color: var(--bb-rose); animation: bb-timerblink .6s steps(1) infinite; }
+  @keyframes bb-timerblink { 50% { opacity: .35; } }
+  #bb-spacer { flex: 1 1 auto; }
+  .bb-iconbtn {
+    pointer-events: auto; width: 40px; height: 40px; min-width: 40px; border-radius: 12px;
+    border: 1px solid var(--bb-line); background: rgba(10,14,26,.6); color: var(--bb-ink);
+    font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .bb-iconbtn:active { transform: scale(.94); }
+
+  /* Boss HP bar: name + big bar + phase ticks + shard pips */
+  #bb-bossbar {
+    position: absolute; left: 50%; top: 58px; transform: translateX(-50%);
+    width: min(86%, 560px); pointer-events: none; z-index: 5; text-align: center;
+  }
+  #bb-boss-name {
+    font-size: 13px; font-weight: 900; letter-spacing: .14em; color: var(--bb-ink);
+    text-shadow: 0 1px 4px rgba(0,0,0,.7); margin-bottom: 4px;
+  }
+  #bb-boss-name .bb-shard-pips { color: var(--bb-indigo); letter-spacing: .2em; margin-left: 8px; }
+  #bb-hpwrap {
+    position: relative; height: 16px; border-radius: 999px; overflow: hidden;
+    background: rgba(10,14,26,.72); border: 1.5px solid var(--bb-line);
+    box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  }
+  #bb-hpfill {
+    position: absolute; inset: 0; width: 100%; transform-origin: left center;
+    background: linear-gradient(90deg, #8b7dff, var(--bb-indigo));
+    transition: width .35s cubic-bezier(.2,.9,.3,1), background-color .3s ease;
+    border-radius: 999px;
+  }
+  #bb-hpwrap.bb-hurt #bb-hpfill { background: linear-gradient(90deg, #ffb020, #ff8a3c); }
+  #bb-hpwrap.bb-crit #bb-hpfill { background: linear-gradient(90deg, #ff5470, #d63c5e); }
+  #bb-hpwrap.bb-shielded { border-color: var(--bb-indigo); box-shadow: 0 0 14px rgba(108,92,255,.55); }
+  .bb-tick { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(6,8,14,.85); }
+  [dir="rtl"] #bb-hpfill { transform-origin: right center; }
+
+  /* Wave / phase banner */
+  #bb-banner {
+    position: absolute; left: 50%; top: 96px; transform: translateX(-50%);
+    max-width: 92%; text-align: center; pointer-events: none; z-index: 5;
+    background: rgba(12,16,30,.72); border: 1.5px solid var(--bb-indigo); border-radius: 14px;
+    padding: 9px 16px; backdrop-filter: blur(4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  #bb-banner .bb-banner-rule { font-size: 15px; font-weight: 850; letter-spacing: -.01em; }
+  #bb-banner .bb-banner-sub { font-size: 11.5px; color: var(--bb-muted); margin-top: 2px; font-weight: 600; }
+  #bb-banner .bb-banner-hot { color: var(--bb-amber); }
+  #bb-banner.bb-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+
+  /* teaching toast: the "why was that wrong" line */
+  #bb-teach {
+    position: absolute; left: 50%; bottom: 190px; transform: translateX(-50%) translateY(6px);
+    max-width: 90%; text-align: center; pointer-events: none; opacity: 0;
+    background: rgba(20,10,16,.86); border: 1.5px solid var(--bb-rose); border-radius: 12px;
+    color: var(--bb-ink); font-size: 13px; font-weight: 750; padding: 8px 14px;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6); box-shadow: 0 10px 26px rgba(0,0,0,.45);
+    transition: opacity .22s ease, transform .22s ease; z-index: 7;
+  }
+  #bb-teach.bb-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #bb-teach b { color: var(--bb-amber); }
+
+  /* Prompt card: the question + answer buttons (bottom center) */
+  #bb-prompt {
+    position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+    width: min(94%, 620px); z-index: 6;
+    background: rgba(12,16,30,.82); border: 1.5px solid var(--bb-line); border-radius: 18px;
+    padding: 14px 14px 12px; backdrop-filter: blur(5px);
+    box-shadow: 0 14px 40px rgba(0,0,0,.5);
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  #bb-prompt.bb-hide { opacity: 0; transform: translateX(-50%) translateY(14px); pointer-events: none; }
+  #bb-prompt.bb-speed { border-color: var(--bb-amber); box-shadow: 0 0 18px rgba(255,176,32,.35), 0 14px 40px rgba(0,0,0,.5); }
+  #bb-q {
+    text-align: center; font-size: 17px; font-weight: 850; letter-spacing: -.01em;
+    margin: 0 0 11px; line-height: 1.35; min-height: 23px;
+  }
+  #bb-q .bb-q-speed { color: var(--bb-amber); font-size: 11.5px; letter-spacing: .18em; font-weight: 900; display: block; margin-bottom: 2px; }
+  #bb-answers { display: flex; gap: 9px; }
+  .bb-ans {
+    flex: 1 1 0; min-height: 52px; padding: 8px 10px; border-radius: 13px; cursor: pointer;
+    border: 1.5px solid var(--bb-line); background: rgba(24,30,52,.9); color: var(--bb-ink);
+    font-size: 15px; font-weight: 800; letter-spacing: -.01em;
+    transition: transform .1s ease, border-color .15s ease, background .15s ease;
+  }
+  .bb-ans:active { transform: scale(.97); }
+  .bb-ans[disabled] { cursor: default; opacity: .92; }
+  .bb-ans.bb-right { border-color: var(--bb-green); background: rgba(34,197,139,.18); color: var(--bb-green); }
+  .bb-ans.bb-wrongpick { border-color: var(--bb-rose); background: rgba(255,84,112,.16); color: var(--bb-rose); }
+  .bb-ans sub { font-size: .68em; }
+  #bb-q sub { font-size: .68em; }
+  #bb-teach sub { font-size: .68em; }
+
+  /* Overlays: start / pause / gameover / victory / error, all centered cards */
+  .bb-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(6,8,14,.7); backdrop-filter: blur(3px); text-align: center; z-index: 10;
+  }
+  .bb-overlay[hidden] { display: none; }
+  .bb-card {
+    background: var(--bb-bg2); border: 1.5px solid var(--bb-line); border-radius: 20px;
+    padding: 22px 20px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 12px; align-items: center;
+  }
+  .bb-card h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+  .bb-card h1 .bb-accent { color: var(--bb-indigo); }
+  .bb-card h1 .bb-accent-win { color: var(--bb-green); }
+  .bb-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--bb-muted); }
+  .bb-card .bb-big { font-size: 46px; font-weight: 900; color: var(--bb-amber); line-height: 1; }
+  .bb-card ul { margin: 4px 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--bb-muted); line-height: 1.6; text-align: left; }
+  .bb-card ul b { color: var(--bb-ink); }
+  .bb-primary {
+    min-height: 50px; padding: 0 26px; border-radius: 14px; border: 0; cursor: pointer;
+    background: var(--bb-indigo); color: #fff; font-size: 15px; font-weight: 850; width: 100%;
+  }
+  .bb-primary:active { transform: scale(.98); }
+  .bb-ghost {
+    min-height: 44px; padding: 0 20px; border-radius: 12px; cursor: pointer;
+    background: transparent; color: var(--bb-muted); border: 1px solid var(--bb-line);
+    font-size: 13px; font-weight: 700; width: 100%;
+  }
+  .bb-row { display: flex; gap: 10px; width: 100%; }
+  .bb-row > * { flex: 1 1 0; }
+  [dir="rtl"] #bb-hud { flex-direction: row-reverse; }
+  [dir="rtl"] #bb-answers { flex-direction: row-reverse; }
+</style>
+</head>
+<body>
+<div id="bb-root">
+  <div id="bb-wrap">
+    <canvas id="bb-canvas"></canvas>
+
+    <div id="bb-hud">
+      <span class="bb-pill bb-boss">Boss <span id="bb-boss-n">1</span>/<span id="bb-boss-total">5</span></span>
+      <span class="bb-pill bb-score">Score <span id="bb-score-n">0</span></span>
+      <span class="bb-pill bb-hearts" id="bb-hearts-pill">&#9829; <span id="bb-hearts-n">4</span></span>
+      <span class="bb-pill bb-combo" id="bb-combo-pill">x<span id="bb-combo-n">1</span></span>
+      <span class="bb-pill bb-timer" id="bb-timer-pill">&#9200; <span id="bb-timer-n">30</span></span>
+      <span id="bb-spacer"></span>
+      <button type="button" class="bb-iconbtn" id="bb-mute-btn" aria-label="Mute">&#128266;</button>
+      <button type="button" class="bb-iconbtn" id="bb-pause-btn" aria-label="Pause">&#10073;&#10073;</button>
+      <button type="button" class="bb-iconbtn" id="bb-fs-btn" aria-label="Fullscreen">&#9974;</button>
+      <button type="button" class="bb-iconbtn" id="bb-close-btn" aria-label="Close">&#10005;</button>
+    </div>
+
+    <div id="bb-bossbar" aria-live="polite">
+      <div id="bb-boss-name">PRISM<span class="bb-shard-pips" id="bb-shard-pips"></span></div>
+      <div id="bb-hpwrap">
+        <div id="bb-hpfill"></div>
+        <div class="bb-tick" style="left:66%"></div>
+        <div class="bb-tick" style="left:33%"></div>
+      </div>
+    </div>
+
+    <div id="bb-banner" class="bb-hide" aria-live="polite">
+      <div class="bb-banner-rule" id="bb-banner-rule"></div>
+      <div class="bb-banner-sub" id="bb-banner-sub"></div>
+    </div>
+
+    <div id="bb-teach" aria-live="polite"></div>
+
+    <div id="bb-prompt" class="bb-hide">
+      <div id="bb-q"></div>
+      <div id="bb-answers"></div>
+    </div>
+
+    <!-- START -->
+    <div class="bb-overlay" id="bb-start">
+      <div class="bb-card">
+        <h1>Boss <span class="bb-accent">Blurt</span></h1>
+        <p>A crystalline Misconception Boss blocks the way. Answer the
+           questions to fire damage beams at it -- but every WRONG answer
+           HEALS the boss and costs a heart. Chain correct answers for a
+           combo multiplier. At 66% and 33% HP the boss raises shard
+           shields: a quick-fire speed round breaks them. Shatter all five
+           bosses to win the run.</p>
+        <ul>
+          <li><b>Answer:</b> tap a button, or keys 1 2 3 (Y / N work too)</li>
+          <li><b>Combo:</b> streaks multiply your damage up to 3x</li>
+          <li><b>Clock:</b> 30s per question (soft: no heart, small heal)</li>
+          <li><b>Hearts:</b> 4 per boss; a shattered boss restores them</li>
+        </ul>
+        <button type="button" class="bb-primary" id="bb-start-btn">Start</button>
+      </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="bb-overlay" id="bb-pause" hidden>
+      <div class="bb-card">
+        <h1>Paused</h1>
+        <p id="bb-pause-rule"></p>
+        <button type="button" class="bb-primary" id="bb-resume-btn">Resume</button>
+        <button type="button" class="bb-ghost" id="bb-quit-btn">Quit game</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER (defeat) -->
+    <div class="bb-overlay" id="bb-over" hidden>
+      <div class="bb-card">
+        <h1>Game Over</h1>
+        <div class="bb-big" id="bb-final-score">0</div>
+        <p id="bb-final-line"></p>
+        <div class="bb-row">
+          <button type="button" class="bb-ghost" id="bb-done-btn">Done</button>
+          <button type="button" class="bb-primary" id="bb-again-btn">Play again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VICTORY -->
+    <div class="bb-overlay" id="bb-win" hidden>
+      <div class="bb-card">
+        <h1>All bosses <span class="bb-accent-win">shattered</span></h1>
+        <div class="bb-big" id="bb-win-score">0</div>
+        <p id="bb-win-line"></p>
+        <div class="bb-row">
+          <button type="button" class="bb-ghost" id="bb-win-done-btn">Done</button>
+          <button type="button" class="bb-primary" id="bb-win-again-btn">Play again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR / EMPTY POOL -->
+    <div class="bb-overlay" id="bb-error" hidden>
+      <div class="bb-card">
+        <h1>Not ready</h1>
+        <p id="bb-error-msg">No game content available yet.</p>
+        <button type="button" class="bb-primary" id="bb-error-btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function (global) {
+  'use strict';
+
+  // ======================================================================
+  //  DEMO POOL  (standalone review only; host normally passes its own pool)
+  //  4 axes; first-encounter simple + chemistry-correct. category values are
+  //  the canonical class strings the RULES map onto.  DO NOT EDIT CONTENTS.
+  //  Copied VERBATIM from salt_invaders.html (byte-frozen across siblings).
+  // ======================================================================
+  var DEMO_POOL = [
+    // --- salt vs acid vs base ---
+    { label: 'NaCl',    category: 'salt' },   // table salt: neutral ionic salt
+    { label: 'KNO3',    category: 'salt' },   // potassium nitrate: a salt
+    { label: 'CaCO3',   category: 'salt' },   // calcium carbonate: a salt
+    { label: 'Na2SO4',  category: 'salt' },   // sodium sulfate: a salt
+    { label: 'HCl',     category: 'acid' },   // hydrochloric acid
+    { label: 'H2SO4',   category: 'acid' },   // sulfuric acid
+    { label: 'HNO3',    category: 'acid' },   // nitric acid
+    { label: 'NaOH',    category: 'base' },   // sodium hydroxide: strong base
+    { label: 'KOH',     category: 'base' },   // potassium hydroxide: base
+    { label: 'NH3',     category: 'base' },   // ammonia: weak base
+    // --- ionic vs covalent (bonding) ---
+    { label: 'NaCl',    category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'MgO',     category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'KBr',     category: 'ionic' },     // ionic
+    { label: 'CO2',     category: 'covalent' },  // two nonmetals = covalent
+    { label: 'H2O',     category: 'covalent' },  // covalent (molecular)
+    { label: 'CH4',     category: 'covalent' },  // covalent
+    // --- element vs compound ---
+    { label: 'O2',      category: 'element' },   // one kind of atom = element
+    { label: 'Fe',      category: 'element' },   // iron: element
+    { label: 'He',      category: 'element' },   // helium: element
+    { label: 'H2O',     category: 'compound' },  // 2 elements bonded = compound
+    { label: 'CO2',     category: 'compound' },  // compound
+    { label: 'NaCl',    category: 'compound' },  // compound
+    // --- endothermic vs exothermic (first-encounter energy sign) ---
+    { label: 'Combustion',    category: 'exothermic' },  // releases heat
+    { label: 'Freezing',      category: 'exothermic' },  // releases heat
+    { label: 'Neutralize',    category: 'exothermic' },  // acid+base releases heat
+    { label: 'Melting ice',   category: 'endothermic' }, // absorbs heat
+    { label: 'Photosynth',    category: 'endothermic' }, // absorbs light energy
+    { label: 'Evaporate',     category: 'endothermic' }  // absorbs heat
+  ];
+
+  // Rule axes: each has a set of categories. A wave picks an axis; questions
+  // are built on that axis. `one` is the singular class noun used in prompts
+  // and in the teaching toast ("NH3 is a BASE").  Same table as the siblings.
+  var AXES = [
+    { id: 'saltab',  cats: ['salt', 'acid', 'base'],
+      nice: { salt: 'SALTS', acid: 'acids', base: 'bases' },
+      one:  { salt: 'SALT', acid: 'ACID', base: 'BASE' } },
+    { id: 'bond',    cats: ['ionic', 'covalent'],
+      nice: { ionic: 'IONIC compounds', covalent: 'COVALENT compounds' },
+      one:  { ionic: 'IONIC compound', covalent: 'COVALENT compound' } },
+    { id: 'ec',      cats: ['element', 'compound'],
+      nice: { element: 'ELEMENTS', compound: 'COMPOUNDS' },
+      one:  { element: 'ELEMENT', compound: 'COMPOUND' } },
+    { id: 'energy',  cats: ['endothermic', 'exothermic'],
+      nice: { endothermic: 'ENDOTHERMIC changes', exothermic: 'EXOTHERMIC changes' },
+      one:  { endothermic: 'ENDOTHERMIC change', exothermic: 'EXOTHERMIC change' } }
+  ];
+
+  // ---------------------------------------------------------------- helpers
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function cssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+      v = v && v.trim();
+      return v || fallback;
+    } catch (e) { return fallback; }
+  }
+  // parse "#rrggbb" (or a browser-resolved rgb string) into {r,g,b} for sprite tinting
+  function toRGB(c) {
+    c = String(c || '').trim();
+    var m = c.match(/^#?([0-9a-f]{6})$/i);
+    if (m) { var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+    m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+    if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+    return { r: 200, g: 200, b: 200 };
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function anFor(noun) { return /^[AEIOU]/.test(String(noun)) ? 'an' : 'a'; }
+
+  // =====================================================================
+  //  Chemical-formula subscript rendering  (ported from salt_invaders.html)
+  //  Source stays ASCII ("H2O"); digits are STYLED as subscripts at render
+  //  time -- never unicode-substituted. Two consumers share this logic:
+  //    - the canvas score popups                (drawFormula, measureFormula)
+  //    - the DOM prompt / buttons / toast       (formulaHTML)
+  //  Only formula-looking tokens get subscripted so plain words ("Melting
+  //  ice", "Photosynth", "Neutralize") are left completely untouched.
+  // =====================================================================
+  var FORMULA_RE = /^(?=[^0-9]*[A-Z])(?=.*[0-9])[A-Za-z0-9().+\-]+$/;
+  function looksLikeFormula(tok) {
+    return typeof tok === 'string' && tok.length <= 16 && FORMULA_RE.test(tok);
+  }
+  function formulaRuns(tok) {
+    var runs = [], i = 0, n = tok.length;
+    while (i < n) {
+      var ch = tok[i];
+      if (ch >= '0' && ch <= '9') {
+        var j = i; while (j < n && tok[j] >= '0' && tok[j] <= '9') j++;
+        var prev = i > 0 ? tok[i - 1] : '';
+        var sub = (i > 0) && ((prev >= 'A' && prev <= 'Z') || (prev >= 'a' && prev <= 'z') || prev === ')');
+        runs.push({ t: tok.slice(i, j), sub: sub });
+        i = j;
+      } else {
+        var k = i; while (k < n && !(tok[k] >= '0' && tok[k] <= '9')) k++;
+        runs.push({ t: tok.slice(i, k), sub: false });
+        i = k;
+      }
+    }
+    return runs;
+  }
+  function formulaHTML(str) {
+    var out = [];
+    var parts = String(str == null ? '' : str).split(/(\s+)/); // keep whitespace
+    for (var p = 0; p < parts.length; p++) {
+      var seg = parts[p];
+      if (/^\s+$/.test(seg) || !looksLikeFormula(seg)) { out.push(esc(seg)); continue; }
+      var runs = formulaRuns(seg), buf = '';
+      for (var r = 0; r < runs.length; r++) {
+        buf += runs[r].sub ? '<sub>' + esc(runs[r].t) + '</sub>' : esc(runs[r].t);
+      }
+      out.push(buf);
+    }
+    return out.join('');
+  }
+  function measureFormula(ctx, str, fontPx, subScale) {
+    if (!looksLikeFormula(str)) return ctx.measureText(str).width;
+    var runs = formulaRuns(str), w = 0, baseFont = ctx.font;
+    var subFont = baseFont.replace(/(\d+(?:\.\d+)?)px/, function () { return (fontPx * subScale).toFixed(1) + 'px'; });
+    for (var r = 0; r < runs.length; r++) {
+      ctx.font = runs[r].sub ? subFont : baseFont;
+      w += ctx.measureText(runs[r].t).width;
+    }
+    ctx.font = baseFont;
+    return w;
+  }
+  function drawFormula(ctx, str, cx, cy, fontPx, subScale, subDrop) {
+    if (!looksLikeFormula(str)) {
+      var savedA0 = ctx.textAlign; ctx.textAlign = 'center';
+      ctx.fillText(str, cx, cy);
+      ctx.textAlign = savedA0;
+      return;
+    }
+    var total = measureFormula(ctx, str, fontPx, subScale);
+    var baseFont = ctx.font;
+    var subFont = baseFont.replace(/(\d+(?:\.\d+)?)px/, function () { return (fontPx * subScale).toFixed(1) + 'px'; });
+    var savedAlign = ctx.textAlign;
+    ctx.textAlign = 'left';
+    var x = cx - total / 2, runs = formulaRuns(str);
+    for (var r = 0; r < runs.length; r++) {
+      if (runs[r].sub) {
+        ctx.font = subFont;
+        ctx.fillText(runs[r].t, x, cy + fontPx * subDrop);
+        x += ctx.measureText(runs[r].t).width;
+      } else {
+        ctx.font = baseFont;
+        ctx.fillText(runs[r].t, x, cy);
+        x += ctx.measureText(runs[r].t).width;
+      }
+    }
+    ctx.font = baseFont;
+    ctx.textAlign = savedAlign;
+  }
+
+  // Keep only pool items whose category belongs to one of our axes; index by category.
+  function buildAxisIndex(pool) {
+    var byCat = {};
+    for (var i = 0; i < pool.length; i++) {
+      var it = pool[i];
+      if (!it || !it.label || !it.category) continue;
+      var cat = String(it.category).toLowerCase();
+      var label = String(it.label);
+      // guard: strip any accidental underscores / em-dashes from visible labels
+      label = label.replace(/[_—–]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!label) continue;
+      (byCat[cat] || (byCat[cat] = [])).push({ label: label, category: cat, rowId: it.rowId, lo: it.lo });
+    }
+    var usableAxes = [];
+    for (var a = 0; a < AXES.length; a++) {
+      var ax = AXES[a];
+      var present = ax.cats.filter(function (c) { return byCat[c] && byCat[c].length; });
+      // an axis is playable if a subject can be drawn AND at least one decoy category exists
+      if (present.length >= 2) usableAxes.push({ axis: ax, present: present });
+    }
+    return { byCat: byCat, usableAxes: usableAxes };
+  }
+
+  // =====================================================================
+  //  Tiny WebAudio synth  (no assets; all SFX generated on the fly)
+  // =====================================================================
+  function Sfx() { this.ctx = null; this.muted = false; }
+  Sfx.prototype._ac = function () {
+    if (this.ctx) return this.ctx;
+    try {
+      var AC = global.AudioContext || global.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+    } catch (e) { this.ctx = null; }
+    return this.ctx;
+  };
+  Sfx.prototype.resume = function () { var c = this._ac(); if (c && c.state === 'suspended') { try { c.resume(); } catch (e) {} } };
+  Sfx.prototype._blip = function (type, f0, f1, dur, gain) {
+    if (this.muted) return;
+    var c = this._ac(); if (!c) return;
+    try {
+      var t = c.currentTime;
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t);
+      if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  };
+  Sfx.prototype.beam    = function () { this._blip('square', 240, 880, 0.14, 0.07); };
+  Sfx.prototype.hit     = function () { this._blip('triangle', 520, 900, 0.12, 0.11); this._blip('square', 300, 120, 0.10, 0.05); };
+  Sfx.prototype.heal    = function () { this._blip('sawtooth', 180, 70, 0.24, 0.13); };  // wrong answer: boss heals
+  Sfx.prototype.softmiss= function () { this._blip('sine', 300, 120, 0.16, 0.08); };     // timeout
+  Sfx.prototype.wave    = function () { var s = this; this._blip('triangle', 440, 660, 0.10, 0.08); setTimeout(function () { s._blip('triangle', 660, 880, 0.14, 0.09); }, 90); };
+  Sfx.prototype.phase   = function () { var s = this; this._blip('sawtooth', 90, 60, 0.5, 0.12); setTimeout(function () { s._blip('triangle', 300, 700, 0.22, 0.08); }, 160); };
+  Sfx.prototype.shard   = function () { this._blip('sine', 1200, 1700, 0.09, 0.08); this._blip('triangle', 900, 500, 0.14, 0.05); };
+  Sfx.prototype.tick    = function () { this._blip('sine', 980, 980, 0.04, 0.05); };
+  Sfx.prototype.shatter = function () { var s = this; [0, 70, 140, 220].forEach(function (d, i) { setTimeout(function () { s._blip('triangle', 500 + i * 180, 900 + i * 180, 0.14, 0.09); }, d); }); };
+  Sfx.prototype.victory = function () { var s = this; [0, 90, 180, 300, 430].forEach(function (d, i) { setTimeout(function () { s._blip('sine', 520 + i * 130, 520 + i * 130, 0.16, 0.08); }, d); }); };
+  Sfx.prototype.defeat  = function () { var s = this; [0, 140, 300].forEach(function (d, i) { setTimeout(function () { s._blip('sawtooth', 240 - i * 60, 120 - i * 30, 0.3, 0.1); }, d); }); };
+
+  // =====================================================================
+  //  Prerendered sprites (offscreen canvases) so hot loops just blit
+  // =====================================================================
+  function makeParticleSprite(rgb, shape, px) {
+    var c = document.createElement('canvas');
+    c.width = px; c.height = px;
+    var x = c.getContext('2d');
+    x.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+    var h = px / 2;
+    if (shape === 'sq') {
+      x.fillRect(px * 0.18, px * 0.18, px * 0.64, px * 0.64);
+    } else {
+      x.beginPath(); x.moveTo(h, px * 0.12); x.lineTo(px * 0.9, px * 0.88); x.lineTo(px * 0.1, px * 0.88); x.closePath(); x.fill();
+    }
+    return c;
+  }
+  function makeStarSprite() {
+    var c = document.createElement('canvas'); c.width = 4; c.height = 4;
+    var x = c.getContext('2d');
+    var g = x.createRadialGradient(2, 2, 0, 2, 2, 2);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 4, 4);
+    return c;
+  }
+
+  // =====================================================================
+  //  CO-OP WIRING  (present but OFF: BB_COOP === false, per honesty rule)
+  //  --------------------------------------------------------------------
+  //  Council-adopted architecture (PRD_ARCADE_GAMES.md amendments 2026-07-03):
+  //    /gameRooms/<gid> = {
+  //      seed,                     // deterministic CONTENT seed only
+  //      wave, boss, hp,           // STATE: host-authoritative, hp via transaction
+  //      scores/$uid,              // batched writes, max 1 per 500ms per client
+  //      roster/$uid: {name, ts},  // presence
+  //      summary                   // late-joiner hydration snapshot
+  //    }
+  //  Join codes live in the SHARED board registry (#86):
+  //    /whiteboards/main/codes/<5-digit> = { gid, ts, kind: 'game' }
+  //  Bootstrap = the same firebase COMPAT loader pattern as
+  //  _align/core/whiteboard.module.js RT.init (script-injected compat SDK,
+  //  anonymous auth); config values = Index.core.html FIREBASE_CONFIG.
+  //  While BB_COOP is false every method returns immediately: no script tag
+  //  is injected, no network is touched, the solo game never awaits Coop.
+  // =====================================================================
+  var BB_COOP = false;   // FLAG GATE. Flipping requires the /gameRooms rules
+                         // deploy (staged in database.rules.json) + host QA.
+  var FIREBASE_CONFIG = { apiKey: 'AIzaSyC4uHZZwwn8DWumWT89aL9emLlUdilPtHw', authDomain: 'al-mokh.firebaseapp.com', databaseURL: 'https://al-mokh-default-rtdb.firebaseio.com', projectId: 'al-mokh', appId: '1:331930554141:web:11bea244e049b19a719bf4' };
+  var COOP_CDN = 'https://www.gstatic.com/firebasejs/10.12.2/';
+
+  var Coop = {
+    _app: null, _db: null, _auth: null, _booted: false,
+    _gid: null, _isHost: false, _unsubs: [],
+    _scoreTimer: null, _scorePending: null, _lastScoreTs: 0,
+
+    enabled: function () { return BB_COOP === true; },
+
+    _loadScript: function (src) {
+      return new Promise(function (res, rej) {
+        var s = document.createElement('script');
+        s.src = src; s.async = false; s.onload = res;
+        s.onerror = function () { rej(new Error('load fail ' + src)); };
+        document.head.appendChild(s);
+      });
+    },
+
+    // firebase compat bootstrap (same pattern as core RT.init)
+    init: function () {
+      if (!Coop.enabled()) return Promise.resolve(null);
+      if (Coop._booted) return Promise.resolve(Coop._db);
+      Coop._booted = true;
+      return Coop._loadScript(COOP_CDN + 'firebase-app-compat.js')
+        .then(function () {
+          return Promise.all([
+            Coop._loadScript(COOP_CDN + 'firebase-auth-compat.js'),
+            Coop._loadScript(COOP_CDN + 'firebase-database-compat.js')
+          ]);
+        })
+        .then(function () {
+          Coop._app = global.firebase.initializeApp(FIREBASE_CONFIG, 'bossblurt');
+          Coop._auth = Coop._app.auth();
+          Coop._db = Coop._app.database();
+          return Coop._auth.signInAnonymously();
+        })
+        .then(function () { return Coop._db; });
+    },
+
+    uid: function () { return Coop._auth && Coop._auth.currentUser ? Coop._auth.currentUser.uid : null; },
+
+    // HOST: create the room + a 5-digit code in the shared board registry.
+    // seed drives CONTENT generation only (council amendment 2).
+    createRoom: function (seed, bossIdx, hp) {
+      if (!Coop.enabled()) return Promise.resolve(null);
+      return Coop.init().then(function (db) {
+        var gid = db.ref('gameRooms').push().key;
+        var code = String(10000 + Math.floor(Math.random() * 90000));
+        var codeRef = db.ref('whiteboards/main/codes/' + code);
+        return codeRef.transaction(function (cur) {
+          if (cur !== null) return; // taken -> abort, caller retries
+          return { gid: gid, ts: global.firebase.database.ServerValue.TIMESTAMP, kind: 'game' };
+        }).then(function (res) {
+          if (!res.committed) return Coop.createRoom(seed, bossIdx, hp); // rare collision: retry
+          Coop._gid = gid; Coop._isHost = true;
+          return db.ref('gameRooms/' + gid).set({
+            seed: seed, wave: 1, boss: bossIdx, hp: hp,
+            createdAt: global.firebase.database.ServerValue.TIMESTAMP,
+            summary: { wave: 1, boss: bossIdx, hp: hp }
+          }).then(function () { return { gid: gid, code: code }; });
+        });
+      });
+    },
+
+    // CLIENT: join by 5-digit code; hydrate from the summary node first
+    // (late-joiner rule), then live-subscribe. Clients render, never derive.
+    joinByCode: function (code, onState) {
+      if (!Coop.enabled()) return Promise.resolve(null);
+      return Coop.init().then(function (db) {
+        return db.ref('whiteboards/main/codes/' + String(code)).once('value');
+      }).then(function (snap) {
+        var v = snap && snap.val();
+        if (!v || v.kind !== 'game' || !v.gid) throw new Error('bad code');
+        Coop._gid = v.gid; Coop._isHost = false;
+        var db = Coop._db;
+        return db.ref('gameRooms/' + v.gid + '/summary').once('value').then(function (s) {
+          if (onState) { try { onState(s.val(), true); } catch (e) {} }  // hydrate
+          var ref = db.ref('gameRooms/' + v.gid);
+          var h = ref.on('value', function (ss) { if (onState) { try { onState(ss.val(), false); } catch (e) {} } });
+          Coop._unsubs.push(function () { ref.off('value', h); });
+          return v.gid;
+        });
+      });
+    },
+
+    roster: function (name) {
+      if (!Coop.enabled() || !Coop._gid) return Promise.resolve(null);
+      var uid = Coop.uid(); if (!uid) return Promise.resolve(null);
+      var ref = Coop._db.ref('gameRooms/' + Coop._gid + '/roster/' + uid);
+      try { ref.onDisconnect().remove(); } catch (e) {}
+      return ref.set({ name: String(name || 'player'), ts: global.firebase.database.ServerValue.TIMESTAMP });
+    },
+
+    // HOST ONLY: boss hp moves through an RTDB TRANSACTION (authoritative
+    // host, council amendment 1). delta<0 damage, delta>0 heal; clamped.
+    hostTransactHp: function (delta, maxHp) {
+      if (!Coop.enabled() || !Coop._isHost || !Coop._gid) return Promise.resolve(null);
+      return Coop._db.ref('gameRooms/' + Coop._gid + '/hp').transaction(function (cur) {
+        var v = (typeof cur === 'number' ? cur : maxHp) + delta;
+        return clamp(v, 0, maxHp);
+      });
+    },
+
+    // HOST ONLY: wave/boss transitions + the late-joiner summary snapshot.
+    hostSetState: function (state) {
+      if (!Coop.enabled() || !Coop._isHost || !Coop._gid) return Promise.resolve(null);
+      var patch = {};
+      if (state.wave != null) patch.wave = state.wave;
+      if (state.boss != null) patch.boss = state.boss;
+      patch.summary = state;
+      return Coop._db.ref('gameRooms/' + Coop._gid).update(patch);
+    },
+
+    // ANY CLIENT: own score, batched to at most one write per 500ms
+    // (council amendment 4, free-tier write throttling).
+    sendScore: function (score) {
+      if (!Coop.enabled() || !Coop._gid) return;
+      Coop._scorePending = score;
+      if (Coop._scoreTimer) return;              // a flush is already queued
+      var wait = Math.max(0, 500 - (Date.now() - Coop._lastScoreTs));
+      Coop._scoreTimer = setTimeout(function () {
+        Coop._scoreTimer = null;
+        Coop._lastScoreTs = Date.now();
+        var uid = Coop.uid(); if (!uid) return;
+        try { Coop._db.ref('gameRooms/' + Coop._gid + '/scores/' + uid).set(Coop._scorePending); } catch (e) {}
+      }, wait);
+    },
+
+    leave: function () {
+      if (!Coop.enabled()) return;
+      if (Coop._scoreTimer) { clearTimeout(Coop._scoreTimer); Coop._scoreTimer = null; }
+      for (var i = 0; i < Coop._unsubs.length; i++) { try { Coop._unsubs[i](); } catch (e) {} }
+      Coop._unsubs.length = 0;
+      Coop._gid = null; Coop._isHost = false;
+    }
+  };
+
+  // =====================================================================
+  //  The module
+  // =====================================================================
+  var BB = {};
+  var live = null; // single active instance guard
+
+  BB.open = function (pool, opts) {
+    opts = opts || {};
+    if (opts.enabled !== true) return null;            // flag gate, matches other modules
+    if (typeof document === 'undefined') return null;
+
+    var usePool = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
+    var idx = buildAxisIndex(usePool);
+    if (!idx.usableAxes.length) {
+      showError('This game needs at least two categories from a topic (like salts and acids). Study a little further and it will unlock.');
+      return null;
+    }
+    if (live) { try { live.destroy(); } catch (e) {} live = null; }
+    live = new Game(idx, opts);
+    return live;
+  };
+  // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
+  BB.start = BB.open;
+  BB.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+
+  // ---- error overlay used before a Game exists -------------------------
+  function showError(msg) {
+    var el = document.getElementById('bb-error');
+    var m = document.getElementById('bb-error-msg');
+    if (m) m.textContent = msg;
+    if (el) el.hidden = false;
+  }
+
+  // ---- tuning constants (sim-tuned 2026-07-04, sim/bb_sim.js) ----------
+  var TUNE = {
+    hearts: 4,            // hearts per BOSS: fully RESTORED on every boss
+                          //   shatter. Sim-tuned: carrying depleted hearts
+                          //   into later bosses collapsed the full-run rate
+                          //   to 1-4% no matter the ladder; independent
+                          //   4-heart trials land the 10-20% band. 3 hearts
+                          //   put boss-1 at ~50% (too harsh), 5 near 80%.
+    dmgBase: 10,          // beam damage before the combo multiplier
+    comboStart: 3,        // consecutive correct before multiplier kicks up
+                          //   (3 not 5, per CA_REPORT lesson: long ramps
+                          //   punish honest players in short fights)
+    comboMin: 1.5,        // first multiplier tier
+    comboMax: 3.0,        // multiplier ceiling
+    comboRamp: 0.25,      // +0.25x per correct past comboStart
+    healWrong: 16,        // boss heal on a wrong answer (base, x boss healMul)
+    healTimeout: 8,       // boss heal on a soft-timer expiry (half pressure,
+                          //   no heart: the 30s clock is SOFT by design)
+    waveQ: 10,            // questions per wave (rule axis rotates per wave)
+    qTimerSpeed: 8,       // seconds per question inside a shard-shield round
+    shieldShards: 3,      // shards per shield phase
+    phaseAt: [0.66, 0.33],// shield phases at these HP fractions (once each)
+    scoreHit: 10,         // score per correct (x combo)
+    scoreShard: 15,       // bonus per shard broken
+    scoreBoss: 100,       // bonus per boss shattered (x boss number)
+    resolveSec: 0.85,     // beam/heal animation beat between answer + next
+    interSec: 1.6,        // boss-shatter celebration beat
+    hitstopMs: 80,        // freeze on a damage hit (house kit spec)
+    shakePx: 3,           // screenshake magnitude (house kit spec: 3px)
+    shakeMs: 60,
+    tickBelow: 5          // timer tick sfx + blink under this many seconds
+  };
+
+  // The 5-boss ladder (sim-tuned, see header + sim/bb_sim.js).
+  // Raw hp is FLAT on purpose: the HP bar renders a percentage, so raw hp is
+  // invisible to the player, and every hp ramp the sim tried pushed the
+  // full-run clear rate below the 10% floor. Escalation the player actually
+  // FEELS = the heal multiplier (wrongs hurt more), the shrinking question
+  // clock, and the geometry/name changes.
+  var BOSSES = [
+    { name: 'PRISM',        sides: 6, hp: 140, healMul: 1.0,  timer: 30 },
+    { name: 'LATTICE',      sides: 5, hp: 140, healMul: 1.1,  timer: 24 },
+    { name: 'OBELISK',      sides: 4, hp: 140, healMul: 1.2,  timer: 19 },
+    { name: 'HELIX',        sides: 7, hp: 140, healMul: 1.3,  timer: 15 },
+    { name: 'FRACTAL CORE', sides: 8, hp: 140, healMul: 1.4,  timer: 12 }
+  ];
+
+  // =====================================================================
+  //  Game instance
+  // =====================================================================
+  function Game(idx, opts) {
+    var self = this;
+    this.idx = idx;
+    this.opts = opts;
+    this.rtl = !!opts.rtl;
+    this.reduced = false;
+    try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
+    this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+
+    // DOM
+    this.canvas = document.getElementById('bb-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    if (this.rtl) document.documentElement.setAttribute('dir', 'rtl');
+
+    // theme colors (resolved once; standalone falls back to hex)
+    this.col = {
+      ink: cssVar('--ink', '#eaf0ff'),
+      muted: cssVar('--muted', '#9aa7c7'),
+      indigo: cssVar('--indigo', '#6c5cff'),
+      green: cssVar('--green', '#22c58b'),
+      rose: cssVar('--rose', '#ff5470'),
+      amber: cssVar('--amber', '#ffb020'),
+      line: cssVar('--line', '#2a3355')
+    };
+    this.rgb = {
+      green: toRGB(this.col.green), rose: toRGB(this.col.rose),
+      amber: toRGB(this.col.amber), indigo: toRGB(this.col.indigo),
+      steel: { r: 176, g: 190, b: 220 }
+    };
+
+    this.sfx = new Sfx();
+
+    this.sprites = {
+      pGreenSq: makeParticleSprite(this.rgb.green, 'sq', 10),
+      pGreenTri: makeParticleSprite(this.rgb.green, 'tri', 10),
+      pRoseSq: makeParticleSprite(this.rgb.rose, 'sq', 10),
+      pRoseTri: makeParticleSprite(this.rgb.rose, 'tri', 10),
+      pSteelSq: makeParticleSprite(this.rgb.steel, 'sq', 10),
+      pSteelTri: makeParticleSprite(this.rgb.steel, 'tri', 10),
+      pIndigoSq: makeParticleSprite(this.rgb.indigo, 'sq', 10),
+      pIndigoTri: makeParticleSprite(this.rgb.indigo, 'tri', 10),
+      pAmberSq: makeParticleSprite(this.rgb.amber, 'sq', 10),
+      star: makeStarSprite()
+    };
+
+    // ---- run state ----
+    this.state = 'start';      // start | playing | paused | over | victory
+    this.qphase = 'idle';      // idle | ask | resolve | inter (boss transition)
+    this.score = 0;
+    this.hearts = TUNE.hearts;
+    this.wave = 0;             // global 10-question wave count (summary.wave)
+    this.qInWave = 0;
+    this.seen = 0;             // questions resolved (incl. timeouts)
+    this.correct = 0;
+    this.streak = 0;
+    this.combo = 1;
+    this.rule = null;          // {axis, present}
+    this.lastAxisId = null;
+    this.q = null;             // current question object
+    this.qTimer = 0;
+    this._lastTickSec = -1;
+
+    // boss state
+    this.bossIdx = 0;
+    this.bossHp = 0;
+    this.bossMaxHp = 0;
+    this.shield = null;        // null | {shards}
+    this.phaseDone = [false, false];
+    this.bossesDown = 0;
+
+    // fx state
+    this.beams = [];           // {x0,y0,x1,y1,life,max,color}
+    this.wisps = [];           // heal wisps rising into the boss
+    this.particles = [];
+    this.popups = [];
+    this.stars = [];
+    this.shake = 0;
+    this.hitstop = 0;
+    this.flash = 0;
+    this.goodFlash = 0;
+    this.bossFlash = 0;        // white hit flash on the crystal
+    this.bossPulse = 0;        // scale pop on hit
+    this.bossSpin = 0;
+    this.shatterT = 0;         // >0 while a boss-shatter celebration runs
+    this.resolveT = 0;         // countdown between answer and next question
+    this.cracks = [];          // precomputed crack polylines, revealed by damage
+
+    this.W = 0; this.H = 0; this.dpr = 1; this.t = 0; this.last = 0;
+
+    this._bind();
+    this._resize();
+    this._showOverlay('bb-start');
+    this._syncHud();
+    this._raf = requestAnimationFrame(function (t) { self._loop(t); });
+  }
+
+  Game.prototype._byId = function (id) { return document.getElementById(id); };
+
+  Game.prototype._bind = function () {
+    var self = this;
+    this._handlers = [];
+    function on(el, ev, fn, opt) { if (!el) return; el.addEventListener(ev, fn, opt); self._handlers.push([el, ev, fn, opt]); }
+
+    on(this._byId('bb-start-btn'), 'click', function () { self.sfx.resume(); self._begin(); });
+    on(this._byId('bb-again-btn'), 'click', function () { self.sfx.resume(); self._reset(); self._begin(); });
+    on(this._byId('bb-win-again-btn'), 'click', function () { self.sfx.resume(); self._reset(); self._begin(); });
+    on(this._byId('bb-done-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('bb-win-done-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('bb-error-btn'), 'click', function () { self._byId('bb-error').hidden = true; self.destroy(); if (self.onClose) { try { self.onClose(self._summary()); } catch (e) {} } });
+    on(this._byId('bb-pause-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('bb-resume-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('bb-quit-btn'), 'click', function () { self._gameOver(true); });
+    on(this._byId('bb-close-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('bb-fs-btn'), 'click', function () { self._toggleFullscreen(); });
+    on(this._byId('bb-mute-btn'), 'click', function () { self._toggleMute(); });
+
+    // keyboard: 1/2/3 select answers; Y/N for yes-no; P pause; M mute
+    this._onKey = function (e) {
+      if (self.state !== 'playing') {
+        if (e.key === 'Enter' && self.state === 'start') { self.sfx.resume(); self._begin(); }
+        return;
+      }
+      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { self._togglePause(); return; }
+      if (e.key === 'm' || e.key === 'M') { self._toggleMute(); return; }
+      if (self.qphase !== 'ask' || !self.q) return;
+      var i = -1;
+      if (e.key === '1') i = 0;
+      else if (e.key === '2') i = 1;
+      else if (e.key === '3') i = 2;
+      else if ((e.key === 'y' || e.key === 'Y') && self.q.type === 'yesno') i = self.q.yesIndex;
+      else if ((e.key === 'n' || e.key === 'N') && self.q.type === 'yesno') i = 1 - self.q.yesIndex;
+      if (i >= 0 && i < self.q.answers.length) { self._answer(i); e.preventDefault(); }
+    };
+    on(document, 'keydown', this._onKey);
+
+    this._onResize = function () { self._resize(); };
+    on(global, 'resize', this._onResize);
+    on(global, 'orientationchange', this._onResize);
+
+    this._onVis = function () { if (document.hidden && self.state === 'playing') self._togglePause(); };
+    on(document, 'visibilitychange', this._onVis);
+  };
+
+  Game.prototype._resize = function () {
+    var wrap = document.getElementById('bb-wrap');
+    var r = wrap.getBoundingClientRect();
+    this.dpr = clamp(global.devicePixelRatio || 1, 1, 2.5);
+    this.W = Math.round(r.width);
+    this.H = Math.round(r.height);
+    this.canvas.width = Math.round(this.W * this.dpr);
+    this.canvas.height = Math.round(this.H * this.dpr);
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this._buildStars();
+  };
+
+  Game.prototype._buildStars = function () {
+    this.stars = [];
+    if (this.reduced) return;   // reduced-motion kills parallax (keeps play)
+    var layers = [
+      { n: 100, sp: 10, a: 0.30, s: 1.4 },
+      { n: 50,  sp: 22, a: 0.15, s: 2.1 },
+      { n: 25,  sp: 40, a: 0.05, s: 3.0 }
+    ];
+    for (var L = 0; L < layers.length; L++) {
+      var cfg = layers[L];
+      for (var i = 0; i < cfg.n; i++) {
+        this.stars.push({ x: rand(0, this.W), y: rand(0, this.H), sp: cfg.sp, a: cfg.a, s: cfg.s });
+      }
+    }
+  };
+
+  // ---- overlays ---------------------------------------------------------
+  Game.prototype._showOverlay = function (id) {
+    ['bb-start', 'bb-pause', 'bb-over', 'bb-win', 'bb-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = (o !== id);
+    });
+  };
+  Game.prototype._hideOverlays = function () {
+    ['bb-start', 'bb-pause', 'bb-over', 'bb-win', 'bb-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = true;
+    });
+  };
+
+  Game.prototype._reset = function () {
+    this.score = 0; this.hearts = TUNE.hearts; this.wave = 0; this.qInWave = 0;
+    this.seen = 0; this.correct = 0; this.streak = 0; this.combo = 1;
+    this.rule = null; this.lastAxisId = null; this.q = null; this.qTimer = 0;
+    this.bossIdx = 0; this.bossHp = 0; this.bossMaxHp = 0; this.shield = null;
+    this.phaseDone = [false, false]; this.bossesDown = 0;
+    this.beams.length = 0; this.wisps.length = 0; this.particles.length = 0; this.popups.length = 0;
+    this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0;
+    this.bossFlash = 0; this.bossPulse = 0; this.shatterT = 0; this.resolveT = 0;
+    this.qphase = 'idle';
+  };
+
+  Game.prototype._begin = function () {
+    this._hideOverlays();
+    this.state = 'playing';
+    this._spawnBoss(0);
+    this._nextWave(true);
+    this._syncHud();
+  };
+
+  Game.prototype._togglePause = function () {
+    if (this.state === 'playing') {
+      this.state = 'paused';
+      var p = document.getElementById('bb-pause-rule');
+      if (p && this.rule) p.textContent = 'Wave rule: ' + this.rule.axis.cats.map(function (c) { return c; }).join(' vs ') + '. Boss ' + (this.bossIdx + 1) + ' of ' + BOSSES.length + '.';
+      this._showOverlay('bb-pause');
+    } else if (this.state === 'paused') {
+      this.state = 'playing';
+      this._hideOverlays();
+      this.last = 0; // avoid a big dt jump
+    }
+  };
+
+  Game.prototype._toggleMute = function () {
+    this.sfx.muted = !this.sfx.muted;
+    var b = this._byId('bb-mute-btn');
+    if (b) { b.innerHTML = this.sfx.muted ? '&#128263;' : '&#128266;'; b.setAttribute('aria-label', this.sfx.muted ? 'Unmute' : 'Mute'); }
+  };
+
+  // ---- bosses ------------------------------------------------------------
+  Game.prototype._spawnBoss = function (i) {
+    var def = BOSSES[i];
+    this.bossIdx = i;
+    this.bossMaxHp = def.hp;
+    this.bossHp = def.hp;
+    this.shield = null;
+    this.phaseDone = [false, false];
+    this.bossSpin = 0;
+    this._buildCracks(def.sides);
+    var nm = this._byId('bb-boss-name');
+    if (nm) nm.firstChild.nodeValue = def.name;
+    this._syncBossBar();
+    this._syncHud();
+  };
+
+  Game.prototype._buildCracks = function (sides) {
+    // precomputed jagged polylines radiating from the core; revealed as HP drops
+    this.cracks = [];
+    var n = 6;
+    for (var i = 0; i < n; i++) {
+      var a = (i / n) * Math.PI * 2 + rand(-0.3, 0.3);
+      var segs = [], r0 = 0.15;
+      var steps = 3 + ((Math.random() * 3) | 0);
+      var ang = a;
+      for (var s = 0; s < steps; s++) {
+        var r1 = r0 + rand(0.18, 0.32);
+        ang += rand(-0.5, 0.5);
+        segs.push({ a: ang, r: r1 });
+        r0 = r1;
+      }
+      this.cracks.push(segs);
+    }
+  };
+
+  Game.prototype._bossCenter = function () {
+    return { x: this.W * 0.5, y: this.H * 0.335, r: Math.min(this.W, this.H) * 0.135 };
+  };
+
+  // ---- waves + questions --------------------------------------------------
+  Game.prototype._nextWave = function (first) {
+    this.wave++;
+    this.qInWave = 0;
+    // rotate the axis: avoid an immediate repeat when >1 usable axis
+    var pool = this.idx.usableAxes;
+    var choice = pick(pool);
+    if (pool.length > 1 && this.lastAxisId) {
+      var guard = 0;
+      while (choice.axis.id === this.lastAxisId && guard++ < 8) choice = pick(pool);
+    }
+    this.lastAxisId = choice.axis.id;
+    this.rule = choice;
+    this._showBanner(first ? 'boss' : 'wave');
+    if (!first) this.sfx.wave();
+    this._askQuestion();
+  };
+
+  Game.prototype._showBanner = function (kind) {
+    var rEl = document.getElementById('bb-banner-rule');
+    var sEl = document.getElementById('bb-banner-sub');
+    var banner = document.getElementById('bb-banner');
+    var ax = this.rule.axis;
+    var names = this.rule.present.map(function (c) { return ax.one[c] || c; }).join(' vs ');
+    if (kind === 'boss') {
+      if (rEl) rEl.innerHTML = esc('BOSS ' + (this.bossIdx + 1) + ': ') + '<span class="bb-banner-hot">' + esc(BOSSES[this.bossIdx].name) + '</span>';
+      if (sEl) sEl.textContent = 'Wave ' + this.wave + ' rule: ' + names + '. Wrong answers HEAL it.';
+    } else if (kind === 'shield') {
+      if (rEl) rEl.innerHTML = '<span class="bb-banner-hot">SHARD SHIELD</span>' + esc(' -- speed round');
+      if (sEl) sEl.textContent = 'Quick yes/no: each correct answer breaks a shard (' + TUNE.qTimerSpeed + 's clock).';
+    } else {
+      if (rEl) rEl.innerHTML = esc('WAVE ' + this.wave + ' -- ') + '<span class="bb-banner-hot">' + esc(names) + '</span>';
+      if (sEl) sEl.textContent = 'New rule axis. ' + BOSSES[this.bossIdx].timer + 's soft clock per question.';
+    }
+    if (banner) {
+      banner.classList.remove('bb-hide');
+      clearTimeout(this._bannerT);
+      var self = this;
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('bb-hide'); }, kind === 'wave' ? 2400 : 3000);
+    }
+  };
+
+  // Build one question on the current axis straight from the pool.
+  // types: yesno (2 buttons) | what (label -> pick category) | which
+  // (category -> pick label among 3). Speed rounds force yesno.
+  Game.prototype._makeQuestion = function () {
+    var ax = this.rule.axis, present = this.rule.present, byCat = this.idx.byCat;
+    var speed = !!this.shield;
+    var type;
+    if (speed) type = 'yesno';
+    else {
+      var roll = Math.random();
+      type = roll < 0.4 ? 'yesno' : (roll < 0.7 ? 'what' : 'which');
+    }
+
+    if (type === 'which') {
+      // "Which of these is a SALT?" -- needs 3 distinct labels: 1 target + 2 decoys
+      var tcat = pick(present);
+      var decCats = present.filter(function (c) { return c !== tcat; });
+      var target = pick(byCat[tcat]);
+      var decoyPool = [];
+      for (var d = 0; d < decCats.length; d++) {
+        var arr = byCat[decCats[d]];
+        for (var k = 0; k < arr.length; k++) {
+          var cand = arr[k];
+          if (cand.label === target.label) continue;
+          // guard: a host pool could file the same label under two cats of
+          // one axis; exclude any decoy label that also exists in the target
+          // category so the "right" answer is never ambiguous.
+          var alsoTarget = byCat[tcat].some(function (t) { return t.label === cand.label; });
+          if (alsoTarget) continue;
+          if (decoyPool.some(function (p) { return p.label === cand.label; })) continue;
+          decoyPool.push(cand);
+        }
+      }
+      if (decoyPool.length >= 2) {
+        var decoys = shuffle(decoyPool).slice(0, 2);
+        var answers = shuffle([
+          { html: formulaHTML(target.label), correct: true, item: target },
+          { html: formulaHTML(decoys[0].label), correct: false, item: decoys[0] },
+          { html: formulaHTML(decoys[1].label), correct: false, item: decoys[1] }
+        ]);
+        var noun = ax.one[tcat];
+        return {
+          type: 'which', axis: ax, subject: target, tcat: tcat,
+          promptHTML: 'Which of these is ' + esc(anFor(noun)) + ' <b>' + esc(noun) + '</b>?',
+          answers: answers
+        };
+      }
+      type = 'yesno'; // not enough distinct decoy labels -> fall back
+    }
+
+    if (type === 'what') {
+      // "What is NaCl?" -- pick the category (up to 3 buttons)
+      var item = pick(byCat[pick(present)]);
+      var cats = shuffle(present).slice(0, 3);
+      if (cats.indexOf(item.category) < 0) { cats[0] = item.category; cats = shuffle(cats); }
+      var ans = cats.map(function (c) {
+        return { html: esc(ax.one[c] || c), correct: c === item.category, cat: c };
+      });
+      return {
+        type: 'what', axis: ax, subject: item, tcat: item.category,
+        promptHTML: 'What is <b>' + formulaHTML(item.label) + '</b>?',
+        answers: ans
+      };
+    }
+
+    // yesno: "Is NaCl a SALT?" -- 50% the asked category is the true one
+    var it = pick(byCat[pick(present)]);
+    var askTrue = Math.random() < 0.5;
+    var others = present.filter(function (c) { return c !== it.category; });
+    var askedCat = (askTrue || !others.length) ? it.category : pick(others);
+    var isYes = askedCat === it.category;
+    var yesFirst = Math.random() < 0.5;
+    var yesBtn = { html: 'YES', correct: isYes, yes: true };
+    var noBtn = { html: 'NO', correct: !isYes, yes: false };
+    var nounA = ax.one[askedCat];
+    return {
+      type: 'yesno', axis: ax, subject: it, tcat: it.category, askedCat: askedCat,
+      yesIndex: yesFirst ? 0 : 1,
+      promptHTML: (this.shield ? '<span class="bb-q-speed">SPEED ROUND</span>' : '') +
+        'Is <b>' + formulaHTML(it.label) + '</b> ' + esc(anFor(nounA)) + ' <b>' + esc(nounA) + '</b>?',
+      answers: yesFirst ? [yesBtn, noBtn] : [noBtn, yesBtn]
+    };
+  };
+
+  Game.prototype._askQuestion = function () {
+    if (this.state !== 'playing' && this.state !== 'paused') return;
+    this.q = this._makeQuestion();
+    this.qphase = 'ask';
+    this.qTimer = this.shield ? TUNE.qTimerSpeed : BOSSES[this.bossIdx].timer;
+    this._lastTickSec = -1;
+    this._renderPrompt();
+    this._syncHud();
+  };
+
+  Game.prototype._renderPrompt = function () {
+    var card = this._byId('bb-prompt');
+    var qEl = this._byId('bb-q');
+    var ansEl = this._byId('bb-answers');
+    if (!card || !qEl || !ansEl) return;
+    qEl.innerHTML = this.q.promptHTML;
+    ansEl.innerHTML = '';
+    var self = this;
+    for (var i = 0; i < this.q.answers.length; i++) {
+      (function (idx) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'bb-ans';
+        b.innerHTML = self.q.answers[idx].html;
+        b.addEventListener('click', function () { self.sfx.resume(); self._answer(idx); });
+        ansEl.appendChild(b);
+      })(i);
+    }
+    card.classList.remove('bb-hide');
+    card.classList.toggle('bb-speed', !!this.shield);
+  };
+
+  Game.prototype._lockButtons = function (chosenIdx) {
+    var ansEl = this._byId('bb-answers');
+    if (!ansEl) return;
+    var btns = ansEl.children;
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].disabled = true;
+      if (this.q && this.q.answers[i]) {
+        if (this.q.answers[i].correct) btns[i].classList.add('bb-right');
+        else if (i === chosenIdx) btns[i].classList.add('bb-wrongpick');
+      }
+    }
+  };
+
+  // ---- answer resolution (the CORE educational branch) --------------------
+  Game.prototype._answer = function (idx) {
+    if (this.state !== 'playing' || this.qphase !== 'ask' || !this.q) return;
+    var a = this.q.answers[idx];
+    if (!a) return;
+    this.qphase = 'resolve';
+    this.resolveT = TUNE.resolveSec;
+    this.seen++;
+    this._lockButtons(idx);
+
+    if (a.correct) {
+      this.correct++;
+      this.streak++;
+      this._updateCombo();
+      if (this.shield) this._breakShard();
+      else this._dealDamage();
+      this._emit(this.q.subject, 1);
+    } else {
+      this.streak = 0; this.combo = 1;
+      this._loseHeart();
+      this._bossHeal(TUNE.healWrong * BOSSES[this.bossIdx].healMul, true);
+      this._teachWrong(idx);
+      this.sfx.heal();
+      this._emit(this.q.subject, 0);
+      if (this.hearts <= 0) { this._gameOver(false); return; }
+    }
+    this._syncHud();
+  };
+
+  Game.prototype._timeoutQuestion = function () {
+    // SOFT clock: no heart. The boss sips a half heal and the combo breaks.
+    if (this.qphase !== 'ask' || !this.q) return;
+    this.qphase = 'resolve';
+    this.resolveT = TUNE.resolveSec;
+    this.seen++;
+    this._lockButtons(-1);
+    this.streak = 0; this.combo = 1;
+    this._bossHeal(TUNE.healTimeout * BOSSES[this.bossIdx].healMul, false);
+    this._teachTimeout();
+    this.sfx.softmiss();
+    this._emit(this.q.subject, 0);
+    this._syncHud();
+  };
+
+  Game.prototype._updateCombo = function () {
+    if (this.streak < TUNE.comboStart) { this.combo = 1; return; }
+    var over = this.streak - TUNE.comboStart;
+    this.combo = clamp(TUNE.comboMin + over * TUNE.comboRamp, TUNE.comboMin, TUNE.comboMax);
+  };
+
+  Game.prototype._dealDamage = function () {
+    var c = this._bossCenter();
+    var dmg = Math.round(TUNE.dmgBase * this.combo);
+    var gain = Math.round(TUNE.scoreHit * this.combo);
+    this.score += gain;
+    this.bossHp = Math.max(0, this.bossHp - dmg);
+    // co-op hook (host-authoritative HP; dead while BB_COOP=false)
+    if (Coop.enabled()) { Coop.hostTransactHp(-dmg, this.bossMaxHp); Coop.sendScore(this.score); }
+    this._fireBeam(this.col.green);
+    this._burst(c.x, c.y, this.rgb.green, 15, 'green');
+    this._popup(c.x, c.y - c.r * 0.4, '-' + dmg + (this.combo > 1 ? ' x' + this.combo.toFixed(1) : ''), this.col.green);
+    this.bossFlash = 0.5; this.bossPulse = 0.5; this.goodFlash = 0.4;
+    this._addShake(); this._hitstop();
+    this.sfx.beam(); this.sfx.hit();
+
+    if (this.bossHp <= 0) { this._bossShattered(); return; }
+    this._checkPhase();
+  };
+
+  Game.prototype._checkPhase = function () {
+    var frac = this.bossHp / this.bossMaxHp;
+    for (var p = 0; p < TUNE.phaseAt.length; p++) {
+      if (!this.phaseDone[p] && frac <= TUNE.phaseAt[p]) {
+        this.phaseDone[p] = true;
+        this.shield = { shards: TUNE.shieldShards };
+        this._showBanner('shield');
+        this.sfx.phase();
+        var c = this._bossCenter();
+        this._burst(c.x, c.y, this.rgb.indigo, 20, 'indigo');
+        break; // one phase per crossing; a huge hit triggers the next later
+      }
+    }
+    this._syncBossBar();
+  };
+
+  Game.prototype._breakShard = function () {
+    var c = this._bossCenter();
+    var gain = Math.round(TUNE.scoreHit * this.combo) + TUNE.scoreShard;
+    this.score += gain;
+    this.shield.shards--;
+    if (Coop.enabled()) Coop.sendScore(this.score);
+    this._fireBeam(this.col.amber);
+    // burst at the shard orbit, not the core (the shield took the hit)
+    var ang = rand(0, 6.2832);
+    this._burst(c.x + Math.cos(ang) * c.r * 1.5, c.y + Math.sin(ang) * c.r * 1.5, this.rgb.indigo, 12, 'indigo');
+    this._popup(c.x, c.y - c.r * 0.4, 'SHARD +' + gain, this.col.amber);
+    this.bossFlash = 0.25;
+    this._addShake(); this._hitstop();
+    this.sfx.shard();
+    if (this.shield.shards <= 0) {
+      this.shield = null;
+      this._popup(c.x, c.y, 'SHIELD DOWN', this.col.indigo);
+      this.sfx.wave();
+    }
+    this._syncBossBar();
+  };
+
+  Game.prototype._bossHeal = function (amt, hard) {
+    var c = this._bossCenter();
+    amt = Math.round(amt);
+    this.bossHp = Math.min(this.bossMaxHp, this.bossHp + amt);
+    if (Coop.enabled()) Coop.hostTransactHp(amt, this.bossMaxHp);
+    this.flash = hard ? 0.9 : 0.45;
+    this._popup(c.x, c.y - c.r * 0.4, '+' + amt, this.col.rose);
+    // rose wisps rise from the prompt into the core
+    var n = this.reduced ? 4 : 10;
+    for (var i = 0; i < n; i++) {
+      this.wisps.push({
+        x: this.W * 0.5 + rand(-80, 80), y: this.H * 0.8,
+        tx: c.x + rand(-c.r * 0.4, c.r * 0.4), ty: c.y + rand(-c.r * 0.3, c.r * 0.3),
+        t: 0, dur: rand(0.5, 0.9)
+      });
+    }
+    if (hard) this._addShake(true);
+    this._syncBossBar();
+  };
+
+  Game.prototype._loseHeart = function () {
+    this.hearts--;
+    var pill = this._byId('bb-hearts-pill');
+    if (pill) { pill.classList.remove('bb-pulse'); void pill.offsetWidth; pill.classList.add('bb-pulse'); }
+  };
+
+  Game.prototype._bossShattered = function () {
+    var c = this._bossCenter();
+    this.bossesDown++;
+    var bonus = TUNE.scoreBoss * (this.bossIdx + 1);
+    this.score += bonus;
+    if (Coop.enabled()) { Coop.sendScore(this.score); Coop.hostSetState({ wave: this.wave, boss: this.bossIdx + 1, hp: 0 }); }
+    // geometric shatter: a big triangle/square burst + white core flash
+    this._burst(c.x, c.y, this.rgb.indigo, this.reduced ? 12 : 42, 'indigo');
+    this._burst(c.x, c.y, this.rgb.steel, this.reduced ? 8 : 26, 'steel');
+    this._burst(c.x, c.y, this.rgb.amber, this.reduced ? 6 : 18, 'amber');
+    this._popup(c.x, c.y, BOSSES[this.bossIdx].name + ' SHATTERED +' + bonus, this.col.amber);
+    this.bossFlash = 1; this.goodFlash = 0.8;
+    this._addShake(true); if (!this.reduced) this.hitstop = 0.22;
+    this.sfx.shatter();
+    this.shield = null;
+    this._syncBossBar();
+
+    if (this.bossIdx >= BOSSES.length - 1) { this._victory(); return; }
+    // the shatter RESTORES your hearts to full (sim-tuned: see TUNE.hearts),
+    // then an intermission beat before the next boss
+    this.hearts = TUNE.hearts;
+    this.qphase = 'inter';
+    this.resolveT = TUNE.interSec;
+    var card = this._byId('bb-prompt'); if (card) card.classList.add('bb-hide');
+  };
+
+  // ---- teaching toasts -----------------------------------------------------
+  Game.prototype._toast = function (html) {
+    var el = document.getElementById('bb-teach');
+    if (!el) return;
+    el.innerHTML = html;
+    el.classList.add('bb-on');
+    clearTimeout(this._teachT);
+    var self = this;
+    this._teachT = setTimeout(function () { if (el) el.classList.remove('bb-on'); }, 2400);
+  };
+
+  Game.prototype._teachWrong = function (chosenIdx) {
+    var q = this.q, ax = q.axis;
+    var subjNoun = ax.one[q.subject.category] || String(q.subject.category).toUpperCase();
+    var html;
+    if (q.type === 'yesno') {
+      var truth = (q.askedCat === q.subject.category) ? 'YES' : 'NO';
+      html = formulaHTML(q.subject.label) + ' is ' + esc(anFor(subjNoun)) + ' <b>' + esc(subjNoun) + '</b> -- so the answer was ' + esc(truth);
+    } else if (q.type === 'what') {
+      var pickedCat = q.answers[chosenIdx].cat;
+      var pickedNoun = ax.one[pickedCat] || pickedCat;
+      html = formulaHTML(q.subject.label) + ' is ' + esc(anFor(subjNoun)) + ' <b>' + esc(subjNoun) + '</b>, not ' + esc(anFor(pickedNoun)) + ' ' + esc(pickedNoun);
+    } else { // which
+      var chosen = q.answers[chosenIdx].item;
+      var chosenNoun = ax.one[chosen.category] || chosen.category;
+      var wantNoun = ax.one[q.tcat] || q.tcat;
+      html = formulaHTML(chosen.label) + ' is ' + esc(anFor(chosenNoun)) + ' <b>' + esc(chosenNoun) + '</b> -- you needed ' + esc(anFor(wantNoun)) + ' ' + esc(wantNoun);
+    }
+    this._toast(html);
+  };
+
+  Game.prototype._teachTimeout = function () {
+    var q = this.q, ax = q.axis;
+    var html;
+    if (q.type === 'which') {
+      var wantNoun = ax.one[q.tcat] || q.tcat;
+      html = 'Time! ' + formulaHTML(q.subject.label) + ' was the ' + esc(wantNoun);
+    } else {
+      var subjNoun = ax.one[q.subject.category] || q.subject.category;
+      html = 'Time! ' + formulaHTML(q.subject.label) + ' is ' + esc(anFor(subjNoun)) + ' <b>' + esc(subjNoun) + '</b>';
+    }
+    this._toast(html);
+  };
+
+  Game.prototype._emit = function (item, score) {
+    if (!this.onEmit || !item || item.rowId == null) return;
+    try { this.onEmit(item.rowId, item.lo || null, 'boss', score ? 1 : 0, 1); } catch (er) {}
+  };
+
+  // ---- juice ---------------------------------------------------------------
+  Game.prototype._addShake = function (big) {
+    if (this.reduced) return;
+    this.shake = TUNE.shakeMs / 1000 * (big ? 1.6 : 1);
+  };
+  Game.prototype._hitstop = function () {
+    if (this.reduced) return;
+    this.hitstop = TUNE.hitstopMs / 1000;
+  };
+  Game.prototype._burst = function (x, y, rgb, n, kind) {
+    if (this.reduced) n = Math.min(n, 6);
+    var sq = this.sprites['p' + cap(kind) + 'Sq'] || this.sprites.pSteelSq;
+    var tri = this.sprites['p' + cap(kind) + 'Tri'] || this.sprites.pSteelTri;
+    for (var i = 0; i < n; i++) {
+      var a = rand(0, 6.2832), sp = rand(60, 280);
+      this.particles.push({
+        x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
+        life: rand(0.3, 0.6), size: rand(6, 13),
+        rot: rand(0, 6.28), vr: rand(-9, 9),
+        spr: (Math.random() < 0.5) ? sq : tri
+      });
+    }
+  };
+  Game.prototype._popup = function (x, y, text, color) {
+    this.popups.push({ x: x, y: y, text: text, color: color, life: 0.95, vy: -50 });
+  };
+  Game.prototype._fireBeam = function (color) {
+    var c = this._bossCenter();
+    this.beams.push({
+      x0: this.W * 0.5, y0: this.H * 0.78,
+      x1: c.x + rand(-c.r * 0.3, c.r * 0.3), y1: c.y + rand(-c.r * 0.2, c.r * 0.2),
+      life: 0.28, max: 0.28, color: color
+    });
+  };
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ---- update ----------------------------------------------------------
+  Game.prototype._update = function (dt) {
+    var i;
+
+    if (this.hitstop > 0) {
+      this.hitstop = Math.max(0, this.hitstop - dt);
+      if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
+      return;
+    }
+
+    this.bossSpin += dt * (this.shield ? 0.9 : 0.35);
+    if (this.bossFlash > 0) this.bossFlash = Math.max(0, this.bossFlash - dt * 2.4);
+    if (this.bossPulse > 0) this.bossPulse = Math.max(0, this.bossPulse - dt * 2.6);
+
+    // question clock (only while a question is live)
+    if (this.qphase === 'ask' && this.q) {
+      this.qTimer -= dt;
+      var secs = Math.ceil(this.qTimer);
+      if (secs !== this._lastTickSec) {
+        this._lastTickSec = secs;
+        if (secs <= TUNE.tickBelow && secs > 0) this.sfx.tick();
+        this._syncTimerPill(secs);
+      }
+      if (this.qTimer <= 0) this._timeoutQuestion();
+    }
+
+    // resolve / intermission countdown -> next question
+    if ((this.qphase === 'resolve' || this.qphase === 'inter') && this.state === 'playing') {
+      this.resolveT -= dt;
+      if (this.resolveT <= 0) {
+        if (this.qphase === 'inter') {
+          this._spawnBoss(this.bossIdx + 1);
+          this._nextWave(true);
+        } else {
+          this.qInWave++;
+          if (this.qInWave >= TUNE.waveQ) this._nextWave(false);
+          else this._askQuestion();
+        }
+      }
+    }
+
+    // parallax stars fall
+    if (this.stars.length) {
+      for (i = 0; i < this.stars.length; i++) {
+        var st = this.stars[i];
+        st.y += st.sp * dt;
+        if (st.y > this.H) { st.y = -2; st.x = rand(0, this.W); }
+      }
+    }
+
+    // beams decay
+    for (i = this.beams.length - 1; i >= 0; i--) {
+      var b = this.beams[i];
+      b.life -= dt;
+      if (b.life <= 0) this.beams.splice(i, 1);
+    }
+    // heal wisps ease toward the core
+    for (i = this.wisps.length - 1; i >= 0; i--) {
+      var w = this.wisps[i];
+      w.t += dt;
+      if (w.t >= w.dur) { this.wisps.splice(i, 1); continue; }
+    }
+    // particles
+    for (i = this.particles.length - 1; i >= 0; i--) {
+      var p = this.particles[i];
+      p.life -= dt;
+      if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.rot += p.vr * dt;
+    }
+    // popups
+    for (i = this.popups.length - 1; i >= 0; i--) {
+      var pp = this.popups[i];
+      pp.life -= dt; pp.y += pp.vy * dt;
+      if (pp.life <= 0) this.popups.splice(i, 1);
+    }
+
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
+    if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.2);
+    if (this.goodFlash > 0) this.goodFlash = Math.max(0, this.goodFlash - dt * 3.5);
+  };
+
+  // ---- render ----------------------------------------------------------
+  Game.prototype._draw = function () {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    ctx.clearRect(0, 0, W, H);
+
+    this._drawStars();
+
+    ctx.save();
+    if (this.shake > 0 && !this.reduced) {
+      var m = TUNE.shakePx * (this.shake / (TUNE.shakeMs / 1000));
+      ctx.translate(rand(-m, m), rand(-m, m));
+    }
+
+    this._drawBoss();
+
+    // beams (bright core + soft glow, drawn over the boss)
+    for (var i = 0; i < this.beams.length; i++) {
+      var b = this.beams[i];
+      var k = clamp(b.life / b.max, 0, 1);
+      ctx.globalAlpha = k;
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = 6 * k + 1.5;
+      ctx.shadowColor = b.color; ctx.shadowBlur = this.reduced ? 0 : 12;
+      ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke();
+      ctx.lineWidth = 2 * k + 0.6;
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+
+    // heal wisps: rose dots easing up into the core
+    ctx.fillStyle = this.col.rose;
+    for (i = 0; i < this.wisps.length; i++) {
+      var w = this.wisps[i];
+      var tt = w.t / w.dur, e = tt * tt * (3 - 2 * tt); // smoothstep
+      var x = w.x + (w.tx - w.x) * e, y = w.y + (w.ty - w.y) * e;
+      ctx.globalAlpha = 0.85 * (1 - tt * 0.5);
+      ctx.beginPath(); ctx.arc(x, y, 3.2 * (1 - tt * 0.4), 0, 6.2832); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // particles (blit prerendered sprites)
+    for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
+
+    // popups
+    ctx.textAlign = 'center'; ctx.font = '900 16px -apple-system, sans-serif';
+    for (i = 0; i < this.popups.length; i++) {
+      var pp = this.popups[i];
+      var kk = clamp(pp.life / 0.95, 0, 1);
+      ctx.globalAlpha = kk;
+      ctx.fillStyle = pp.color;
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = this.reduced ? 0 : 3;
+      ctx.fillText(pp.text, pp.x, pp.y);
+      ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+
+    // heal flash (rose) / damage-good flash (green), full screen
+    if (this.flash > 0) {
+      ctx.fillStyle = 'rgba(255,84,112,' + (this.flash * 0.30).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (this.goodFlash > 0) {
+      ctx.fillStyle = 'rgba(34,197,139,' + (this.goodFlash * 0.14).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+  };
+
+  Game.prototype._drawStars = function () {
+    if (!this.stars.length || this.reduced) return;
+    var ctx = this.ctx, spr = this.sprites.star;
+    for (var i = 0; i < this.stars.length; i++) {
+      var st = this.stars[i];
+      ctx.globalAlpha = st.a;
+      ctx.drawImage(spr, st.x - st.s, st.y - st.s, st.s * 2, st.s * 2);
+    }
+    ctx.globalAlpha = 1;
+  };
+
+  // The crystalline boss: rotating faceted N-gon core + inner facet lines +
+  // pulsing heart + orbiting micro-shards + damage cracks + (optionally) the
+  // 3 orbiting shard shields with a dashed ring. Pure geometry, no creature.
+  Game.prototype._drawBoss = function () {
+    if (this.state === 'start') return;
+    var ctx = this.ctx;
+    var c = this._bossCenter();
+    var def = BOSSES[this.bossIdx];
+    var sides = def.sides;
+    var frac = this.bossMaxHp ? this.bossHp / this.bossMaxHp : 1;
+    var pulse = 1 + Math.sin(this.t * 2.2) * 0.02 + this.bossPulse * 0.07;
+    var R = c.r * pulse;
+    var spin = this.bossSpin;
+
+    // aura: soft radial glow, indigo -> rose as it weakens
+    var auraCol = frac > 0.66 ? '108,92,255' : (frac > 0.33 ? '255,176,32' : '255,84,112');
+    if (!this.reduced) {
+      var g0 = ctx.createRadialGradient(c.x, c.y, R * 0.2, c.x, c.y, R * 1.9);
+      g0.addColorStop(0, 'rgba(' + auraCol + ',0.20)');
+      g0.addColorStop(1, 'rgba(' + auraCol + ',0)');
+      ctx.fillStyle = g0;
+      ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.9, 0, 6.2832); ctx.fill();
+    }
+
+    // core polygon (vertical crystal gradient) + white hit-flash overlay
+    var pts = [];
+    for (var s = 0; s < sides; s++) {
+      var a = spin + (s / sides) * 6.2832;
+      pts.push({ x: c.x + Math.cos(a) * R, y: c.y + Math.sin(a) * R });
+    }
+    var g = ctx.createLinearGradient(0, c.y - R, 0, c.y + R);
+    g.addColorStop(0, 'rgba(157,146,255,0.95)');
+    g.addColorStop(0.5, 'rgba(108,92,255,0.85)');
+    g.addColorStop(1, 'rgba(58,48,160,0.9)');
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (s = 1; s < sides; s++) ctx.lineTo(pts[s].x, pts[s].y);
+    ctx.closePath();
+    ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(234,240,255,0.5)';
+    ctx.stroke();
+
+    // inner facet lines: center to each vertex
+    ctx.strokeStyle = 'rgba(234,240,255,0.22)';
+    ctx.lineWidth = 1.2;
+    for (s = 0; s < sides; s++) {
+      ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(pts[s].x, pts[s].y); ctx.stroke();
+    }
+
+    // damage cracks: reveal more polylines as HP drops
+    var nCracks = Math.round((1 - frac) * this.cracks.length);
+    if (nCracks > 0) {
+      ctx.strokeStyle = 'rgba(12,16,32,0.75)';
+      ctx.lineWidth = 1.6;
+      for (var ci = 0; ci < nCracks && ci < this.cracks.length; ci++) {
+        var segs = this.cracks[ci];
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y);
+        for (var si = 0; si < segs.length; si++) {
+          var sr = Math.min(segs[si].r, 0.95) * R;
+          ctx.lineTo(c.x + Math.cos(segs[si].a + spin * 0.2) * sr, c.y + Math.sin(segs[si].a + spin * 0.2) * sr);
+        }
+        ctx.stroke();
+      }
+    }
+
+    // pulsing heart core
+    var hr = R * 0.22 * (1 + Math.sin(this.t * 3.1) * 0.12);
+    var hg = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, hr);
+    hg.addColorStop(0, 'rgba(255,255,255,0.95)');
+    hg.addColorStop(1, 'rgba(' + auraCol + ',0.15)');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.arc(c.x, c.y, hr, 0, 6.2832); ctx.fill();
+
+    // white hit flash overlay
+    if (this.bossFlash > 0) {
+      ctx.globalAlpha = this.bossFlash * 0.75;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (s = 1; s < sides; s++) ctx.lineTo(pts[s].x, pts[s].y);
+      ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // orbiting micro-shards (decorative satellites)
+    if (!this.reduced) {
+      ctx.fillStyle = 'rgba(176,190,220,0.75)';
+      for (s = 0; s < 5; s++) {
+        var oa = -spin * 1.6 + (s / 5) * 6.2832;
+        var ox = c.x + Math.cos(oa) * R * 1.25, oy = c.y + Math.sin(oa) * R * 1.25;
+        ctx.save(); ctx.translate(ox, oy); ctx.rotate(oa * 2);
+        ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(4, 4); ctx.lineTo(-4, 4); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // SHARD SHIELD: dashed orbit ring + the remaining big hexagonal shards
+    if (this.shield) {
+      ctx.strokeStyle = 'rgba(108,92,255,0.8)';
+      ctx.lineWidth = 2; ctx.setLineDash([7, 7]);
+      ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.55, 0, 6.2832); ctx.stroke();
+      ctx.setLineDash([]);
+      for (s = 0; s < this.shield.shards; s++) {
+        var sa = spin * 1.4 + (s / TUNE.shieldShards) * 6.2832;
+        var sx = c.x + Math.cos(sa) * R * 1.55, sy = c.y + Math.sin(sa) * R * 1.55;
+        ctx.save(); ctx.translate(sx, sy); ctx.rotate(sa + spin);
+        var sg = ctx.createLinearGradient(0, -12, 0, 12);
+        sg.addColorStop(0, 'rgba(157,146,255,0.95)');
+        sg.addColorStop(1, 'rgba(76,64,200,0.9)');
+        ctx.fillStyle = sg;
+        ctx.strokeStyle = 'rgba(234,240,255,0.65)'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (var hx = 0; hx < 6; hx++) {
+          var ha = (hx / 6) * 6.2832;
+          var px2 = Math.cos(ha) * 12, py2 = Math.sin(ha) * 12;
+          if (hx === 0) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+    }
+  };
+
+  Game.prototype._drawParticle = function (p) {
+    var ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = clamp(p.life * 2.4, 0, 1);
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.drawImage(p.spr, -p.size / 2, -p.size / 2, p.size, p.size);
+    ctx.restore();
+  };
+
+  // ---- HUD -------------------------------------------------------------
+  Game.prototype._syncHud = function () {
+    var s = document.getElementById('bb-score-n'); if (s) s.textContent = this.score;
+    var h = document.getElementById('bb-hearts-n'); if (h) h.textContent = Math.max(0, this.hearts);
+    var bn = document.getElementById('bb-boss-n'); if (bn) bn.textContent = Math.min(BOSSES.length, this.bossIdx + 1);
+    var bt = document.getElementById('bb-boss-total'); if (bt) bt.textContent = BOSSES.length;
+    var cp = document.getElementById('bb-combo-pill'), cn = document.getElementById('bb-combo-n');
+    if (cp && cn) {
+      if (this.combo > 1) { cn.textContent = this.combo.toFixed(1); cp.classList.add('bb-on'); }
+      else cp.classList.remove('bb-on');
+    }
+    this._syncTimerPill(Math.ceil(this.qTimer));
+  };
+
+  Game.prototype._syncTimerPill = function (secs) {
+    var tp = document.getElementById('bb-timer-pill'), tn = document.getElementById('bb-timer-n');
+    if (!tp || !tn) return;
+    tn.textContent = Math.max(0, secs);
+    if (this.qphase === 'ask' && secs <= TUNE.tickBelow) tp.classList.add('bb-low');
+    else tp.classList.remove('bb-low');
+  };
+
+  Game.prototype._syncBossBar = function () {
+    var fill = document.getElementById('bb-hpfill');
+    var wrap = document.getElementById('bb-hpwrap');
+    var pips = document.getElementById('bb-shard-pips');
+    var frac = this.bossMaxHp ? clamp(this.bossHp / this.bossMaxHp, 0, 1) : 0;
+    if (fill) fill.style.width = (frac * 100).toFixed(1) + '%';
+    if (wrap) {
+      wrap.classList.toggle('bb-hurt', frac <= 0.66 && frac > 0.33);
+      wrap.classList.toggle('bb-crit', frac <= 0.33);
+      wrap.classList.toggle('bb-shielded', !!this.shield);
+    }
+    if (pips) {
+      var t = '';
+      // ASCII source rule: diamond via escape, like the siblings' &#9829; hearts
+      if (this.shield) for (var i = 0; i < this.shield.shards; i++) t += '\u25C6 ';
+      pips.textContent = t.trim();
+    }
+  };
+
+  // ---- game over / victory / close --------------------------------------
+  Game.prototype._gameOver = function (quit) {
+    if (this.state === 'over' || this.state === 'victory') return;
+    this.state = 'over';
+    var card = this._byId('bb-prompt'); if (card) card.classList.add('bb-hide');
+    var fs = document.getElementById('bb-final-score'); if (fs) fs.textContent = this.score;
+    var fl = document.getElementById('bb-final-line');
+    if (fl) {
+      var acc = this.seen ? Math.round((this.correct / this.seen) * 100) : 0;
+      fl.textContent = quit
+        ? 'You reached boss ' + (this.bossIdx + 1) + ' of ' + BOSSES.length + '. Score ' + this.score + '.'
+        : BOSSES[this.bossIdx].name + ' outlasted you at boss ' + (this.bossIdx + 1) + ' of ' + BOSSES.length +
+          '. You answered ' + this.correct + ' of ' + this.seen + ' (' + acc + '%).';
+    }
+    if (!quit) this.sfx.defeat();
+    this._showOverlay('bb-over');
+  };
+
+  Game.prototype._victory = function () {
+    this.state = 'victory';
+    var card = this._byId('bb-prompt'); if (card) card.classList.add('bb-hide');
+    var ws = document.getElementById('bb-win-score'); if (ws) ws.textContent = this.score;
+    var wl = document.getElementById('bb-win-line');
+    if (wl) {
+      var acc = this.seen ? Math.round((this.correct / this.seen) * 100) : 0;
+      wl.textContent = 'All ' + BOSSES.length + ' bosses shattered. You answered ' + this.correct + ' of ' + this.seen + ' (' + acc + '%).';
+    }
+    this.sfx.victory();
+    this._showOverlay('bb-win');
+  };
+
+  Game.prototype._summary = function () {
+    return {
+      subject: this.opts.subject || null,
+      chapterLabel: this.opts.chapterLabel || null,
+      seen: this.seen,
+      correct: this.correct,
+      score: this.score,
+      wave: this.wave,
+      tool: 'boss'
+    };
+  };
+
+  Game.prototype._finishAndClose = function () {
+    var sum = this._summary();
+    this.destroy();
+    if (this.onClose) { try { this.onClose(sum); } catch (e) {} }
+  };
+
+  Game.prototype._loop = function (t) {
+    if (this.destroyed) return;
+    var self = this;
+    this._raf = requestAnimationFrame(function (tt) { self._loop(tt); });
+    if (!this.last) this.last = t;
+    var dt = (t - this.last) / 1000;
+    this.last = t;
+    dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
+    this.t += dt;
+    if (this.state === 'playing') this._update(dt);
+    this._draw();
+  };
+
+  Game.prototype._toggleFullscreen = function () {
+    var el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); // Safari desktop
+        else {
+          // iOS Safari has no element fullscreen for arbitrary DOM. Fallback:
+          // hint the user + rely on the already-fullscreen fixed overlay layout.
+          try { showToastLike('Add to Home Screen for fullscreen on iPhone/iPad.'); } catch (e) {}
+        }
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    } catch (e) {
+      try { showToastLike('Fullscreen not available here.'); } catch (er) {}
+    }
+    var self = this; setTimeout(function () { self._resize(); }, 120);
+  };
+
+  Game.prototype.destroy = function () {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.state = 'over';
+    if (this._raf) cancelAnimationFrame(this._raf);
+    clearTimeout(this._bannerT);
+    clearTimeout(this._teachT);
+    if (this._handlers) {
+      for (var i = 0; i < this._handlers.length; i++) {
+        var h = this._handlers[i];
+        try { h[0].removeEventListener(h[1], h[2], h[3]); } catch (e) {}
+      }
+      this._handlers.length = 0;
+    }
+    try { Coop.leave(); } catch (e) {}
+    try { if (this.sfx && this.sfx.ctx && this.sfx.ctx.close) this.sfx.ctx.close(); } catch (e) {}
+    try { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); } catch (e) {}
+    var te = document.getElementById('bb-teach'); if (te) te.classList.remove('bb-on');
+    var card = document.getElementById('bb-prompt'); if (card) card.classList.add('bb-hide');
+    this._hideOverlays();
+    if (live === this) live = null;
+  };
+
+  function showToastLike(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(12,16,30,.92);color:#eaf0ff;padding:10px 16px;border-radius:12px;font:600 13px -apple-system,sans-serif;z-index:200000;border:1px solid #2a3355;max-width:80%;text-align:center';
+    document.body.appendChild(t);
+    setTimeout(function () { try { document.body.removeChild(t); } catch (e) {} }, 3200);
+  }
+
+  global.BOSS_BLURT = BB;
+
+  // ---- standalone auto-boot: if opened directly (no host), start on Start btn.
+  // The host will call BOSS_BLURT.open(pool, opts) itself and this no-ops.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoBoot);
+  } else { autoBoot(); }
+  function autoBoot() {
+    setTimeout(function () {
+      if (!live && global.BOSS_BLURT && !global.__BB_HOST_DRIVEN__) {
+        global.BOSS_BLURT.open(null, {
+          enabled: true,
+          subject: 'Chemistry',
+          chapterLabel: 'Demo pool',
+          rtl: (document.documentElement.getAttribute('dir') === 'rtl'),
+          onEmit: function () {},
+          onClose: function (s) { try { showToastLike('Session score ' + (s && s.score) + '. Reopen to play again.'); } catch (e) {} }
+        });
+      }
+    }, 30);
+  }
+
+})(typeof window !== 'undefined' ? window : this);
+</script>
+</body>
+</html>
