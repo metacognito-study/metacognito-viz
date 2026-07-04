@@ -378,6 +378,112 @@
     return { r: 200, g: 200, b: 200 };
   }
 
+  // =====================================================================
+  //  Chemical-formula subscript rendering  (FIX 2, 2026-07-04)
+  //  Source stays ASCII ("H2O"); digits are STYLED as subscripts at render
+  //  time -- never unicode-substituted. Two consumers share this logic:
+  //    - the canvas capsule + score popups  (drawFormula, measureFormula)
+  //    - the DOM toast + wave banner         (formulaHTML)
+  //  Only formula-looking tokens get subscripted so plain words ("Melting
+  //  ice", "Photosynth", "Neutralize") are left completely untouched.
+  // =====================================================================
+
+  // A token looks like a chem formula if it has an UPPERCASE letter AND a
+  // digit, and is made only of letters/digits/() +- and dots (no spaces).
+  // "H2O","CO2","Na2SO4","CaCO3" -> true ; "Melting","Photosynth","O2"->O2 true,
+  // "ice","2nd" (no uppercase-letter) -> false ; multi-word strings -> false.
+  var FORMULA_RE = /^(?=[^0-9]*[A-Z])(?=.*[0-9])[A-Za-z0-9().+\-]+$/;
+  function looksLikeFormula(tok) {
+    return typeof tok === 'string' && tok.length <= 16 && FORMULA_RE.test(tok);
+  }
+
+  // Split a formula into [{t:'H',sub:false},{t:'2',sub:true},...] runs where a
+  // digit run that FOLLOWS a letter becomes a subscript. Digits that follow a
+  // ')' also subscript (e.g. "(OH)2"). A leading coefficient (digit at index 0)
+  // is NOT a subscript. Charge-like trailing +/- are kept inline.
+  function formulaRuns(tok) {
+    var runs = [], i = 0, n = tok.length;
+    while (i < n) {
+      var ch = tok[i];
+      if (ch >= '0' && ch <= '9') {
+        var j = i; while (j < n && tok[j] >= '0' && tok[j] <= '9') j++;
+        var prev = i > 0 ? tok[i - 1] : '';
+        var sub = (i > 0) && ((prev >= 'A' && prev <= 'Z') || (prev >= 'a' && prev <= 'z') || prev === ')');
+        runs.push({ t: tok.slice(i, j), sub: sub });
+        i = j;
+      } else {
+        var k = i; while (k < n && !(tok[k] >= '0' && tok[k] <= '9')) k++;
+        runs.push({ t: tok.slice(i, k), sub: false });
+        i = k;
+      }
+    }
+    return runs;
+  }
+
+  // Build subscript-aware HTML for DOM contexts. Whole string may be several
+  // words; only tokens that look like formulas get <sub>-wrapped digits, and
+  // digit runs are wrapped as <sub> ONLY when they follow a letter/')'. Always
+  // HTML-escapes. (esc() is defined later in this IIFE; safe -- called at run time.)
+  function formulaHTML(str) {
+    var out = [];
+    var parts = String(str == null ? '' : str).split(/(\s+)/); // keep whitespace
+    for (var p = 0; p < parts.length; p++) {
+      var seg = parts[p];
+      if (/^\s+$/.test(seg) || !looksLikeFormula(seg)) { out.push(esc(seg)); continue; }
+      var runs = formulaRuns(seg), buf = '';
+      for (var r = 0; r < runs.length; r++) {
+        buf += runs[r].sub ? '<sub>' + esc(runs[r].t) + '</sub>' : esc(runs[r].t);
+      }
+      out.push(buf);
+    }
+    return out.join('');
+  }
+
+  // ---- canvas measuring + drawing with subscripts ---------------------
+  // ctx.font must already be set to the FULL-size font. subScale/subDrop are
+  // fractions of the current font size. Returns total advance width in px.
+  function measureFormula(ctx, str, fontPx, subScale) {
+    if (!looksLikeFormula(str)) return ctx.measureText(str).width;
+    var runs = formulaRuns(str), w = 0, baseFont = ctx.font;
+    var subFont = baseFont.replace(/(\d+(?:\.\d+)?)px/, function () { return (fontPx * subScale).toFixed(1) + 'px'; });
+    for (var r = 0; r < runs.length; r++) {
+      ctx.font = runs[r].sub ? subFont : baseFont;
+      w += ctx.measureText(runs[r].t).width;
+    }
+    ctx.font = baseFont;
+    return w;
+  }
+  // Draw a (possibly subscripted) string centered at (cx, cy) with the CURRENT
+  // font as the full size. textBaseline should be 'middle'; digits drop by
+  // subDrop*fontPx. If not a formula, draws plainly (single fillText).
+  function drawFormula(ctx, str, cx, cy, fontPx, subScale, subDrop) {
+    if (!looksLikeFormula(str)) {
+      var savedA0 = ctx.textAlign; ctx.textAlign = 'center';
+      ctx.fillText(str, cx, cy);
+      ctx.textAlign = savedA0;
+      return;
+    }
+    var total = measureFormula(ctx, str, fontPx, subScale);
+    var baseFont = ctx.font;
+    var subFont = baseFont.replace(/(\d+(?:\.\d+)?)px/, function () { return (fontPx * subScale).toFixed(1) + 'px'; });
+    var savedAlign = ctx.textAlign;
+    ctx.textAlign = 'left';
+    var x = cx - total / 2, runs = formulaRuns(str);
+    for (var r = 0; r < runs.length; r++) {
+      if (runs[r].sub) {
+        ctx.font = subFont;
+        ctx.fillText(runs[r].t, x, cy + fontPx * subDrop);
+        x += ctx.measureText(runs[r].t).width;
+      } else {
+        ctx.font = baseFont;
+        ctx.fillText(runs[r].t, x, cy);
+        x += ctx.measureText(runs[r].t).width;
+      }
+    }
+    ctx.font = baseFont;
+    ctx.textAlign = savedAlign;
+  }
+
   // Keep only pool items whose category belongs to one of our axes; index by category.
   function buildAxisIndex(pool) {
     var byCat = {};
@@ -828,10 +934,12 @@
       var lead = this.boss
         ? 'BOSS WAVE ' + this.wave + ' -- destroy the '
         : 'WAVE ' + this.wave + ' -- destroy the ';
-      rEl.innerHTML = esc(lead) + '<span class="si-banner-target">' + esc(ax.nice[this.rule.target]) + '</span>';
+      // formulaHTML leaves plain-word category names untouched but subscripts
+      // any formula-shaped rule name a host pool might supply (FIX 2 coverage).
+      rEl.innerHTML = esc(lead) + '<span class="si-banner-target">' + formulaHTML(ax.nice[this.rule.target]) + '</span>';
     }
     if (sEl) {
-      var spare = this.rule.decoys.map(function (c) { return esc(ax.nice[c]); }).join(' and ');
+      var spare = this.rule.decoys.map(function (c) { return formulaHTML(ax.nice[c]); }).join(' and ');
       var tail = this.boss ? ' &middot; beat the 30s clock' : '';
       sEl.innerHTML = 'Spare the <span class="si-banner-spare">' + spare + '</span>' + tail;
     }
@@ -852,7 +960,9 @@
     var wanted = ax.nice[this.rule.target];
     var article = /^[AEIOU]/.test(cls) ? 'an' : 'a';
     // e.g. "NH3 is a BASE -- the rule was SALTS"  (a/an picked off the class noun)
-    el.innerHTML = esc(e.label) + ' is ' + article + ' <b>' + esc(cls) + '</b> -- the rule was ' + esc(wanted);
+    // formulaHTML subscripts the label ("NH3" -> "NH" + subscript 3); the class
+    // noun + rule text are plain words so stay esc()'d.
+    el.innerHTML = formulaHTML(e.label) + ' is ' + article + ' <b>' + esc(cls) + '</b> -- the rule was ' + esc(wanted);
     el.classList.add('si-on');
     clearTimeout(this._teachT);
     var self = this;
@@ -1008,18 +1118,44 @@
     if (!q || !q.item) return;
     var item = q.item;
     var isTarget = item.category === this.rule.target;
-    var w = 44, h = 40;   // ~40px uniform capsule (spec)
-    var x = rand(w * 0.7, this.W - w * 0.7);
+    // FIX 1 (2026-07-04): size the capsule to fit its label. Measure the label
+    // at the largest font that fits within a max width; step the font down
+    // before ever clipping (a formula must NEVER be ellipsized). Width = text
+    // advance + comfortable padding each side, clamped to [minW, maxW].
+    var fit = this._fitLabel(item.label);
+    var w = fit.w, h = 40;   // ~40px tall uniform capsule (spec); width fits label
+    var x = rand(w * 0.6, this.W - w * 0.6);
     var ent = {
       label: item.label, category: item.category, rowId: item.rowId, lo: item.lo,
       isTarget: isTarget, scanner: !!q.scanner,
-      x: x, y: -h, w: w, h: h,
+      x: x, y: -h, w: w, h: h, fontPx: fit.fontPx,
       vy: this.waveSpeed * rand(0.92, 1.12), wob: rand(0, 6.28),
       aura: q.scanner ? 0 : 0
     };
     this.entities.push(ent);
     // scanner capsules are neither target nor decoy for accounting; count real targets only
     if (isTarget && !q.scanner) this.seen++;
+  };
+
+  // Choose a font size + capsule width so the (possibly subscripted) label fits
+  // with ~14px padding each side, never clipping. Steps the font down toward a
+  // floor before clamping width; digits render at subScale for measurement so
+  // "Na2SO4" measures its true drawn width.
+  Game.prototype._LABEL = { padX: 14, minW: 40, maxW: 132, subScale: 0.72, sizes: [14, 13, 12, 11, 10, 9] };
+  Game.prototype._fitLabel = function (label) {
+    var ctx = this.ctx, L = this._LABEL;
+    var usableTextMax = L.maxW - L.padX * 2;
+    var chosen = L.sizes[L.sizes.length - 1], textW = 0;
+    for (var s = 0; s < L.sizes.length; s++) {
+      var fs = L.sizes[s];
+      ctx.font = '900 ' + fs + 'px -apple-system, "Segoe UI", sans-serif';
+      var tw = measureFormula(ctx, label, fs, L.subScale);
+      chosen = fs; textW = tw;
+      if (tw <= usableTextMax) break;   // fits at this size -> use it
+      // otherwise try the next smaller size; keep the smallest if none fit
+    }
+    var w = clamp(Math.ceil(textW + L.padX * 2), L.minW, L.maxW);
+    return { w: w, fontPx: chosen };
   };
 
   // ---- near-miss bonus -------------------------------------------------
@@ -1266,12 +1402,13 @@
     ctx.lineWidth = revealed ? 2.4 : 1.4; ctx.strokeStyle = edge; ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // ASCII label
+    // ASCII label -- font size + width were chosen at spawn to fit exactly
+    // (FIX 1), and chem formulas render with true subscripts (FIX 2).
     ctx.fillStyle = '#0c1020';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    var fs = e.label.length > 8 ? 10 : (e.label.length > 5 ? 12 : 14);
+    var fs = e.fontPx || 12;
     ctx.font = '900 ' + fs + 'px -apple-system, "Segoe UI", sans-serif';
-    ctx.fillText(e.label, x, y + 1);
+    drawFormula(ctx, e.label, x, y + 1, fs, this._LABEL.subScale, 0.22);
     ctx.textBaseline = 'alphabetic';
   };
 
