@@ -1201,6 +1201,305 @@
    "what": "Overlay shown-state: SA-SB curve (indigo solid, start pH 1.0, equivalence 7) and WA-SB curve (rose dashed, start pH 2.9, buffer flattening, equivalence 8.7) on one grid; curves named strong acid / weak acid (identities given in cell)",
    "answer_leak_check": "PASS: no callouts on the four distinguishing features (higher initial pH, buffer region, pH=pKa at half-equivalence, equivalence>7) - listing them from the comparison IS the task",
    "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 794,
+   "exIdx": 1,
+   "asset": "u_794_e1_ar_dispersion_pair.svg",
+   "mode": "example-image",
+   "what": "Two Ar atoms shown-state: atom A with momentary uneven electron cloud (shaded left, delta+ right per cell), atom B with induced complementary shift (delta- on facing side), dashed attraction arrow; delta labels verbatim from cell",
+   "answer_leak_check": "PASS: interaction never named (no London/dispersion/induced-dipole text) - naming it and explaining why it exists without a permanent dipole IS the task",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 800,
+   "exIdx": 1,
+   "asset": "u_800_e1_hcl_dipole_pair.svg",
+   "mode": "example-image",
+   "what": "Two HCl molecules shown-state: each with delta- Cl end and delta+ H end labeled (verbatim cell), aligned so the delta+ H of one faces the delta- Cl of the other, dashed attraction arrow",
+   "answer_leak_check": "PASS: no dipole-dipole naming, no comparison-to-dispersion text (explaining the alignment and the contrast with London forces IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 803,
+   "exIdx": 1,
+   "asset": "u_803_e1_h2o_hbond_pair.svg",
+   "mode": "example-image",
+   "what": "Two H2O molecules shown-state: one O-H bond points at the lone pair (drawn as two dots) of the second molecule's O; dashed line labeled 'H bond' plus delta+/delta- labels - all given per cell text",
+   "answer_leak_check": "PASS: donor and acceptor atoms NOT tagged (identifying donor vs acceptor and explaining the F/O/N requirement IS the task); only cell-given annotations drawn",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 812,
+   "exIdx": 1,
+   "asset": "u_812_e1_nacl_lattice.svg",
+   "mode": "example-image",
+   "what": "NaCl lattice shown-state: alternating small Na+ / large Cl- checkerboard (2-D slice, 6-coordination noted as in cell text), ions labeled with leader lines",
+   "answer_leak_check": "PASS: no 'ionic bonding'/electrostatic-attraction text, no discrete-molecule commentary (what holds the lattice together and why no NaCl molecules exist ARE the questions)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 822,
+   "exIdx": 1,
+   "asset": "u_822_e1_metallic_electron_sea.svg",
+   "mode": "example-image",
+   "what": "Electron-sea shown-state: 9 fixed Cu+ cores in a regular grid over a shaded mobile-electron background with small motion arrows (all elements per cell text)",
+   "answer_leak_check": "PASS: no conductivity or malleability explanation on the figure (accounting for both via the sea model IS the task); caption restates only cell-given facts",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 832,
+   "exIdx": 1,
+   "asset": "u_832_e1_alloy_two_panel.svg",
+   "mode": "example-image",
+   "what": "Alloy two-panel shown-state: substitutional (Cu host with similar-size Zn at random lattice sites) vs interstitial (Fe host with small C in gap sites); panel names + examples given per cell",
+   "answer_leak_check": "PASS: no size-requirement explanation on the figure (explaining why interstitial solutes must be much smaller IS the task); legend states only what each colour depicts",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 839,
+   "exIdx": 1,
+   "asset": "u_839_e1_diamond_network.svg",
+   "mode": "example-image",
+   "what": "Diamond lattice fragment shown-state: every interior C covalently bonded to 4 neighbours, dashed edge stubs showing the extended 3-D network, 109.5-degree note (cell-given) in caption",
+   "answer_leak_check": "PASS: no hardness / melting-point / insulation explanation, bonding type not named on the figure (those ARE the questions)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 845,
+   "exIdx": 1,
+   "asset": "u_845_e1_i2_molecular_solid.svg",
+   "mode": "example-image",
+   "what": "Solid I2 shown-state: 6 discrete I2 molecules in an ordered lattice, solid intramolecular bonds, dashed lines between neighbouring molecules; one molecule labeled I2",
+   "answer_leak_check": "PASS: the intermolecular dashed lines are NOT named (cell says they represent London dispersion, but 'what type of IMF holds the solid together' is the question - so the caption says only 'attraction between molecules'); no sublimation commentary",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 701,
+   "exIdx": 1,
+   "asset": "u_701_e1_pe_distance_h2.svg",
+   "mode": "example-image",
+   "what": "H2 PE-vs-internuclear-distance shown-state: Morse-shaped curve with minimum at r = 74 pm / -436 kJ/mol (tick values verbatim from cell), dashed zero-energy reference line",
+   "answer_leak_check": "PASS: no 'bond length'/'bond energy' labels or arrows at the minimum (attaching those labels is the 701/704 task), no force-balance annotations (the 702/706 questions), no region A/B letters",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 702,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 704,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 704,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 706,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 705,
+   "exIdx": 1,
+   "asset": "u_705_e1_pe_distance_hh_vs_hcl.svg",
+   "mode": "example-image",
+   "what": "Comparative PE-vs-distance shown-state: H-H curve (min 74 pm, -436 kJ/mol, indigo solid) and H-Cl curve (min 127 pm, -431 kJ/mol, amber dashed); minima positions and depth values printed - all verbatim cell givens",
+   "answer_leak_check": "PASS: no shorter/longer or stronger/weaker verdicts (drawing the comparison conclusions from the given numbers IS the task)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 703,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 643,
+   "exIdx": 1,
+   "asset": "u_643_e1_absorption_spectrum_label.svg",
+   "mode": "both",
+   "what": "Single-peak absorption spectrum with dashed '?' boxes at the x-axis label, y-axis label, and lambda-max slot above the peak",
+   "answer_leak_check": "PASS: no wavelength/absorbance axis text and no lambda-max value ('label the x-axis, y-axis, and lambda-max' IS the task); no photon-absorption commentary",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 647,
+   "exIdx": 1,
+   "asset": "u_647_e1_two_dye_spectra.svg",
+   "mode": "example-image",
+   "what": "Overlapping absorption spectra shown-state: dye A (indigo, peak at 450 nm) and dye B (amber dashed, peak at 620 nm), partial overlap in the 500-560 nm region, wavelength scale ticked 400-700",
+   "answer_leak_check": "PASS: no lambda-max markers or values on the peaks, overlap region unshaded (identifying each lambda-max and the interference region off the scale IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 652,
+   "exIdx": 1,
+   "asset": "u_652_e1_calibration_line.svg",
+   "mode": "example-image",
+   "what": "Beer's-law calibration shown-state: linear A-vs-c line through the origin with 4 standard points, fully gridded (A 0-0.8, c 0-8e-4 M) so A = 0.45 reads to c = 4.5e-4 M; scale chosen for a clean read (cell figure is generic '[Open graph]')",
+   "answer_leak_check": "PASS: the unknown (A = 0.45) is NOT marked - no dashed guides at 0.45, no highlighted point (performing the read-off IS the task)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 652,
+     "exIdx": 2
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 656,
+   "exIdx": 1,
+   "asset": "u_656_e1_two_calibration_slopes.svg",
+   "mode": "example-image",
+   "what": "Two A-vs-c calibration lines from the origin: steep (labeled 'at lambda-max') and shallow (labeled 'at lambda != lambda-max') - identities given per cell",
+   "answer_leak_check": "PASS: no 'more sensitive'/'preferred' verdict on either line (choosing and justifying the steeper slope IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 658,
+   "exIdx": 1,
+   "asset": "u_658_e1_two_conc_spectra.svg",
+   "mode": "example-image",
+   "what": "Same dye at two concentrations shown-state: 0.01 M (indigo) and 0.02 M (amber dashed) A-vs-lambda curves peaking at the SAME wavelength, upper curve higher everywhere; concentration labels given",
+   "answer_leak_check": "PASS: lambda-max not marked, no 'no shift' annotation, no Beer's-law conclusion text (reading which is higher and whether lambda-max shifts IS the task)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 658,
+     "exIdx": 2
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 659,
+   "exIdx": 1,
+   "asset": "u_659_e1_light_wave_label.svg",
+   "mode": "both",
+   "what": "Light wave label task: 2.5-cycle sine wave with dashed midline; crest-to-crest and midline-to-crest measurement guides drawn with dashed '?' boxes",
+   "answer_leak_check": "PASS: neither guide is named (writing 'wavelength' on the crest-to-crest guide and 'amplitude' on the midline-to-crest guide IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1462,
+   "exIdx": 1,
+   "asset": "u_1462_e1_agcl_dissolution_lines.svg",
+   "mode": "example-image",
+   "what": "AgCl dissolution shown-state: [Ag+] (indigo solid) and [Cl-] (amber dashed) drawn exactly superimposed, rising from 0 and levelling at 1.34e-5 M (verbatim cell value)",
+   "answer_leak_check": "PASS: no Qsp=Ksp/saturation annotation at the kink (explaining why the lines rise equally and what the endpoint represents IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1466,
+   "exIdx": 1,
+   "asset": "u_1466_e1_agcl_evaporation_bars.svg",
+   "mode": "example-image",
+   "what": "Before/after evaporation concentration bars: [Ag+]/[Cl-] at 1.34e-5 M before, 2.68e-5 M immediately after halving the volume (values verbatim from cell, readable off gridlines)",
+   "answer_leak_check": "PASS: no Qsp computation, no Qsp-vs-Ksp comparison, no supersaturated verdict, no precipitation arrow (all of that IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1468,
+   "exIdx": 1,
+   "asset": "u_1468_e1_ksp_hyperbola.svg",
+   "mode": "example-image",
+   "what": "Ion-product plot shown-state: [Ag+][Cl-] = 1.8e-10 hyperbola on [Cl-]/[Ag+] axes with the three regions carrying only the math labels Qsp>Ksp / Qsp=Ksp / Qsp<Ksp (cell-given structure)",
+   "answer_leak_check": "PASS (flagged judgment call): cell text describes regions with English verdicts (supersaturated/precipitation/saturated/unsaturated) but those are withheld here because stating each region's fate is the second half of the task; only the math labels are printed; no example points plotted (plotting them is the first half)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1469,
+   "exIdx": 1,
+   "asset": "u_1469_e1_common_ion_axes.svg",
+   "mode": "pad-underlay",
+   "what": "Blank concentration-time axes for the BaSO4 common-ion sketch with a single y tick at the given 0.010 M",
+   "answer_leak_check": "PASS: no curves and deliberately NO dashed line across at 0.010 (a constant line would pre-draw the [Ba2+]-stays-flat half of the answer); no common-ion-effect label",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1632,
+   "exIdx": 1,
+   "asset": "u_1632_e1_two_beaker_cell.svg",
+   "mode": "example-image",
+   "what": "Operating galvanic cell shown-state: left beaker Zn rod dissolving (Zn2+ in solution, dashed rod-to-solution arrow), right beaker Cu2+ solution with Cu specks depositing on the rod, connecting wire and KNO3 bridge - all states verbatim from cell",
+   "answer_leak_check": "PASS: no anode/cathode labels, no oxidation/reduction text, no half-reactions, no electron-flow arrow on the wire (identifying the oxidation beaker and writing the half-reactions IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1689,
+   "exIdx": 1,
+   "asset": "u_1689_e1_electrode_atom_count.svg",
+   "mode": "example-image",
+   "what": "Electrode bookkeeping shown-state: Before = 4 Zn + 4 Cu atoms on rods; After 2 mol e- transferred = 3 Zn (one dashed Zn2+ in solution) + 5 Cu (verbatim cell counts)",
+   "answer_leak_check": "PASS: no loses-mass/gains-mass verdicts, no mole-electron relationship stated (reading the counts and relating them to electrons IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1690,
+   "exIdx": 1,
+   "asset": "u_1690_e1_halfcell_ion_counts.svg",
+   "mode": "example-image",
+   "what": "Half-cell ion bookkeeping shown-state: anode side Zn2+ count 2 -> 3, cathode side Cu2+ count 3 -> 2 (verbatim cell counts; half-cell names are cell-given)",
+   "answer_leak_check": "PASS: no why-explanations, no charge-imbalance/salt-bridge commentary (explaining the count changes and the no-bridge consequence IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1691,
+   "exIdx": 1,
+   "asset": "u_1691_e1_salt_bridge_migration.svg",
+   "mode": "example-image",
+   "what": "Salt-bridge migration shown-state: KNO3 bridge between named half-cells with K+ arrows toward the cathode side and NO3- arrows toward the anode side - arrows and half-cell names are cell-given",
+   "answer_leak_check": "PASS: no charge-balance WHY explanation and no bridge-removed consequence on the figure (both are the questions; the migration directions themselves are given in the cell text)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1692,
+   "exIdx": 1,
+   "asset": "u_1692_e1_anode_halfcell_species.svg",
+   "mode": "example-image",
+   "what": "Zn-ZnSO4 anode half-cell shown-state: Zn(s) rod, Zn2+ ions (with rod-to-solution forming arrow), SO4^2- ions, NO3- arriving from a salt-bridge stub - species identities and behaviours verbatim from cell",
+   "answer_leak_check": "PASS: no reactant/product/spectator tags on any species and no net ionic equation (classifying each species and writing the equation IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1699,
+   "exIdx": 1,
+   "asset": "u_1699_e1_salt_bridge_start.svg",
+   "mode": "example-image",
+   "what": "Salt bridge at start shown-state: equal K+ and NO3- inside the bridge between the named cells (left Zn anode / right Cu cathode, given in cell text)",
+   "answer_leak_check": "PASS: NO migration arrows (unlike u_1691 where arrows are the given) - deciding which ion migrates LEFT as Zn2+ accumulates IS the task",
+   "serves": []
   }
  ]
 }

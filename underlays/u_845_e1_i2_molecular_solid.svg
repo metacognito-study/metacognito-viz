@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_845_e1 I2 molecular solid shown-state | chem row 845 | discrete I2 molecules in a lattice, solid intramolecular bonds, dashed intermolecular attractions UNNAMED (naming the IMF is the task) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="284" y1="150" x2="356" y2="150" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="444" y1="150" x2="516" y2="150" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="284" y1="290" x2="356" y2="290" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="444" y1="290" x2="516" y2="290" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="240" y1="172" x2="240" y2="268" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="400" y1="172" x2="400" y2="268" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="560" y1="172" x2="560" y2="268" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="220" y1="150" x2="260" y2="150" stroke="var(--ink,#18213a)" stroke-width="4"/>
+<circle cx="220" cy="150" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/><circle cx="260" cy="150" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="380" y1="150" x2="420" y2="150" stroke="var(--ink,#18213a)" stroke-width="4"/>
+<circle cx="380" cy="150" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/><circle cx="420" cy="150" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="540" y1="150" x2="580" y2="150" stroke="var(--ink,#18213a)" stroke-width="4"/>
+<circle cx="540" cy="150" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/><circle cx="580" cy="150" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="220" y1="290" x2="260" y2="290" stroke="var(--ink,#18213a)" stroke-width="4"/>
+<circle cx="220" cy="290" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/><circle cx="260" cy="290" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="380" y1="290" x2="420" y2="290" stroke="var(--ink,#18213a)" stroke-width="4"/>
+<circle cx="380" cy="290" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/><circle cx="420" cy="290" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="540" y1="290" x2="580" y2="290" stroke="var(--ink,#18213a)" stroke-width="4"/>
+<circle cx="540" cy="290" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/><circle cx="580" cy="290" r="20" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="243" y1="122" x2="220" y2="90" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<text x="204" y="82" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >I₂</text>
+<text x="400" y="398" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >solid line = bond within a molecule · dashed = attraction between molecules</text>
+</svg>

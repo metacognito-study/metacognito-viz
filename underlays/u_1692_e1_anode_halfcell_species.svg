@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1692_e1 anode half-cell species shown-state | chem row 1692 | Zn(s) rod, Zn2+ increasing (rod-to-solution dashed arrow), SO4^2- present, NO3- arriving from bridge stub - species names given; NO reactant/product/spectator tags, NO net ionic equation -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<path d="M240,140 L240,400 L560,400 L560,140" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="243" y="230" width="314" height="167" fill="var(--indigo-soft,#eef0ff)" fill-opacity="0.5"/>
+<rect x="330" y="90" width="30" height="240" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="2.5"/>
+<text x="345" y="78" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn(s)</text>
+<path d="M480,140 L480,190" fill="none" stroke="var(--muted,#606b84)" stroke-width="12" stroke-linecap="round"/>
+<text x="480" y="126" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >from salt bridge</text>
+<line x1="480" y1="196" x2="480" y2="232" stroke="var(--rose,#e8548c)" stroke-width="2.5" stroke-dasharray="5 5" marker-end="url(#ax)"/>
+<text x="480" y="258" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NO₃⁻</text>
+<line x1="362" y1="270" x2="392" y2="284" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#ax)"/>
+<text x="412" y="292" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn²⁺</text>
+<text x="290" y="270" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn²⁺</text>
+<text x="300" y="345" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn²⁺</text>
+<text x="435" y="330" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >SO₄²⁻</text>
+<text x="290" y="382" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >SO₄²⁻</text>
+<text x="500" y="378" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >SO₄²⁻</text>
+<text x="400" y="438" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn–ZnSO₄ half-cell · dashed arrows = Zn²⁺ forming, NO₃⁻ arriving</text>
+</svg>

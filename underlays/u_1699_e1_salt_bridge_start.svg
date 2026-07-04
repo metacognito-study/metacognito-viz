@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1699_e1 salt bridge at start shown-state | chem row 1699 | equal K+ and NO3- inside the bridge, NO migration arrows (which ion migrates LEFT is the question - contrast with u_1691 where arrows are the given) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<path d="M140,180 L140,340 L300,340 L300,180" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="143" y="240" width="154" height="97" fill="var(--indigo-soft,#eef0ff)" fill-opacity="0.6"/>
+<text x="220" y="372" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >left cell — Zn anode</text>
+<path d="M500,180 L500,340 L660,340 L660,180" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="503" y="240" width="154" height="97" fill="var(--amber-soft,#fdf3d8)" fill-opacity="0.6"/>
+<text x="580" y="372" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >right cell — Cu cathode</text>
+<rect x="255" y="150" width="290" height="70" rx="24" fill="var(--surface-2,#f7f9fc)" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<text x="300" y="180" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >K⁺</text>
+<text x="380" y="180" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >K⁺</text>
+<text x="460" y="180" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >K⁺</text>
+<text x="340" y="207" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NO₃⁻</text>
+<text x="420" y="207" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NO₃⁻</text>
+<text x="500" y="207" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NO₃⁻</text>
+<text x="400" y="120" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >salt bridge at the start — equal K⁺ and NO₃⁻</text>
+</svg>

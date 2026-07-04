@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_659_e1 light wave label task | chem row 659 | sine wave + dashed midline; crest-to-crest and midline-to-crest measurement guides drawn but NAMELESS ? boxes (naming wavelength/amplitude IS the task) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="150" y1="230" x2="650" y2="230" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<path d="M160,230 C184,150 216,150 240,230 C264,310 296,310 320,230 C344,150 376,150 400,230 C424,310 456,310 480,230 C504,150 536,150 560,230 C584,310 616,310 640,230" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linecap="round"/>
+<line x1="200" y1="168" x2="200" y2="128" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<line x1="392" y1="168" x2="392" y2="128" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<line x1="206" y1="132" x2="386" y2="132" stroke="var(--muted,#606b84)" stroke-width="2" marker-start="url(#ax)" marker-end="url(#ax)"/>
+<rect x="266" y="82" width="60" height="28" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="296" y="102" font-size="16" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="296" y1="110" x2="296" y2="128" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<line x1="584" y1="224" x2="584" y2="178" stroke="var(--muted,#606b84)" stroke-width="2" marker-start="url(#ax)" marker-end="url(#ax)"/>
+<rect x="622" y="180" width="56" height="28" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="650" y="200" font-size="16" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="622" y1="194" x2="592" y2="198" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<text x="400" y="380" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >dashed line = the wave's midline</text>
+</svg>

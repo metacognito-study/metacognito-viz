@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1632_e1 operating galvanic cell shown-state | chem row 1632 | left: Zn rod wearing away + Zn2+ in solution; right: Cu2+ solution + Cu building up on rod; wire + KNO3 bridge; NO anode/cathode/oxidation labels, NO electron-flow arrow -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<path d="M150,240 L150,420 L330,420 L330,240" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="153" y="300" width="174" height="117" fill="var(--indigo-soft,#eef0ff)" fill-opacity="0.6"/>
+<path d="M470,240 L470,420 L650,420 L650,240" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="473" y="300" width="174" height="117" fill="var(--amber-soft,#fdf3d8)" fill-opacity="0.6"/>
+<rect x="215" y="180" width="28" height="190" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="2.5"/>
+<text x="229" y="168" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn</text>
+<rect x="535" y="180" width="28" height="190" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="2.5"/>
+<text x="549" y="168" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cu</text>
+<circle cx="531" cy="340" r="4" fill="var(--amber,#f5b526)"/>
+<circle cx="567" cy="358" r="4" fill="var(--amber,#f5b526)"/>
+<circle cx="533" cy="378" r="4" fill="var(--amber,#f5b526)"/>
+<path d="M229,178 L229,128 L549,128 L549,178" fill="none" stroke="var(--ink,#18213a)" stroke-width="2.5"/>
+<path d="M290,305 L290,258 Q290,248 300,248 L500,248 Q510,248 510,258 L510,305" fill="none" stroke="var(--muted,#606b84)" stroke-width="12" stroke-linecap="round"/>
+<text x="400" y="234" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >KNO₃</text>
+<text x="185" y="345" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn²⁺</text>
+<text x="266" y="380" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn²⁺</text>
+<text x="196" y="402" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn²⁺</text>
+<text x="502" y="345" font-size="13" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cu²⁺</text>
+<text x="616" y="392" font-size="13" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cu²⁺</text>
+<line x1="245" y1="330" x2="272" y2="342" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#ax)"/>
+<line x1="600" y1="352" x2="568" y2="356" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#ax)"/>
+<text x="400" y="470" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >left rod wearing away · metal building up on right rod (gold specks)</text>
+</svg>

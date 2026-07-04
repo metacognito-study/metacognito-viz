@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_647_e1 overlapping dye spectra shown-state | chem row 647 | dye A peaks 450 nm, dye B peaks 620 nm, partial overlap 500-560 nm; peaks UNMARKED and overlap UNSHADED (identifying both IS the task) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<line x1="174" y1="420" x2="174" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="174" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >400</text>
+<line x1="346" y1="420" x2="346" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="346" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >500</text>
+<line x1="518" y1="420" x2="518" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="518" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >600</text>
+<line x1="690" y1="420" x2="690" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="690" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >700</text>
+<path d="M150,405 C200,390 225,300 260,240 C295,300 340,380 420,400 C470,408 520,410 660,412" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linecap="round"/>
+<path d="M170,412 C300,408 380,400 470,330 C520,280 540,255 553,250 C566,255 590,290 640,370 C660,395 675,405 690,408" fill="none" stroke="var(--amber,#f5b526)" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 7"/>
+<text x="245" y="212" font-size="15" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >dye A</text>
+<text x="560" y="222" font-size="15" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >dye B</text>
+<text x="480" y="478" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >wavelength (nm)</text>
+<text x="60" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 60 260)">absorbance</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_701_e1 H2 PE-vs-distance shown-state | chem rows 701/702/704/706 | Morse-shaped curve, min at r=74 pm / -436 kJ/mol (ticks given per cell), dashed zero reference; NO bond-length/bond-energy labels or arrows (attaching them IS the task) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="440" x2="700" y2="440" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="440" x2="140" y2="90" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<line x1="140" y1="180" x2="690" y2="180" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<line x1="134" y1="180" x2="140" y2="180" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="185" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0</text>
+<line x1="134" y1="370" x2="140" y2="370" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<line x1="140" y1="370" x2="690" y2="370" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<text x="126" y="375" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >−436</text>
+<line x1="290" y1="440" x2="290" y2="447" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="290" y="466" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >74</text>
+<path d="M220,105 C240,240 260,355 290,370 C330,370 420,240 520,205 C600,190 650,183 690,182" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linecap="round"/>
+<text x="470" y="488" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >internuclear distance (pm)</text>
+<text x="56" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 56 260)">potential energy (kJ/mol)</text>
+</svg>

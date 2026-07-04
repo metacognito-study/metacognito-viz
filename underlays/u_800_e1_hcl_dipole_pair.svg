@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_800_e1 HCl dipole-dipole shown-state | chem row 800 | two HCl molecules, d+ H end of one faces d- Cl end of the other, dashed attraction arrow; interaction NOT named -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="212" y1="190" x2="266" y2="190" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<circle cx="185" cy="190" r="34" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.5"/>
+<text x="185" y="197" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl</text>
+<circle cx="282" cy="190" r="16" fill="var(--surface,#ffffff)" stroke="var(--muted,#606b84)" stroke-width="2.4"/>
+<text x="282" y="196" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="185" y="136" font-size="16" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >δ−</text>
+<text x="282" y="158" font-size="16" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >δ+</text>
+<line x1="306" y1="190" x2="424" y2="190" stroke="var(--muted,#606b84)" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#ax)"/>
+<text x="365" y="216" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >attraction</text>
+<circle cx="480" cy="190" r="34" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.5"/>
+<text x="480" y="197" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl</text>
+<line x1="507" y1="190" x2="561" y2="190" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<circle cx="577" cy="190" r="16" fill="var(--surface,#ffffff)" stroke="var(--muted,#606b84)" stroke-width="2.4"/>
+<text x="577" y="196" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="480" y="136" font-size="16" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >δ−</text>
+<text x="577" y="158" font-size="16" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >δ+</text>
+<text x="400" y="310" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >two HCl molecules, aligned end-to-end</text>
+</svg>

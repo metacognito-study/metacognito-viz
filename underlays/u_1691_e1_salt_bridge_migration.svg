@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1691_e1 salt-bridge migration shown-state | chem row 1691 | K+ arrows toward cathode (right), NO3- arrows toward anode (left) - arrows are GIVEN per cell; NO why-explanation, NO no-bridge consequence -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<path d="M140,180 L140,340 L300,340 L300,180" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="143" y="240" width="154" height="97" fill="var(--indigo-soft,#eef0ff)" fill-opacity="0.6"/>
+<text x="220" y="372" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >anode half-cell (Zn)</text>
+<path d="M500,180 L500,340 L660,340 L660,180" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="503" y="240" width="154" height="97" fill="var(--amber-soft,#fdf3d8)" fill-opacity="0.6"/>
+<text x="580" y="372" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >cathode half-cell (Cu)</text>
+<rect x="255" y="150" width="290" height="70" rx="24" fill="var(--surface-2,#f7f9fc)" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<text x="308" y="180" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >K⁺</text>
+<line x1="322" y1="175" x2="360" y2="175" stroke="var(--indigo,#5545e8)" stroke-width="2.5" marker-end="url(#ax)"/>
+<text x="418" y="180" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >K⁺</text>
+<line x1="432" y1="175" x2="470" y2="175" stroke="var(--indigo,#5545e8)" stroke-width="2.5" marker-end="url(#ax)"/>
+<text x="490" y="207" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NO₃⁻</text>
+<line x1="464" y1="202" x2="426" y2="202" stroke="var(--rose,#e8548c)" stroke-width="2.5" marker-end="url(#ax)"/>
+<text x="378" y="207" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NO₃⁻</text>
+<line x1="352" y1="202" x2="314" y2="202" stroke="var(--rose,#e8548c)" stroke-width="2.5" marker-end="url(#ax)"/>
+<text x="400" y="120" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >KNO₃ salt bridge</text>
+</svg>
