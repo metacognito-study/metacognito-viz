@@ -501,6 +501,293 @@
     if (m) return { r: +m[1], g: +m[2], b: +m[3] };
     return { r: 200, g: 200, b: 200 };
   }
+
+  // AVATAR_SHARED_v1
+  // ============================================================================
+  //  avatarForLevel(ctx, x, y, size, level, color)  ·  SHARED · byte-identical
+  //  across all 6 game shells. Author once here; paste verbatim into each game's
+  //  module scope (between the clamp/toRGB helpers and the Game constructor).
+  //
+  //  Draws the player craft at a visual TIER derived from `level` (1..20, clamp).
+  //  Canonical orientation: NOSE points +x (to the RIGHT), centered at (x,y).
+  //  `size` = hull half-length in px (base ~16-22). `color` = the player's hue
+  //  (any "#rrggbb" or "rgb(...)"); different players pass different colors, the
+  //  SHAPE/DETAIL scales with level so a L2 and a L18 craft never look alike.
+  //
+  //  HALAL: pure geometry (wedges, rings, diamonds, an 8-point star) - no
+  //  creatures/faces. ASCII-safe. Reduced-motion: caller passes reduced=true (or
+  //  we auto-detect) to freeze trails/pulses/orbits to static positions.
+  //
+  //  Design: council-guided (Gemini heavy + DeepSeek audit), see
+  //  AVATAR_PROGRESSION.md. Key rule from the audit: LEVEL reads via topological
+  //  complexity (extra vertices, split wings, pods, halo), NOT raw size; and at
+  //  high tiers COLOR migrates from hull-fill to emissive accents so per-player
+  //  color stays distinct from level detail.
+  // ============================================================================
+  function avatarForLevel(ctx, x, y, size, level, color, reduced) {
+    // -- normalize inputs -------------------------------------------------------
+    var L = level | 0; if (L < 1) L = 1; if (L > 20) L = 20;
+    var band = Math.ceil(L / 4);            // 1..5
+    var sub = ((L - 1) % 4);                // 0..3 progress within band
+    var S = (size > 0 ? size : 16);
+    if (reduced == null) {
+      try { reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+      catch (e) { reduced = false; }
+    }
+    // parse color -> {r,g,b}
+    var col = (function (c) {
+      c = String(c == null ? '' : c).trim();
+      var m = c.match(/^#?([0-9a-f]{6})$/i);
+      if (m) { var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+      m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+      if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+      return { r: 108, g: 92, b: 255 };     // indigo default
+    })(color);
+    var clampAV = function (v, a, b) { return v < a ? a : (v > b ? b : v); };
+    var lig = function (c, k) {            // lighten toward white by k (0..1)
+      return { r: clampAV(Math.round(c.r + (255 - c.r) * k), 0, 255),
+               g: clampAV(Math.round(c.g + (255 - c.g) * k), 0, 255),
+               b: clampAV(Math.round(c.b + (255 - c.b) * k), 0, 255) };
+    };
+    var drk = function (c, k) {            // darken by factor k (0..1 keeps k of value)
+      return { r: Math.round(c.r * k), g: Math.round(c.g * k), b: Math.round(c.b * k) };
+    };
+    var rgba = function (c, a) { return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')'; };
+    var NEUT = { r: 214, g: 222, b: 240 }; // cool neutral (high-tier hull)
+    var t = (function () { try { return Date.now() / 1000; } catch (e) { return 0; } })();
+    var pulse = reduced ? 1 : (0.85 + 0.15 * Math.sin(t * 3));  // gentle breathing
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // At high bands the hull turns neutral and COLOR becomes emissive accent, so
+    // a red-L18 and blue-L18 stay instantly distinct against the busy geometry.
+    var hull = (band >= 3) ? NEUT : col;
+    var accent = col;                       // canopy / nodes / halo / exhaust glow
+    var emissive = lig(col, band >= 3 ? 0.25 : 0.10);
+
+    // ---- (0) EXHAUST FLAME (all bands; behind hull) ---------------------------
+    (function () {
+      var fl = S * (0.55 + band * 0.06);
+      if (!reduced) fl *= (0.85 + Math.random() * 0.35);
+      var g = ctx.createLinearGradient(-S * 0.95, 0, -S * 0.95 - fl, 0);
+      g.addColorStop(0, rgba(lig(accent, 0.4), 0.9));
+      g.addColorStop(0.5, 'rgba(255,150,90,0.55)');
+      g.addColorStop(1, 'rgba(255,110,120,0)');
+      ctx.fillStyle = g;
+      var hh = S * (0.28 + band * 0.02);
+      ctx.beginPath();
+      ctx.moveTo(-S * 0.9, -hh); ctx.lineTo(-S * 0.9, hh); ctx.lineTo(-S * 0.9 - fl, 0);
+      ctx.closePath(); ctx.fill();
+      // band>=3: twin nozzles get their own small flames
+      if (band >= 3) {
+        var oy = S * 0.42;
+        for (var s = -1; s <= 1; s += 2) {
+          var g2 = ctx.createLinearGradient(-S * 0.7, s * oy, -S * 0.7 - fl * 0.6, s * oy);
+          g2.addColorStop(0, rgba(lig(accent, 0.4), 0.85)); g2.addColorStop(1, 'rgba(255,110,120,0)');
+          ctx.fillStyle = g2;
+          ctx.beginPath();
+          ctx.moveTo(-S * 0.66, s * oy - S * 0.12); ctx.lineTo(-S * 0.66, s * oy + S * 0.12);
+          ctx.lineTo(-S * 0.66 - fl * 0.6, s * oy); ctx.closePath(); ctx.fill();
+        }
+      }
+    })();
+
+    // ---- SIDE PODS (band >= 3): parallel capsules flanking the hull -----------
+    if (band >= 3) {
+      var podR = S * 0.16, podX0 = -S * 0.35, podX1 = S * 0.22, podY = S * (0.5 + (band - 3) * 0.06);
+      ctx.strokeStyle = rgba(drk(hull, 0.7), 1); ctx.lineWidth = 1.2;
+      for (var ps = -1; ps <= 1; ps += 2) {
+        // strut
+        ctx.strokeStyle = rgba(drk(hull, 0.75), 0.9); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-S * 0.1, ps * S * 0.28); ctx.lineTo(-S * 0.1, ps * podY); ctx.stroke();
+        // capsule
+        var pg = ctx.createLinearGradient(0, ps * podY - podR, 0, ps * podY + podR);
+        pg.addColorStop(0, rgba(lig(hull, 0.25), 1)); pg.addColorStop(1, rgba(drk(hull, 0.65), 1));
+        ctx.fillStyle = pg;
+        ctx.beginPath();
+        ctx.arc(podX0, ps * podY, podR, Math.PI * 0.5, Math.PI * 1.5);
+        ctx.lineTo(podX1, ps * podY - podR);
+        ctx.arc(podX1, ps * podY, podR, Math.PI * 1.5, Math.PI * 0.5);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = rgba(NEUT, 0.5); ctx.lineWidth = 1; ctx.stroke();
+        // emissive pod tip = player color
+        ctx.fillStyle = rgba(emissive, 0.95);
+        ctx.beginPath(); ctx.arc(podX1, ps * podY, podR * 0.42, 0, 6.2832); ctx.fill();
+      }
+    }
+
+    // ---- HULL SILHOUETTE (band-dependent vertex set) --------------------------
+    var hg = ctx.createLinearGradient(0, -S, 0, S);
+    hg.addColorStop(0, rgba(lig(hull, 0.35), 1));
+    hg.addColorStop(0.5, rgba(hull, 1));
+    hg.addColorStop(1, rgba(drk(hull, 0.6), 1));
+    ctx.fillStyle = hg;
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.3;
+    if (band >= 5 && !reduced) { ctx.shadowColor = rgba(accent, 0.9); ctx.shadowBlur = 6; }
+
+    var nose = S * (0.95 + sub * 0.03 + (band >= 2 ? 0.12 : 0));   // elongates from band2
+    var wingBack = -S * 0.7;
+    var wingY = S * (0.6 + band * 0.04);
+
+    ctx.beginPath();
+    if (band === 1) {
+      // Initiate: wedge -> chevron (aft notch deepens with sub)
+      var notch = -S * (0.28 + sub * 0.12);
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(wingBack, -wingY);
+      ctx.lineTo(notch, 0);
+      ctx.lineTo(wingBack, wingY);
+    } else if (band === 2) {
+      // Scholar: swept-delta, sharper backswept wingtips
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(-S * 0.15, -wingY);
+      ctx.lineTo(wingBack, -wingY * 0.62);
+      ctx.lineTo(-S * 0.5, 0);
+      ctx.lineTo(wingBack, wingY * 0.62);
+      ctx.lineTo(-S * 0.15, wingY);
+    } else if (band === 3) {
+      // Adept: double-delta with a leading-edge kink (heavier cruiser)
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(S * 0.2, -wingY * 0.55);
+      ctx.lineTo(-S * 0.15, -wingY);
+      ctx.lineTo(wingBack, -wingY * 0.5);
+      ctx.lineTo(-S * 0.55, 0);
+      ctx.lineTo(wingBack, wingY * 0.5);
+      ctx.lineTo(-S * 0.15, wingY);
+      ctx.lineTo(S * 0.2, wingY * 0.55);
+    } else if (band === 4) {
+      // Vanguard: compact forward core (wings drawn separately, disconnected)
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(-S * 0.1, -wingY * 0.5);
+      ctx.lineTo(-S * 0.55, 0);
+      ctx.lineTo(-S * 0.1, wingY * 0.5);
+    } else {
+      // Apex: streamlined spearhead / kite
+      ctx.moveTo(nose * 1.05, 0);
+      ctx.lineTo(-S * 0.05, -wingY * 0.5);
+      ctx.lineTo(-S * 0.6, 0);
+      ctx.lineTo(-S * 0.05, wingY * 0.5);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // ---- BAND 2+: twin aft fins ----------------------------------------------
+    if (band >= 2) {
+      ctx.fillStyle = rgba(drk(hull, 0.55), 0.9);
+      for (var f = -1; f <= 1; f += 2) {
+        ctx.beginPath();
+        ctx.moveTo(-S * 0.35, f * wingY * 0.45);
+        ctx.lineTo(wingBack - S * 0.12, f * wingY * (0.9 + band * 0.05));
+        ctx.lineTo(-S * 0.15, f * wingY * 0.4);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+
+    // ---- BAND 4: disconnected forward-swept wings (negative-space gap) --------
+    if (band === 4) {
+      var wg = ctx.createLinearGradient(0, -wingY, 0, wingY);
+      wg.addColorStop(0, rgba(lig(hull, 0.3), 1)); wg.addColorStop(1, rgba(drk(hull, 0.6), 1));
+      ctx.fillStyle = wg; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
+      for (var w = -1; w <= 1; w += 2) {
+        ctx.beginPath();
+        ctx.moveTo(-S * 0.05, w * (wingY * 0.62));         // inner, gap from hull
+        ctx.lineTo(S * 0.15, w * wingY * 1.05);            // forward-swept tip
+        ctx.lineTo(-S * 0.55, w * wingY * 0.95);
+        ctx.lineTo(-S * 0.35, w * wingY * 0.6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+    }
+
+    // ---- ACCENT STRIPE / PANEL LINES -----------------------------------------
+    if (band >= 1) {
+      ctx.strokeStyle = rgba(lig(accent, band >= 3 ? 0.2 : 0.5), band >= 3 ? 0.9 : 0.7);
+      ctx.lineWidth = band >= 3 ? 1.6 : 1;
+      ctx.beginPath(); ctx.moveTo(nose * 0.85, 0); ctx.lineTo(-S * 0.4, 0); ctx.stroke();
+    }
+    if (band >= 2) {   // angled panel lines mirroring the hull edge
+      ctx.strokeStyle = rgba(drk(hull, 0.4), 0.5); ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(S * 0.1, -S * 0.14); ctx.lineTo(-S * 0.35, -S * 0.14);
+      ctx.moveTo(S * 0.1, S * 0.14); ctx.lineTo(-S * 0.35, S * 0.14);
+      ctx.stroke();
+    }
+
+    // ---- CANOPY (band 1 L4 diamond -> emissive core at high bands) ------------
+    if (band >= 4) {
+      // radial emissive core (white center -> player color)
+      var rg = ctx.createRadialGradient(S * 0.05, 0, 0.5, S * 0.05, 0, S * 0.5);
+      rg.addColorStop(0, 'rgba(255,255,255,0.95)');
+      rg.addColorStop(0.5, rgba(lig(accent, 0.2), 0.95));
+      rg.addColorStop(1, rgba(accent, 0));
+      ctx.fillStyle = rg;
+      if (!reduced) { ctx.globalAlpha = pulse; }
+      ctx.beginPath(); ctx.arc(S * 0.05, 0, S * 0.4, 0, 6.2832); ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (L >= 4) {
+      // geometric canopy diamond (contrasting)
+      ctx.fillStyle = 'rgba(234,240,255,0.9)';
+      var cx = S * 0.12, cr = S * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(cx + cr, 0); ctx.lineTo(cx, -cr * 0.7); ctx.lineTo(cx - cr, 0); ctx.lineTo(cx, cr * 0.7);
+      ctx.closePath(); ctx.fill();
+    } else {
+      // simple cockpit dot
+      ctx.fillStyle = 'rgba(234,240,255,0.85)';
+      ctx.beginPath(); ctx.arc(S * 0.15, 0, S * 0.12, 0, 6.2832); ctx.fill();
+    }
+
+    // ---- BAND 4: orbital nodes (diamonds) ------------------------------------
+    if (band === 4) {
+      var nodes = 1 + sub;                 // 1..4 growing across the band
+      ctx.fillStyle = rgba(emissive, 0.95);
+      for (var i = 0; i < nodes; i++) {
+        var a = (reduced ? (Math.PI / 4) : (t * 1.1)) + (i / nodes) * 6.2832;
+        var ox = Math.cos(a) * S * 0.85, oy = Math.sin(a) * S * 0.85;
+        var nr = S * 0.11;
+        ctx.beginPath();
+        ctx.moveTo(ox + nr, oy); ctx.lineTo(ox, oy - nr); ctx.lineTo(ox - nr, oy); ctx.lineTo(ox, oy + nr);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+
+    // ---- BAND 5: concentric geometric halo (arc / dashed / 8-point star) ------
+    if (band === 5) {
+      var haloR = S * (1.15 + sub * 0.05);
+      ctx.save();
+      if (!reduced) ctx.rotate(t * 0.4);
+      // sub 0: solid ring ; sub>=1: dashed ; sub>=2: + second concentric ring ;
+      // sub 3: + 8-point star overlay (mastery)
+      ctx.strokeStyle = rgba(emissive, 0.9); ctx.lineWidth = 1.6;
+      if (!reduced && sub >= 1) ctx.setLineDash([S * 0.3, S * 0.22]);
+      ctx.beginPath(); ctx.arc(0, 0, haloR, 0, 6.2832); ctx.stroke();
+      ctx.setLineDash([]);
+      if (sub >= 2) {
+        ctx.strokeStyle = rgba(accent, 0.6); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(0, 0, haloR * 0.78, 0, 6.2832); ctx.stroke();
+      }
+      if (sub >= 3) {
+        // 8-point geometric star (two overlaid squares) - halal geometric motif
+        ctx.strokeStyle = rgba(lig(accent, 0.3), 0.8); ctx.lineWidth = 1.1;
+        for (var q = 0; q < 2; q++) {
+          ctx.save(); ctx.rotate(q * Math.PI / 4);
+          ctx.beginPath();
+          for (var v = 0; v < 4; v++) {
+            var pa = (v / 4) * 6.2832;
+            var px = Math.cos(pa) * haloR * 0.62, py = Math.sin(pa) * haloR * 0.62;
+            if (v === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath(); ctx.stroke(); ctx.restore();
+        }
+      }
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function anFor(noun) { return /^[AEIOU]/.test(String(noun)) ? 'an' : 'a'; }
 
@@ -924,6 +1211,7 @@
     this.idx = idx;
     this.opts = opts;
     this.rtl = !!opts.rtl;
+    this.level = clamp((opts.level != null ? opts.level : 1) | 0, 1, 20) || 1;   // player level -> avatar tier (avatarForLevel)
     this.reduced = false;
     try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
@@ -1737,6 +2025,22 @@
     ctx.globalAlpha = 1;
 
     ctx.restore();
+
+    // LEVEL-PROGRESSIVE player badge (shared avatarForLevel). HUD-anchored
+    // bottom-left; craft drawn nose-up. Shows the student's level tier.
+    (function (self) {
+      var bx = 30, by = H - 34;
+      ctx.save();
+      ctx.translate(bx, by); ctx.rotate(-Math.PI / 2);
+      avatarForLevel(ctx, 0, 0, 13, self.level, self.col.indigo, self.reduced);
+      ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.85; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.font = '800 11px -apple-system, "Segoe UI", sans-serif';
+      ctx.fillStyle = self.col.muted || 'rgba(154,167,199,0.9)';
+      ctx.fillText('Lv ' + self.level, bx + 18, by);
+      ctx.restore();
+    })(this);
 
     // heal flash (rose) / damage-good flash (green), full screen
     if (this.flash > 0) {
