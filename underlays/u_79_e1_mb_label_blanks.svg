@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_79_e1 M-B label-the-diagram | chem row 79 ex1 | curve + two dashed verticals drawn; ALL four labels are blank boxes -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<path d="M140,420 C 200,416 240,150 310,148 C 380,146 480,330 690,412" fill="none" stroke="var(--ink,#18213a)" stroke-width="3.5"/>
+<line x1="310" y1="420" x2="310" y2="152" stroke="var(--amber,#f5b526)" stroke-width="2.5" stroke-dasharray="7 6"/>
+<line x1="372" y1="420" x2="372" y2="205" stroke="var(--rose,#f43f61)" stroke-width="2.5" stroke-dasharray="7 6"/>
+<rect x="250" y="46" width="110" height="30" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="305.0" y="67.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="305" y1="76" x2="308" y2="144" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="420" y="60" width="110" height="30" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="475.0" y="81.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="475" y1="90" x2="375" y2="200" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="548" y="440" width="130" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="613.0" y="462.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<rect x="30" y="52" width="150" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="105.0" y="74.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+</svg>

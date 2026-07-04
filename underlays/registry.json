@@ -1,0 +1,517 @@
+{
+ "lane": "ELENA2_67",
+ "generated": "2026-07-04",
+ "batch": 1,
+ "theme_source": "_align/_pending_push/metacognito-viz/viz-theme.css (var()+fallback per Pedagogy_Video_Pipeline/src/visuals.mjs)",
+ "note": "filenames keyed to CANONICAL sheet row; 'serves' lists reuse placements; wiring = orchestrator #108",
+ "entries": [
+  {
+   "sheet": "chem",
+   "row": 1624,
+   "exIdx": 1,
+   "asset": "u_1624_e1_galvanic_cell_label.svg",
+   "mode": "both",
+   "what": "Zn/Cu galvanic cell (beakers, electrodes, wire+voltmeter 1.10 V, KNO3 salt bridge) with 4 blank '?' boxes: electrode roles, salt-bridge function, e- direction slot",
+   "answer_leak_check": "PASS: no anode/cathode text, no electron-flow or ion-flow arrows, no +/- terminal marks; only prompt-given facts drawn (metals, solutions, 1.10 V, KNO3)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1624,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 1615,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1622,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1625,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 334,
+   "exIdx": 1,
+   "asset": "u_334_e1_nh3_yield_before_after.svg",
+   "mode": "both",
+   "what": "Before/After particulate panels for N2+3H2->2NH3: Before drawn with 4 N2 + 12 H2; After panel empty dashed (student draws the 50/75/100%-yield state)",
+   "answer_leak_check": "PASS: After panel contains zero particles; no NH3 drawn anywhere; no leftover counts hinted",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 333,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 340,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 331,
+   "exIdx": 1,
+   "asset": "u_331_e1_h2_o2_limiting_before_after.svg",
+   "mode": "both",
+   "what": "Before/After particulate panels for 2H2+O2->2H2O: Before drawn with 3 H2 + 2 O2; After empty dashed (student identifies limiting reactant and draws products + leftover)",
+   "answer_leak_check": "PASS: After panel empty; limiting reactant not marked; no H2O drawn",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 336,
+   "exIdx": 1,
+   "asset": "u_336_e1_nh3_workback_after.svg",
+   "mode": "both",
+   "what": "Before/After panels: After drawn with 2 NH3 + 2 leftover H2 (as given in cell); Before empty dashed (student works backwards to initial N2/H2 counts)",
+   "answer_leak_check": "PASS: Before panel empty; initial counts (the answer) appear nowhere; After contents are verbatim the given state",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 728,
+   "exIdx": 1,
+   "asset": "u_728_e1_c2h4_skeleton.svg",
+   "mode": "pad-underlay",
+   "what": "C2H4 skeletal framework: C-C single line + 4 C-H bonds, atom letters only",
+   "answer_leak_check": "PASS: no double bond, no electron dots/lone pairs, neutral 4-corner H placement (does not telegraph sp2 planarity answer)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 147,
+   "exIdx": 1,
+   "asset": "u_147_e1_filtration_label.svg",
+   "mode": "both",
+   "what": "Filtration apparatus (stand, ring, funnel + filter paper with solid dots, conical flask with filtrate) with 2 blank '?' boxes at paper+solid and liquid-in-flask",
+   "answer_leak_check": "PASS: no 'residue'/'filtrate' text; no equipment names either (keeps asset reusable for row 146 name-the-equipment)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 144,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 145,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 146,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 268,
+   "exIdx": 1,
+   "asset": "u_268_e1_mass_spec_cl_axes_unlabeled.svg",
+   "mode": "both",
+   "what": "Cl mass spectrum: peaks at m/z 35 (75%) and 37 (25%), y scale 0-100, tick numbers shown; axis-label positions are blank '?' boxes",
+   "answer_leak_check": "PASS: no 'm/z' / 'relative abundance' axis text (that IS the task); peaks carry no isotope labels",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 275,
+   "exIdx": 1,
+   "asset": "u_275_e1_mass_spec_br_missing_peak.svg",
+   "mode": "both",
+   "what": "Partial Br mass spectrum: peak at m/z 79 (~50%) drawn, axes labeled (given), tick mark at 81 with empty space",
+   "answer_leak_check": "PASS: no peak, ghost, or height hint at m/z 81 (drawing it is the exercise)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 278,
+   "exIdx": 1,
+   "asset": "u_278_e1_mass_spec_blank_axes.svg",
+   "mode": "both",
+   "what": "Blank mass-spectrum axes (m/z vs relative abundance 0-100) with ticks at 35 and 37",
+   "answer_leak_check": "PASS: no peaks drawn; 3:1 ratio appears nowhere",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 324,
+   "exIdx": 1,
+   "asset": "u_324_e1_stoich_graph_curve.svg",
+   "mode": "example-image",
+   "what": "Stoichiometric graph: g NH3 produced vs g N2 added, linear rise then plateau",
+   "answer_leak_check": "PASS: no marker/label at the kink, no region annotations (locating them is the task); axis labels are given in cell text",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 325,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 325,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 326,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 326,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 326,
+     "exIdx": 3
+    },
+    {
+     "sheet": "chem",
+     "row": 329,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 329,
+     "exIdx": 2
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 321,
+   "exIdx": 1,
+   "asset": "u_321_e1_mgo_data_table.svg",
+   "mode": "example-image",
+   "what": "Data table: Mg added 1.0-4.0 g vs MgO formed 1.66/3.32/4.98/4.98 g",
+   "answer_leak_check": "PASS: plateau rows styled identically to linear rows (spotting the flattening is the task); no limiting-reactant annotation",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 322,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 561,
+   "exIdx": 1,
+   "asset": "u_561_e1_pe_axes_blank.svg",
+   "mode": "both",
+   "what": "Blank potential-energy vs reaction-coordinate axes",
+   "answer_leak_check": "PASS: no levels, humps, or dH arrows; endo/exo direction not hinted",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 562,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1056,
+     "exIdx": 3
+    },
+    {
+     "sheet": "chem",
+     "row": 1056,
+     "exIdx": 4
+    },
+    {
+     "sheet": "chem",
+     "row": 1060,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1061,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1157,
+   "exIdx": 1,
+   "asset": "u_1157_e1_equilib_stressor_axes.svg",
+   "mode": "both",
+   "what": "Blank concentration-time axes for N2+3H2<=>2NH3 with dashed stressor markers at t=30 s (N2 added) and t=60 s (T increased, dH<0) - all given in cell",
+   "answer_leak_check": "PASS: no concentration curves before or after stressors; no arrows or shift-direction cues",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1154,
+     "exIdx": 2
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1132,
+   "exIdx": 1,
+   "asset": "u_1132_e1_equilib_approach_axes.svg",
+   "mode": "both",
+   "what": "Concentration-time axes with given starting points [N2]0=1.00, [H2]0=3.00, [NH3]0=0 and dashed guide at [NH3]eq=0.40 M; no curves",
+   "answer_leak_check": "PASS: consumed amounts (0.20/0.60 M) and final [N2]/[H2] guides NOT drawn - computing/drawing them is the task",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1070,
+   "exIdx": 1,
+   "asset": "u_1070_e1_mb_axes_blank.svg",
+   "mode": "both",
+   "what": "Blank M-B axes: x = molecular energy, y = fraction of molecules (labels given in cell text)",
+   "answer_leak_check": "PASS: no curves; T1/T2 peak positions not hinted",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1085,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 1556,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 855,
+     "exIdx": 2
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 79,
+   "exIdx": 1,
+   "asset": "u_79_e1_mb_label_blanks.svg",
+   "mode": "both",
+   "what": "Maxwell-Boltzmann energy-distribution curve with dashed vertical at the peak and a second dashed line slightly right; 4 blank '?' boxes for x-axis, y-axis, and the two lines",
+   "answer_leak_check": "PASS: no 'kinetic energy'/'number of particles'/'most probable'/'average' text anywhere; the average-KE line sits right of the peak per cell text",
+   "serves": []
+  },
+  {
+   "sheet": "econ",
+   "row": 74,
+   "exIdx": 4,
+   "asset": "u_74_e4_econ_circular_flow_skeleton.svg",
+   "mode": "both",
+   "what": "4-box circular-flow skeleton (Households/Firms/Product market/Factor market) with paired connector lines, arrowheads omitted",
+   "answer_leak_check": "PASS: no arrowheads, no flow labels, no teal/amber money-vs-real colour coding (assigning direction + flows IS the exercise)",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 75,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 76,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 77,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 78,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 130,
+   "exIdx": 4,
+   "asset": "u_130_e4_econ_demand_shift_d1.svg",
+   "mode": "both",
+   "what": "P-Q axes with original demand curve D1 only",
+   "answer_leak_check": "PASS: no D2, no shift arrows, no direction hint; drawing the shifted curve is the exercise",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 127,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 121,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 141,
+   "exIdx": 4,
+   "asset": "u_141_e4_econ_supply_shift_s1.svg",
+   "mode": "both",
+   "what": "P-Q axes with original supply curve S1 only",
+   "answer_leak_check": "PASS: no S2, no shift arrows, no direction hint",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 138,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 119,
+   "exIdx": 4,
+   "asset": "u_119_e4_econ_pq_axes_blank.svg",
+   "mode": "both",
+   "what": "Blank Price/Quantity axes (family asset for the econ draw-a-market cue corpus)",
+   "answer_leak_check": "PASS: axes + given labels only",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 134,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 143,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 145,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 147,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 156,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 157,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 159,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 160,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 163,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 165,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 176,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 177,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 183,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 83,
+   "exIdx": 4,
+   "asset": "u_83_e4_econ_ppc_axes_blank.svg",
+   "mode": "both",
+   "what": "Blank two-good PPC axes (generic Good X / Good Y so one asset serves every PPC cue)",
+   "answer_leak_check": "PASS: no curve, no intercepts, no bow direction",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 8,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 17,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 23,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 25,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 84,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 86,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 87,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 90,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 98,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 110,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 115,
+     "exIdx": 4
+    }
+   ]
+  }
+ ]
+}

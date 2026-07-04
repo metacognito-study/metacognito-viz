@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1624_e1 galvanic cell label-the-diagram | chem row 1624 ex1 (+ex2, rows 1615/1622/1625) | NO anode/cathode text, NO electron or ion arrows, NO +/- terminals -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<path d="M80,250 L80,412 Q80,430 98,430 L262,430 Q280,430 280,412 L280,250" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<path d="M520,250 L520,412 Q520,430 538,430 L702,430 Q720,430 720,412 L720,250" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="86" y="300" width="188" height="124" rx="8" fill="var(--surface-2,#f7f9fc)"/>
+<rect x="526" y="300" width="188" height="124" rx="8" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="162" y="180" width="30" height="220" rx="4" fill="var(--muted,#606b84)"/>
+<rect x="608" y="180" width="30" height="220" rx="4" fill="var(--amber,#f5b526)"/>
+<text x="138" y="205" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Zn</text>
+<text x="585" y="205" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cu</text>
+<polyline points="177,180 177,110 372,110" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<polyline points="428,110 623,110 623,180" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<circle cx="400" cy="110" r="28" fill="var(--surface,#ffffff)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="400" y="117" font-size="20" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >V</text>
+<text x="400" y="66" font-size="15" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1.10 V</text>
+<path d="M250,330 L250,235 Q250,205 280,205 L520,205 Q550,205 550,235 L550,330" fill="none" stroke="var(--muted,#606b84)" stroke-width="26" stroke-linecap="round"/>
+<path d="M250,330 L250,235 Q250,205 280,205 L520,205 Q550,205 550,235 L550,330" fill="none" stroke="var(--amber-soft,#fffaf0)" stroke-width="18" stroke-linecap="round"/>
+<text x="400" y="211" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >KNO₃</text>
+<text x="180" y="452" font-size="15" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >ZnSO₄(aq)</text>
+<text x="620" y="452" font-size="15" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CuSO₄(aq)</text>
+<rect x="28" y="196" width="96" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="76.0" y="218.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="124" y1="212" x2="160" y2="245" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="676" y="196" width="96" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="724.0" y="218.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="676" y1="212" x2="640" y2="245" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="352" y="146" width="96" height="30" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="400.0" y="167.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="400" y1="176" x2="400" y2="200" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="210" y="40" width="96" height="30" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="258.0" y="61.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="270" y1="70" x2="290" y2="106" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+</svg>

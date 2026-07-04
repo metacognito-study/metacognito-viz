@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_74_e4 circular-flow SKELETON | econ rows 74-78 (cue col M) | boxes labeled, connector lanes have NO arrowheads, NO flow labels, NO colour coding -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="60" y="220" width="170" height="90" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="145.0" y="271.0" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Households</text>
+<rect x="570" y="220" width="170" height="90" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="655.0" y="271.0" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Firms</text>
+<rect x="300" y="50" width="200" height="80" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="400.0" y="96.0" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Product market</text>
+<rect x="300" y="390" width="200" height="80" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="400.0" y="436.0" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Factor market</text>
+<path d="M120,220 L120,74 L300,74" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M170,220 L170,106 L300,106" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M680,220 L680,74 L500,74" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M630,220 L630,106 L500,106" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M120,310 L120,456 L300,456" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M170,310 L170,424 L300,424" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M680,310 L680,456 L500,456" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M630,310 L630,424 L500,424" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+</svg>

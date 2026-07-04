@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_321_e1 data table | chem rows 321/322 ex1 | plain equal-styled rows; plateau rows NOT highlighted -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="180" y="70" width="440" height="280" rx="10" fill="var(--surface,#ffffff)" stroke="var(--muted,#606b84)" stroke-width="2"/>
+<rect x="180" y="70" width="440" height="56" rx="10" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="180" y="114" width="440" height="12" fill="var(--indigo-soft,#eef0ff)"/>
+<line x1="180" y1="126" x2="620" y2="126" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="182" x2="620" y2="182" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="238" x2="620" y2="238" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="294" x2="620" y2="294" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="400" y1="70" x2="400" y2="350" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<text x="290.0" y="105" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Mg added (g)</text>
+<text x="510.0" y="105" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >MgO formed (g)</text>
+<text x="290.0" y="161" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1.0</text>
+<text x="510.0" y="161" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1.66</text>
+<text x="290.0" y="217" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >2.0</text>
+<text x="510.0" y="217" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >3.32</text>
+<text x="290.0" y="273" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >3.0</text>
+<text x="510.0" y="273" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >4.98</text>
+<text x="290.0" y="329" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >4.0</text>
+<text x="510.0" y="329" font-size="18" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >4.98</text>
+<text x="400" y="395" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >2 Mg + O₂ → 2 MgO  (fixed amount of O₂)</text>
+</svg>

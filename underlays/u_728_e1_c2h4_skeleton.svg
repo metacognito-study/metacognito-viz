@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_728_e1 partial Lewis completion | chem row 728 ex1 | sigma skeleton of C2H4 ONLY: single C-C, four C-H; student adds the pi bond / completes octets -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="365" y1="175" x2="435" y2="175" stroke="var(--ink,#18213a)" stroke-width="3.5"/>
+<line x1="315" y1="155" x2="275" y2="122" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="315" y1="195" x2="275" y2="228" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="485" y1="155" x2="525" y2="122" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="485" y1="195" x2="525" y2="228" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="340" y="191" font-size="46" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >C</text>
+<text x="460" y="191" font-size="46" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >C</text>
+<text x="255" y="118" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="255" y="258" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="545" y="118" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="545" y="258" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+</svg>

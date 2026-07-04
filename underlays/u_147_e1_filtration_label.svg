@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 510" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_147_e1 filtration label-the-diagram | chem row 147 ex1 (+144/145/146 reuse) | two blank boxes per cell text; NO residue/filtrate/equipment names anywhere -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="60" y="470" width="220" height="14" rx="4" fill="var(--muted,#606b84)"/>
+<rect x="90" y="120" width="10" height="350" fill="var(--muted,#606b84)"/>
+<line x1="100" y1="208" x2="330" y2="208" stroke="var(--muted,#606b84)" stroke-width="8"/>
+<ellipse cx="400" cy="210" rx="80" ry="10" fill="none" stroke="var(--muted,#606b84)" stroke-width="6"/>
+<path d="M310,190 L490,190 L406,318 L406,386 L394,394 L394,318 Z" fill="none" stroke="var(--ink,#18213a)" stroke-width="3" stroke-linejoin="round"/>
+<path d="M340,196 L460,196 L400,296 Z" fill="var(--surface-2,#f7f9fc)" stroke="var(--muted,#606b84)" stroke-width="2"/>
+<circle cx="385" cy="240" r="4" fill="var(--amber,#f5b526)"/>
+<circle cx="400" cy="252" r="4" fill="var(--amber,#f5b526)"/>
+<circle cx="415" cy="240" r="4" fill="var(--amber,#f5b526)"/>
+<circle cx="393" cy="225" r="4" fill="var(--amber,#f5b526)"/>
+<circle cx="407" cy="228" r="4" fill="var(--amber,#f5b526)"/>
+<line x1="400" y1="400" x2="400" y2="434" stroke="var(--indigo,#5545e8)" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M382,410 L382,428 L332,482 Q330,486 336,486 L464,486 Q470,486 468,482 L418,428 L418,410" fill="none" stroke="var(--ink,#18213a)" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="349,462 451,462 458,480 342,480" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="560" y="220" width="150" height="34" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="635.0" y="243.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="560" y1="237" x2="448" y2="244" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="560" y="420" width="150" height="34" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="635.0" y="443.0" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="560" y1="437" x2="452" y2="466" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+</svg>

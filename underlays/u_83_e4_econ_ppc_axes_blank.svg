@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_83_e4 blank PPC axes family | econ canonical row 83; serves PPC draw cues (M8/17/23/25/83-115) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<text x="600" y="468" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Good X (units)</text>
+<text x="60" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 60 260)">Good Y (units)</text>
+</svg>
