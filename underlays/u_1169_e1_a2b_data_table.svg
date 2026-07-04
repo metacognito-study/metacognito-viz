@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1169_e1 A(g)<=>2B(g) data table shown-state | chem row 1169 | start values verbatim (0.200, 0); plateau values self-chosen but stoichiometry-exact (dA=-0.08, dB=+0.16, 1:2); last two rows identical per cell, styled like the rest -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="180" y="60" width="440" height="320" rx="10" fill="var(--surface,#ffffff)" stroke="var(--muted,#606b84)" stroke-width="2"/>
+<rect x="180" y="60" width="440" height="44" rx="10" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="180" y="92" width="440" height="12" fill="var(--indigo-soft,#eef0ff)"/>
+<line x1="180" y1="104" x2="620" y2="104" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="173" x2="620" y2="173" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="242" x2="620" y2="242" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="311" x2="620" y2="311" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="326" y1="60" x2="326" y2="380" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="472" y1="60" x2="472" y2="380" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<text x="253" y="88" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >time (min)</text>
+<text x="399" y="88" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >[A] (M)</text>
+<text x="546" y="88" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >[B] (M)</text>
+<text x="253" y="145" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0</text>
+<text x="399" y="145" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.200</text>
+<text x="546" y="145" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0</text>
+<text x="253" y="214" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >10</text>
+<text x="399" y="214" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.140</text>
+<text x="546" y="214" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.120</text>
+<text x="253" y="283" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >20</text>
+<text x="399" y="283" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.120</text>
+<text x="546" y="283" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.160</text>
+<text x="253" y="352" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >30</text>
+<text x="399" y="352" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.120</text>
+<text x="546" y="352" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.160</text>
+<text x="400" y="416" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >A(g) ⇌ 2 B(g)</text>
+</svg>

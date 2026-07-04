@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1378_e1 WA-SB titration 4-panel particulate shown-state | chem row 1378 | initial (CH3COOH + few H3O+), buffer (CH3COOH + CH3COO- + Na+), equivalence (CH3COO- + Na+), past eq (+ excess OH-) - verbatim stages; NO pH estimates -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="25" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="110" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1 · initial</text>
+<text x="95" y="120" font-size="12" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COOH</text>
+<text x="130" y="165" font-size="12" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COOH</text>
+<text x="85" y="210" font-size="12" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COOH</text>
+<text x="125" y="255" font-size="12" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COOH</text>
+<text x="105" y="292" font-size="12" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H₃O⁺</text>
+<rect x="215" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="300" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >2 · buffer region</text>
+<text x="285" y="120" font-size="12" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COOH</text>
+<text x="320" y="165" font-size="12" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COOH</text>
+<text x="275" y="210" font-size="12" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COO⁻</text>
+<text x="325" y="252" font-size="12" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COO⁻</text>
+<text x="260" y="285" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<text x="345" y="290" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<rect x="405" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="490" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >3 · equivalence</text>
+<text x="465" y="130" font-size="12" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COO⁻</text>
+<text x="515" y="185" font-size="12" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COO⁻</text>
+<text x="470" y="240" font-size="12" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COO⁻</text>
+<text x="455" y="285" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<text x="530" y="285" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<text x="540" y="120" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<rect x="595" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="680" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >4 · past equivalence</text>
+<text x="655" y="130" font-size="12" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COO⁻</text>
+<text x="705" y="185" font-size="12" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >CH₃COO⁻</text>
+<text x="645" y="285" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<text x="720" y="285" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<text x="730" y="120" font-size="12" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Na⁺</text>
+<text x="680" y="235" font-size="12" fill="var(--green,#1fb981)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >OH⁻</text>
+<text x="400" y="360" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.100 M CH₃COOH titrated with 0.100 M NaOH — four stages</text>
+</svg>

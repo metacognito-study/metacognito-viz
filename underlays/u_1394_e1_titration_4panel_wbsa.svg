@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1394_e1 WB-SA titration 4-panel particulate shown-state | chem row 1394 | initial (NH3 + few OH-), buffer (NH3 + NH4+ + Cl-), equivalence (NH4+ + Cl-), past eq (+ excess H3O+) - verbatim stages; NO pH-vs-7 verdicts -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="25" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="110" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1 · initial</text>
+<text x="80" y="125" font-size="13" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="145" y="160" font-size="13" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="90" y="210" font-size="13" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="140" y="255" font-size="13" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="100" y="290" font-size="13" fill="var(--green,#1fb981)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >OH⁻</text>
+<rect x="215" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="300" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >2 · buffer region</text>
+<text x="265" y="125" font-size="13" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="335" y="160" font-size="13" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="270" y="210" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="335" y="250" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="260" y="285" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<text x="340" y="290" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<rect x="405" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="490" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >3 · equivalence</text>
+<text x="450" y="130" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="530" y="180" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="460" y="240" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="530" y="115" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<text x="445" y="185" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<text x="520" y="280" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<rect x="595" y="70" width="170" height="240" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="680" y="58" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >4 · past equivalence</text>
+<text x="640" y="130" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="720" y="180" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="650" y="240" font-size="13" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₄⁺</text>
+<text x="720" y="115" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<text x="635" y="185" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<text x="710" y="280" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Cl⁻</text>
+<text x="678" y="222" font-size="13" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H₃O⁺</text>
+<text x="400" y="360" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.100 M NH₃ titrated with 0.100 M HCl — four stages</text>
+</svg>

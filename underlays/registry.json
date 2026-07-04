@@ -1704,6 +1704,116 @@
      "exIdx": 4
     }
    ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1125,
+   "exIdx": 1,
+   "asset": "u_1125_e1_equilib_approach_abc.svg",
+   "mode": "example-image",
+   "what": "A+B<=>C approach shown-state: [A] and [B] fall from different initial values, [C] rises from 0, all three plateau at the same time; curves colour-keyed and labeled",
+   "answer_leak_check": "PASS: no t_eq marker and no rises/falls annotations (identifying directions and the simultaneous stop IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1129,
+   "exIdx": 1,
+   "asset": "u_1129_e1_delta_ratio_curves.svg",
+   "mode": "example-image",
+   "what": "Delta-ratio shown-state: [A] drops 1.0 -> 0.4 M and [B] rises 0 -> 1.2 M (verbatim), both plateauing together, endpoints readable off ticks 0.4/1.0/1.2",
+   "answer_leak_check": "PASS: the 1:2 delta ratio and implied coefficients are not stated (computing them from the read-off deltas IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1133,
+   "exIdx": 1,
+   "asset": "u_1133_e1_pressure_time_nh3_drawn.svg",
+   "mode": "example-image",
+   "what": "P-t shown-state for N2+3H2<=>2NH3 from pure reactants: P(N2) 0.50->0.30, P(H2) 1.50->0.90, P(NH3) 0->0.40 atm (1:3:2 deltas, consistent with the u_1126/u_1139 family scale)",
+   "answer_leak_check": "PASS: NO total-pressure line and no 4-mol->2-mol commentary (describing how total P changes and why IS the task); plateau values are internally consistent extras",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1154,
+   "exIdx": 1,
+   "asset": "u_1154_e1_stress_response_drawn.svg",
+   "mode": "example-image",
+   "what": "Stress-response shown-state: equilibrium flats, vertical [N2] jump at the given t=50 s marker, then N2/H2 decaying and NH3 rising to a new equilibrium - full curves drawn per cell",
+   "answer_leak_check": "PASS: no shift-direction annotations and no old-vs-new [NH3] comparison text (reading which curves move where, and where NH3 ends up, IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1160,
+   "exIdx": 1,
+   "asset": "u_1160_e1_qk_snapshot.svg",
+   "mode": "example-image",
+   "what": "Q-vs-K particulate snapshot: 8 A2 pairs (reactant, indigo) + 2 B2 pairs (product, amber) at t = 2 s, counts verbatim from cell",
+   "answer_leak_check": "PASS: no Q value, no Q<K verdict, no forward-direction arrow (computing Q, comparing to K, and picking the direction IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1163,
+   "exIdx": 1,
+   "asset": "u_1163_e1_initial_vs_equilib_snapshot.svg",
+   "mode": "example-image",
+   "what": "Initial vs equilibrium particulate snapshots: t=0 panel with 10 A, equilibrium panel with 3 A + 7 B (verbatim counts)",
+   "answer_leak_check": "PASS: no Kc value and no product-favoured verdict (computing Kc from counts and judging the favoured side IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1164,
+   "exIdx": 1,
+   "asset": "u_1164_e1_equilib_data_table.svg",
+   "mode": "example-image",
+   "what": "Equilibrium data table with verbatim cell values (t = 0/10/20/30 min; 1.00/3.00/0 -> 0.60/1.80/0.80 twice); equation caption",
+   "answer_leak_check": "PASS: the repeated 20/30-min rows are styled identically to the others - no highlight (spotting the first repeated row IS the task); no Kc computed",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1169,
+   "exIdx": 1,
+   "asset": "u_1169_e1_a2b_data_table.svg",
+   "mode": "example-image",
+   "what": "A(g)<=>2B(g) data table: start 0.200/0 verbatim; intermediate and plateau values (0.140/0.120, then 0.120/0.160 twice) self-chosen but stoichiometry-exact (dA -0.08 : dB +0.16 = 1:2), last two rows identical per cell",
+   "answer_leak_check": "PASS: plateau rows styled identically (identifying them is part of the task), no Kc = B^2/A computation, no product/reactant-favoured verdict; self-chosen values noted here as in u_652/u_1126 precedent",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1362,
+   "exIdx": 1,
+   "asset": "u_1362_e1_titration_4panel_sasb.svg",
+   "mode": "example-image",
+   "what": "SA-SB titration 4-panel particulate: initial (H3O+/Cl-), halfway (H3O+/Cl-/Na+ equal count per cell), equivalence (Na+/Cl- only), past equivalence (Na+/Cl-/OH-) - stages and populations verbatim",
+   "answer_leak_check": "PASS: no dominant-species commentary and no pH statements per panel (explaining both IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1378,
+   "exIdx": 1,
+   "asset": "u_1378_e1_titration_4panel_wasb.svg",
+   "mode": "example-image",
+   "what": "WA-SB titration 4-panel particulate: initial (CH3COOH + one H3O+), buffer (CH3COOH + CH3COO- mixture + Na+), equivalence (CH3COO- + Na+ only), past equivalence (+ excess OH-) - verbatim stages",
+   "answer_leak_check": "PASS: no dominant-species writeups and no pH estimates per panel (both ARE the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1394,
+   "exIdx": 1,
+   "asset": "u_1394_e1_titration_4panel_wbsa.svg",
+   "mode": "example-image",
+   "what": "WB-SA titration 4-panel particulate: initial (NH3 + one OH-), buffer (NH3 + NH4+ mixture + Cl-), equivalence (NH4+ + Cl- only), past equivalence (+ excess H3O+) - verbatim stages",
+   "answer_leak_check": "PASS: no dominant-species writeups and no pH-relative-to-7 verdicts per panel (both ARE the task)",
+   "serves": []
   }
  ]
 }

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1163_e1 initial vs equilibrium snapshots shown-state | chem row 1163 | t=0: 10 A, 0 B; equilibrium: 3 A, 7 B (verbatim counts); NO Kc value, NO product-favoured verdict -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="60" y="60" width="320" height="310" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="220" y="92" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >initial (t = 0)</text>
+<circle cx="110" cy="140" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="200" cy="128" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="300" cy="145" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="150" cy="200" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="255" cy="210" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="330" cy="215" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="105" cy="275" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="205" cy="285" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="300" cy="300" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="150" cy="335" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="392" y1="215" x2="418" y2="215" stroke="var(--muted,#606b84)" stroke-width="2.5" marker-end="url(#ax)"/>
+<rect x="430" y="60" width="320" height="310" rx="10" fill="none" stroke="var(--line,#e5eaf2)" stroke-width="2.5"/>
+<text x="590" y="92" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >equilibrium</text>
+<circle cx="480" cy="150" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="600" cy="135" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="530" cy="330" r="10" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="700" cy="160" r="10" fill="var(--amber-soft,#fdf3d8)" stroke="var(--amber,#f5b526)" stroke-width="2.4"/>
+<circle cx="520" cy="205" r="10" fill="var(--amber-soft,#fdf3d8)" stroke="var(--amber,#f5b526)" stroke-width="2.4"/>
+<circle cx="630" cy="215" r="10" fill="var(--amber-soft,#fdf3d8)" stroke="var(--amber,#f5b526)" stroke-width="2.4"/>
+<circle cx="480" cy="270" r="10" fill="var(--amber-soft,#fdf3d8)" stroke="var(--amber,#f5b526)" stroke-width="2.4"/>
+<circle cx="580" cy="280" r="10" fill="var(--amber-soft,#fdf3d8)" stroke="var(--amber,#f5b526)" stroke-width="2.4"/>
+<circle cx="690" cy="290" r="10" fill="var(--amber-soft,#fdf3d8)" stroke="var(--amber,#f5b526)" stroke-width="2.4"/>
+<circle cx="620" cy="340" r="10" fill="var(--amber-soft,#fdf3d8)" stroke="var(--amber,#f5b526)" stroke-width="2.4"/>
+<text x="400" y="408" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >blue = A · gold = B</text>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1154_e1 stress response shown-state | chem row 1154 | equilibrium flats, N2 jumps vertically at t=50 s (given), then N2/H2 fall and NH3 rises to a new equilibrium - curves drawn; NO direction annotations, NO before/after comparison text -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<line x1="350" y1="130" x2="350" y2="420" stroke="var(--muted,#606b84)" stroke-width="1.8" stroke-dasharray="7 6"/>
+<text x="350" y="118" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >t = 50 s — N₂ added</text>
+<polyline points="145,350 350,350 350,280" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M350,280 C420,284 470,297 520,300 C560,301 600,301 660,301" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linecap="round"/>
+<text x="685" y="305" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >N₂</text>
+<polyline points="145,210 350,210" fill="none" stroke="var(--amber,#f5b526)" stroke-width="4" stroke-linecap="round"/>
+<path d="M350,210 C420,212 470,220 520,222 C560,224 600,224 660,224" fill="none" stroke="var(--amber,#f5b526)" stroke-width="4" stroke-linecap="round"/>
+<text x="685" y="229" font-size="14" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H₂</text>
+<polyline points="145,364 350,364" fill="none" stroke="var(--rose,#e8548c)" stroke-width="4" stroke-linecap="round"/>
+<path d="M350,364 C420,362 470,356 520,354 C560,353 600,353 660,353" fill="none" stroke="var(--rose,#e8548c)" stroke-width="4" stroke-linecap="round"/>
+<text x="687" y="350" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="640" y="468" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >time</text>
+<text x="60" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 60 260)">concentration (M)</text>
+</svg>
