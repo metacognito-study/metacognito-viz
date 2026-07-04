@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Gate Flyer</title>
+<!--
+============================================================================
+  GATE FLYER  -  P1 solo review build  (2026-07-04, flappy-glide quiz flyer)
+============================================================================
+  REVIEW NOTE
+  -----------
+  ENGINE / LICENSE
+    Hand-rolled vanilla Canvas2D game loop, ZERO external dependencies. No CDN,
+    no engine, no network at all -> it runs fully OFFLINE the first time the
+    file is opened (nothing to cache; there is nothing external to fetch). All
+    sound is synthesised at runtime with the WebAudio API -> no audio assets.
+
+    Same house engine as salt_invaders.html (v2.2) and concept_asteroids.html:
+    the pool/opts contract, the DEMO_POOL, the subscript renderer, the arcade
+    kit (parallax sky, prerendered particles, screenshake, hitstop, synth SFX,
+    combo, boss cadence, scanner powerup) and the teaching toast are the SAME
+    patterns, ported to a new mechanic. Everything here is original code, so no
+    third-party license attaches to this file.
+
+  THE MECHANIC  (why "flyer" and not "invaders")
+    A glider flies rightward at a constant scroll. The ONLY input is a FLAP
+    (tap / space) that gives an upward impulse; gravity pulls it back down --
+    classic one-button flappy glide. Pillars scroll in from the right. Each
+    pillar is a vertical STACK OF GATES; every gate carries one labelled pod.
+    The wave RULE banner (a rotating category axis) says which category to fly
+    THROUGH. Steer the glider (with flaps + gravity) into the gate whose pod
+    matches the rule.
+
+    NO COLOR-MATCH EXPLOIT: every pod is the SAME metallic capsule with an ASCII
+    label. The green (correct) / red (wrong) reveal happens ONLY at the instant
+    the glider passes the pillar plane -- never while the pillar approaches. A
+    Scanner star (~5% of pillars) reveals the NEXT 3 pillars' categories when
+    flown through.
+
+    Flying through the CORRECT gate = points x combo + a sparkle burst. Flying
+    through a WRONG gate = a heart + a teaching toast ("NH3 is a BASE -- the rule
+    was SALTS"). Crashing into a pillar WALL (the solid bar between gates, or the
+    floor/ceiling) = a heart + a bump. Missing a pillar plane with no gate passed
+    is impossible -- you always pass through SOME slot, so the read is forced.
+
+  HOW THE HOST PASSES A CHAPTER-CAPPED POOL  (drop-in with the existing games)
+    Identical to SpeedSwipe / Salt Invaders / Concept Asteroids:
+
+        window.GATE_FLYER.open(pool, {
+          enabled: true,                 // REQUIRED flag gate; open() no-ops otherwise
+          subject: 'Chemistry',          // cosmetic
+          chapterLabel: 'Up to chapter 12',
+          rtl: false,                    // mirrors HUD/layout for Arabic
+          onEmit:  cgEmitMicrotaskSignal_,   // onEmit(rowId, lo, 'flyer', score, itemCount)
+          onClose: function (summary) { ... } // summary = {subject,chapterLabel,seen,
+                                              //   correct,score,wave,tool:'flyer'}
+        });
+
+    pool is an array of { label, category, rowId?, lo? } items ALREADY capped to
+    the student's furthest chapter by the host's furthestChapter() filter. This
+    module never reads a global bank and never filters by chapter itself. It
+    trusts the pool it is given, staying decoupled exactly like SpeedSwipe.
+    window.GATE_FLYER.start is an alias for .open per the P1 brief.
+
+  DEMO POOL
+    The SAME built-in ~28-item demo pool (DEMO_POOL) across 4 axes used by
+    salt_invaders.html, copied VERBATIM (chemistry first-encounter simple +
+    checked correct). Used ONLY when the host passes no pool. DO NOT edit.
+
+  DIFFICULTY  (calibrated per sim/SI_REPORT.md + sim/CA_REPORT.md lessons)
+    SI_REPORT: a fall/scroll that is too slow makes the game trivially
+    survivable -> competent death must land at wave ~6-8, and speed climbs
+    +8%/wave capped at 200%. CA_REPORT: a single wrong = a full heart while
+    combo needs a long streak KILLS honest players by wave 2, so this build
+    uses 5 hearts, comboStart 3, a start-of-wave grace on the first misreads
+    (TEACH not heart), and a startInvuln window so the player reads the new
+    banner un-crashed. Gate vertical gap and pillar spacing are sized so a
+    competent reader clears waves 1-5 comfortably and hits the wall around
+    wave 6-8 as scroll speed x pillar density collapse the read+steer budget.
+
+  WHAT REMAINS FOR MULTIPLAYER  (NOT in this P1 file, per PRD)
+    PRD_ARCADE_GAMES.md P2 co-op (RTDB /gameRooms/<id> + 5-digit codes, an
+    authoritative host owning wave transitions, clients render never derive,
+    late joiners hydrate from a summary node). None of that networking is
+    present here -- this is the solo P1 shell only.
+
+  ASCII-only visible text. No em-dashes / underscores in labels. Halal-safe:
+  pods shatter into geometric particles, an abstract glider, no violence/gore.
+============================================================================
+-->
+<style>
+  :root {
+    /* Host page injects these vars; standalone review falls back to the hex. */
+    --gf-bg1: var(--surface-2, #0d1220);
+    --gf-bg2: var(--surface, #131a2c);
+    --gf-ink: var(--ink, #eaf0ff);
+    --gf-muted: var(--muted, #9aa7c7);
+    --gf-indigo: var(--indigo, #6c5cff);
+    --gf-green: var(--green, #22c58b);
+    --gf-rose: var(--rose, #ff5470);
+    --gf-amber: var(--amber, #ffb020);
+    --gf-line: var(--line, #2a3355);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #06070d; color: var(--gf-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #gf-root { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #gf-wrap {
+    position: relative; width: 100%; height: 100%; max-width: 900px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #gf-canvas {
+    display: block; width: 100%; height: 100%;
+    touch-action: none; background: radial-gradient(120% 90% at 50% 0%, var(--gf-bg2), var(--gf-bg1) 70%, #06070d);
+    image-rendering: optimizeSpeed;
+  }
+  /* Top HUD + rule banner + buttons are DOM (crisp text, easy a11y), overlaid on canvas */
+  #gf-hud {
+    position: absolute; top: 0; left: 0; right: 0; padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; pointer-events: none;
+    font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  }
+  #gf-hud .gf-pill {
+    background: rgba(10,14,26,.55); border: 1px solid var(--gf-line); border-radius: 999px;
+    padding: 5px 11px; display: inline-flex; gap: 6px; align-items: center; backdrop-filter: blur(3px);
+    transition: transform .12s ease;
+  }
+  #gf-hud .gf-lives { color: var(--gf-rose); }
+  #gf-hud .gf-score { color: var(--gf-amber); }
+  #gf-hud .gf-wave { color: var(--gf-indigo); }
+  #gf-hud .gf-combo {
+    color: var(--gf-green); opacity: 0; transform: scale(.85);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  #gf-hud .gf-combo.gf-on { opacity: 1; transform: scale(1); }
+  .gf-lives.gf-pulse { animation: gf-heartpulse .32s ease; }
+  @keyframes gf-heartpulse { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+  /* boss countdown pill */
+  #gf-hud .gf-timer { color: var(--gf-rose); display: none; }
+  #gf-hud .gf-timer.gf-on { display: inline-flex; }
+  #gf-hud .gf-timer.gf-low { animation: gf-timerblink .6s steps(1) infinite; }
+  @keyframes gf-timerblink { 50% { opacity: .35; } }
+  #gf-spacer { flex: 1 1 auto; }
+  .gf-iconbtn {
+    pointer-events: auto; width: 40px; height: 40px; min-width: 40px; border-radius: 12px;
+    border: 1px solid var(--gf-line); background: rgba(10,14,26,.6); color: var(--gf-ink);
+    font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .gf-iconbtn:active { transform: scale(.94); }
+  #gf-banner {
+    position: absolute; left: 50%; top: 58px; transform: translateX(-50%);
+    max-width: 92%; text-align: center; pointer-events: none;
+    background: rgba(12,16,30,.72); border: 1.5px solid var(--gf-indigo); border-radius: 14px;
+    padding: 9px 16px; backdrop-filter: blur(4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  #gf-banner .gf-banner-rule { font-size: 15px; font-weight: 850; letter-spacing: -.01em; }
+  #gf-banner .gf-banner-sub { font-size: 11.5px; color: var(--gf-muted); margin-top: 2px; font-weight: 600; }
+  #gf-banner .gf-banner-target { color: var(--gf-green); }
+  #gf-banner .gf-banner-spare { color: var(--gf-rose); }
+  #gf-banner.gf-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+
+  /* teaching toast: the "why was that wrong" line, appears bottom-center briefly */
+  #gf-teach {
+    position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%) translateY(6px);
+    max-width: 90%; text-align: center; pointer-events: none; opacity: 0;
+    background: rgba(20,10,16,.86); border: 1.5px solid var(--gf-rose); border-radius: 12px;
+    color: var(--gf-ink); font-size: 13px; font-weight: 750; padding: 8px 14px;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6); box-shadow: 0 10px 26px rgba(0,0,0,.45);
+    transition: opacity .22s ease, transform .22s ease; z-index: 5;
+  }
+  #gf-teach.gf-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #gf-teach b { color: var(--gf-amber); }
+
+  /* Overlays: start / pause / gameover / error, all centered cards */
+  .gf-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(6,8,14,.7); backdrop-filter: blur(3px); text-align: center;
+  }
+  .gf-overlay[hidden] { display: none; }
+  .gf-card {
+    background: var(--gf-bg2); border: 1.5px solid var(--gf-line); border-radius: 20px;
+    padding: 22px 20px; max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 12px; align-items: center;
+  }
+  .gf-card h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+  .gf-card h1 .gf-accent { color: var(--gf-indigo); }
+  .gf-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--gf-muted); }
+  .gf-card .gf-big { font-size: 46px; font-weight: 900; color: var(--gf-amber); line-height: 1; }
+  .gf-card ul { margin: 4px 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--gf-muted); line-height: 1.6; text-align: left; }
+  .gf-card ul b { color: var(--gf-ink); }
+  .gf-primary {
+    min-height: 50px; padding: 0 26px; border-radius: 14px; border: 0; cursor: pointer;
+    background: var(--gf-indigo); color: #fff; font-size: 15px; font-weight: 850; width: 100%;
+  }
+  .gf-primary:active { transform: scale(.98); }
+  .gf-ghost {
+    min-height: 44px; padding: 0 20px; border-radius: 12px; cursor: pointer;
+    background: transparent; color: var(--gf-muted); border: 1px solid var(--gf-line);
+    font-size: 13px; font-weight: 700; width: 100%;
+  }
+  .gf-row { display: flex; gap: 10px; width: 100%; }
+  .gf-row > * { flex: 1 1 0; }
+  [dir="rtl"] #gf-hud { flex-direction: row-reverse; }
+</style>
+</head>
+<body>
+<div id="gf-root">
+  <div id="gf-wrap">
+    <canvas id="gf-canvas"></canvas>
+
+    <div id="gf-hud">
+      <span class="gf-pill gf-wave">Wave <span id="gf-wave-n">1</span></span>
+      <span class="gf-pill gf-score">Score <span id="gf-score-n">0</span></span>
+      <span class="gf-pill gf-lives" id="gf-lives-pill">&#9829; <span id="gf-lives-n">5</span></span>
+      <span class="gf-pill gf-combo" id="gf-combo-pill">x<span id="gf-combo-n">1</span></span>
+      <span class="gf-pill gf-timer" id="gf-timer-pill">&#9200; <span id="gf-timer-n">30</span></span>
+      <span id="gf-spacer"></span>
+      <button type="button" class="gf-iconbtn" id="gf-mute-btn" aria-label="Mute">&#128266;</button>
+      <button type="button" class="gf-iconbtn" id="gf-pause-btn" aria-label="Pause">&#10073;&#10073;</button>
+      <button type="button" class="gf-iconbtn" id="gf-fs-btn" aria-label="Fullscreen">&#9974;</button>
+      <button type="button" class="gf-iconbtn" id="gf-close-btn" aria-label="Close">&#10005;</button>
+    </div>
+
+    <div id="gf-banner" class="gf-hide" aria-live="polite">
+      <div class="gf-banner-rule" id="gf-banner-rule"></div>
+      <div class="gf-banner-sub" id="gf-banner-sub"></div>
+    </div>
+
+    <div id="gf-teach" aria-live="polite"></div>
+
+    <!-- START -->
+    <div class="gf-overlay" id="gf-start">
+      <div class="gf-card">
+        <h1>Gate <span class="gf-accent">Flyer</span></h1>
+        <p>Your glider flies right on its own. TAP to flap up; gravity pulls it
+           down. Pillars stream in -- each has a stack of gates, and every gate
+           carries a labelled pod. Each wave shows a RULE. Read the pods and fly
+           THROUGH the gate the rule names. The pod colour reveals right only as
+           you pass. Speed climbs every wave. Bosses hit at 5, 10, 15.</p>
+        <ul>
+          <li><b>Flap:</b> tap the screen, or Space / Up</li>
+          <li><b>Goal:</b> fly through the gate matching the wave rule</li>
+          <li><b>Avoid:</b> the solid walls, the floor and ceiling</li>
+          <li><b>Scanner:</b> fly through the glowing blue star to reveal answers</li>
+        </ul>
+        <button type="button" class="gf-primary" id="gf-start-btn">Start</button>
+      </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="gf-overlay" id="gf-pause" hidden>
+      <div class="gf-card">
+        <h1>Paused</h1>
+        <p id="gf-pause-rule"></p>
+        <button type="button" class="gf-primary" id="gf-resume-btn">Resume</button>
+        <button type="button" class="gf-ghost" id="gf-quit-btn">Quit game</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="gf-overlay" id="gf-over" hidden>
+      <div class="gf-card">
+        <h1>Game Over</h1>
+        <div class="gf-big" id="gf-final-score">0</div>
+        <p id="gf-final-line"></p>
+        <div class="gf-row">
+          <button type="button" class="gf-ghost" id="gf-done-btn">Done</button>
+          <button type="button" class="gf-primary" id="gf-again-btn">Play again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR / EMPTY POOL -->
+    <div class="gf-overlay" id="gf-error" hidden>
+      <div class="gf-card">
+        <h1>Not ready</h1>
+        <p id="gf-error-msg">No game content available yet.</p>
+        <button type="button" class="gf-primary" id="gf-error-btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function (global) {
+  'use strict';
+
+  // ======================================================================
+  //  DEMO POOL  (standalone review only; host normally passes its own pool)
+  //  Copied VERBATIM from salt_invaders.html. 4 axes; first-encounter simple +
+  //  chemistry-correct. category values are the canonical class strings the
+  //  RULES map onto.  DO NOT EDIT CONTENTS.
+  // ======================================================================
+  var DEMO_POOL = [
+    // --- salt vs acid vs base ---
+    { label: 'NaCl',    category: 'salt' },   // table salt: neutral ionic salt
+    { label: 'KNO3',    category: 'salt' },   // potassium nitrate: a salt
+    { label: 'CaCO3',   category: 'salt' },   // calcium carbonate: a salt
+    { label: 'Na2SO4',  category: 'salt' },   // sodium sulfate: a salt
+    { label: 'HCl',     category: 'acid' },   // hydrochloric acid
+    { label: 'H2SO4',   category: 'acid' },   // sulfuric acid
+    { label: 'HNO3',    category: 'acid' },   // nitric acid
+    { label: 'NaOH',    category: 'base' },   // sodium hydroxide: strong base
+    { label: 'KOH',     category: 'base' },   // potassium hydroxide: base
+    { label: 'NH3',     category: 'base' },   // ammonia: weak base
+    // --- ionic vs covalent (bonding) ---
+    { label: 'NaCl',    category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'MgO',     category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'KBr',     category: 'ionic' },     // ionic
+    { label: 'CO2',     category: 'covalent' },  // two nonmetals = covalent
+    { label: 'H2O',     category: 'covalent' },  // covalent (molecular)
+    { label: 'CH4',     category: 'covalent' },  // covalent
+    // --- element vs compound ---
+    { label: 'O2',      category: 'element' },   // one kind of atom = element
+    { label: 'Fe',      category: 'element' },   // iron: element
+    { label: 'He',      category: 'element' },   // helium: element
+    { label: 'H2O',     category: 'compound' },  // 2 elements bonded = compound
+    { label: 'CO2',     category: 'compound' },  // compound
+    { label: 'NaCl',    category: 'compound' },  // compound
+    // --- endothermic vs exothermic (first-encounter energy sign) ---
+    { label: 'Combustion',    category: 'exothermic' },  // releases heat
+    { label: 'Freezing',      category: 'exothermic' },  // releases heat
+    { label: 'Neutralize',    category: 'exothermic' },  // acid+base releases heat
+    { label: 'Melting ice',   category: 'endothermic' }, // absorbs heat
+    { label: 'Photosynth',    category: 'endothermic' }, // absorbs light energy
+    { label: 'Evaporate',     category: 'endothermic' }  // absorbs heat
+  ];
+
+  // Rule axes: each has a set of categories. A wave picks an axis, then a
+  // TARGET category on that axis; everything else on that axis is a decoy.
+  // `one` is the singular class noun used to TEACH a wrong pass ("NH3 is a BASE").
+  var AXES = [
+    { id: 'saltab',  cats: ['salt', 'acid', 'base'],
+      nice: { salt: 'SALTS', acid: 'acids', base: 'bases' },
+      one:  { salt: 'SALT', acid: 'ACID', base: 'BASE' } },
+    { id: 'bond',    cats: ['ionic', 'covalent'],
+      nice: { ionic: 'IONIC compounds', covalent: 'COVALENT compounds' },
+      one:  { ionic: 'IONIC compound', covalent: 'COVALENT compound' } },
+    { id: 'ec',      cats: ['element', 'compound'],
+      nice: { element: 'ELEMENTS', compound: 'COMPOUNDS' },
+      one:  { element: 'ELEMENT', compound: 'COMPOUND' } },
+    { id: 'energy',  cats: ['endothermic', 'exothermic'],
+      nice: { endothermic: 'ENDOTHERMIC changes', exothermic: 'EXOTHERMIC changes' },
+      one:  { endothermic: 'ENDOTHERMIC change', exothermic: 'EXOTHERMIC change' } }
+  ];
+
+  // ---------------------------------------------------------------- helpers
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function cssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+      v = v && v.trim();
+      return v || fallback;
+    } catch (e) { return fallback; }
+  }
+  // parse "#rrggbb" (or a browser-resolved rgb string) into {r,g,b} for sprite tinting
+  function toRGB(c) {
+    c = String(c || '').trim();
+    var m = c.match(/^#?([0-9a-f]{6})$/i);
+    if (m) { var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+    m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+    if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+    return { r: 200, g: 200, b: 200 };
+  }
+
+  // =====================================================================
+  //  Chemical-formula subscript rendering  (ported verbatim from
+  //  salt_invaders.html FIX 2). Source stays ASCII ("H2O"); digits are STYLED
+  //  as subscripts at render time -- never unicode-substituted. Consumers:
+  //    - the canvas pod + score popups  (drawFormula, measureFormula)
+  //    - the DOM toast + wave banner     (formulaHTML)
+  //  Only formula-looking tokens get subscripted so plain words ("Melting ice",
+  //  "Photosynth", "Neutralize") are left completely untouched.
+  // =====================================================================
+
+  // A token looks like a chem formula if it has an UPPERCASE letter AND a
+  // digit, and is made only of letters/digits/() +- and dots (no spaces).
+  var FORMULA_RE = /^(?=[^0-9]*[A-Z])(?=.*[0-9])[A-Za-z0-9().+\-]+$/;
+  function looksLikeFormula(tok) {
+    return typeof tok === 'string' && tok.length <= 16 && FORMULA_RE.test(tok);
+  }
+
+  // Split a formula into runs where a digit run FOLLOWING a letter/')' becomes a
+  // subscript. A leading coefficient (digit at index 0) is NOT a subscript.
+  function formulaRuns(tok) {
+    var runs = [], i = 0, n = tok.length;
+    while (i < n) {
+      var ch = tok[i];
+      if (ch >= '0' && ch <= '9') {
+        var j = i; while (j < n && tok[j] >= '0' && tok[j] <= '9') j++;
+        var prev = i > 0 ? tok[i - 1] : '';
+        var sub = (i > 0) && ((prev >= 'A' && prev <= 'Z') || (prev >= 'a' && prev <= 'z') || prev === ')');
+        runs.push({ t: tok.slice(i, j), sub: sub });
+        i = j;
+      } else {
+        var k = i; while (k < n && !(tok[k] >= '0' && tok[k] <= '9')) k++;
+        runs.push({ t: tok.slice(i, k), sub: false });
+        i = k;
+      }
+    }
+    return runs;
+  }
+
+  // Build subscript-aware HTML for DOM contexts. Only formula-looking tokens get
+  // <sub>-wrapped digits. Always HTML-escapes. (esc() defined later in the IIFE.)
+  function formulaHTML(str) {
+    var out = [];
+    var parts = String(str == null ? '' : str).split(/(\s+)/); // keep whitespace
+    for (var p = 0; p < parts.length; p++) {
+      var seg = parts[p];
+      if (/^\s+$/.test(seg) || !looksLikeFormula(seg)) { out.push(esc(seg)); continue; }
+      var runs = formulaRuns(seg), buf = '';
+      for (var r = 0; r < runs.length; r++) {
+        buf += runs[r].sub ? '<sub>' + esc(runs[r].t) + '</sub>' : esc(runs[r].t);
+      }
+      out.push(buf);
+    }
+    return out.join('');
+  }
+
+  // ---- canvas measuring + drawing with subscripts ---------------------
+  function measureFormula(ctx, str, fontPx, subScale) {
+    if (!looksLikeFormula(str)) return ctx.measureText(str).width;
+    var runs = formulaRuns(str), w = 0, baseFont = ctx.font;
+    var subFont = baseFont.replace(/(\d+(?:\.\d+)?)px/, function () { return (fontPx * subScale).toFixed(1) + 'px'; });
+    for (var r = 0; r < runs.length; r++) {
+      ctx.font = runs[r].sub ? subFont : baseFont;
+      w += ctx.measureText(runs[r].t).width;
+    }
+    ctx.font = baseFont;
+    return w;
+  }
+  // Draw a (possibly subscripted) string centered at (cx, cy). textBaseline
+  // should be 'middle'; digits drop by subDrop*fontPx. If not a formula, draws
+  // plainly (single fillText).
+  function drawFormula(ctx, str, cx, cy, fontPx, subScale, subDrop) {
+    if (!looksLikeFormula(str)) {
+      var savedA0 = ctx.textAlign; ctx.textAlign = 'center';
+      ctx.fillText(str, cx, cy);
+      ctx.textAlign = savedA0;
+      return;
+    }
+    var total = measureFormula(ctx, str, fontPx, subScale);
+    var baseFont = ctx.font;
+    var subFont = baseFont.replace(/(\d+(?:\.\d+)?)px/, function () { return (fontPx * subScale).toFixed(1) + 'px'; });
+    var savedAlign = ctx.textAlign;
+    ctx.textAlign = 'left';
+    var x = cx - total / 2, runs = formulaRuns(str);
+    for (var r = 0; r < runs.length; r++) {
+      if (runs[r].sub) {
+        ctx.font = subFont;
+        ctx.fillText(runs[r].t, x, cy + fontPx * subDrop);
+        x += ctx.measureText(runs[r].t).width;
+      } else {
+        ctx.font = baseFont;
+        ctx.fillText(runs[r].t, x, cy);
+        x += ctx.measureText(runs[r].t).width;
+      }
+    }
+    ctx.font = baseFont;
+    ctx.textAlign = savedAlign;
+  }
+
+  // Keep only pool items whose category belongs to one of our axes; index by category.
+  function buildAxisIndex(pool) {
+    var byCat = {};
+    var axisHas = {};
+    for (var i = 0; i < pool.length; i++) {
+      var it = pool[i];
+      if (!it || !it.label || !it.category) continue;
+      var cat = String(it.category).toLowerCase();
+      var label = String(it.label);
+      // guard: strip any accidental underscores / em-dashes from visible labels
+      label = label.replace(/[_—–]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!label) continue;
+      (byCat[cat] || (byCat[cat] = [])).push({ label: label, category: cat, rowId: it.rowId, lo: it.lo });
+    }
+    var usableAxes = [];
+    for (var a = 0; a < AXES.length; a++) {
+      var ax = AXES[a];
+      var present = ax.cats.filter(function (c) { return byCat[c] && byCat[c].length; });
+      // an axis is playable if the TARGET can be drawn AND at least one decoy exists
+      if (present.length >= 2) { usableAxes.push({ axis: ax, present: present }); axisHas[ax.id] = true; }
+    }
+    return { byCat: byCat, usableAxes: usableAxes };
+  }
+
+  // =====================================================================
+  //  Tiny WebAudio synth  (no assets; all SFX generated on the fly)
+  // =====================================================================
+  function Sfx() { this.ctx = null; this.muted = false; }
+  Sfx.prototype._ac = function () {
+    if (this.ctx) return this.ctx;
+    try {
+      var AC = global.AudioContext || global.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+    } catch (e) { this.ctx = null; }
+    return this.ctx;
+  };
+  Sfx.prototype.resume = function () { var c = this._ac(); if (c && c.state === 'suspended') { try { c.resume(); } catch (e) {} } };
+  // one blip: type, start freq, end freq, duration, gain
+  Sfx.prototype._blip = function (type, f0, f1, dur, gain) {
+    if (this.muted) return;
+    var c = this._ac(); if (!c) return;
+    try {
+      var t = c.currentTime;
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t);
+      if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  };
+  Sfx.prototype.flap    = function () { this._blip('sine',    420, 620, 0.07, 0.05); };
+  Sfx.prototype.right    = function () { this._blip('triangle',520, 900, 0.12, 0.11); this._blip('square', 300, 120, 0.10, 0.05); };
+  Sfx.prototype.wrong   = function () { this._blip('sawtooth',180, 70,  0.22, 0.13); };
+  Sfx.prototype.bump    = function () { this._blip('square',  150, 60,  0.16, 0.10); };
+  Sfx.prototype.wave    = function () { var s = this; this._blip('triangle', 440, 660, 0.10, 0.08); setTimeout(function () { s._blip('triangle', 660, 880, 0.14, 0.09); }, 90); };
+  Sfx.prototype.powerup = function () { var s = this; [0, 60, 120].forEach(function (d, i) { setTimeout(function () { s._blip('sine', 700 + i * 260, 700 + i * 260, 0.10, 0.07); }, d); }); };
+  // rising "scanner active" beep loop tick
+  Sfx.prototype.scan    = function (k) { this._blip('sine', 900 + k * 40, 1100 + k * 40, 0.05, 0.04); };
+  Sfx.prototype.boss    = function () { this._blip('sawtooth', 90, 60, 0.5, 0.12); };
+
+  // =====================================================================
+  //  Prerendered sprites (offscreen canvases) so hot loops just blit
+  // =====================================================================
+  function makeParticleSprite(rgb, shape, px) {
+    var c = document.createElement('canvas');
+    c.width = px; c.height = px;
+    var x = c.getContext('2d');
+    x.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+    var h = px / 2;
+    if (shape === 'sq') {
+      x.fillRect(px * 0.18, px * 0.18, px * 0.64, px * 0.64);
+    } else {
+      x.beginPath(); x.moveTo(h, px * 0.12); x.lineTo(px * 0.9, px * 0.88); x.lineTo(px * 0.1, px * 0.88); x.closePath(); x.fill();
+    }
+    return c;
+  }
+  function makeStarSprite() {
+    var c = document.createElement('canvas'); c.width = 4; c.height = 4;
+    var x = c.getContext('2d');
+    var g = x.createRadialGradient(2, 2, 0, 2, 2, 2);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 4, 4);
+    return c;
+  }
+
+  // =====================================================================
+  //  The module
+  // =====================================================================
+  var GF = {};
+  var live = null; // single active instance guard
+
+  GF.open = function (pool, opts) {
+    opts = opts || {};
+    if (opts.enabled !== true) return null;            // flag gate, matches other modules
+    if (typeof document === 'undefined') return null;
+
+    var usePool = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
+    var idx = buildAxisIndex(usePool);
+    if (!idx.usableAxes.length) {
+      showError('This game needs at least two categories from a topic (like salts and acids). Study a little further and it will unlock.');
+      return null;
+    }
+    if (live) { try { live.destroy(); } catch (e) {} live = null; }
+    live = new Game(idx, opts);
+    return live;
+  };
+  // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
+  GF.start = GF.open;
+  GF.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+
+  // ---- error overlay used before a Game exists -------------------------
+  function showError(msg) {
+    var el = document.getElementById('gf-error');
+    var m = document.getElementById('gf-error-msg');
+    if (m) m.textContent = msg;
+    if (el) el.hidden = false;
+  }
+
+  // ---- tuning constants ------------------------------------------------
+  //  Calibrated per sim/SI_REPORT.md (speed must climb so competent death lands
+  //  ~wave 6-8; +8%/wave capped 200%) and sim/CA_REPORT.md (a single wrong = a
+  //  full heart while combo needs a long streak kills honest players by wave 2 --
+  //  so 5 hearts, comboStart 3, start-of-wave grace + startInvuln).
+  var TUNE = {
+    baseSpeed: 168,         // px/sec leftward pillar scroll, wave 1. Sized so a
+                            //   competent read+steer (~1.1s read/decide + a flap
+                            //   or two to line up the gate) clears waves 1-5 with
+                            //   margin and the wall lands ~wave 6-8 as scroll x
+                            //   pillar density collapse the budget (SI_REPORT
+                            //   death-band method; scroll-in analogue of fall).
+    speedStep: 0.08,        // +8% per wave (brief: +8%/wave)
+    speedCapMul: 2.0,       // cap at 200% (brief: cap 200%; plateau ~wave 9)
+    gravity: 1500,          // px/sec^2 downward pull on the glider
+    flapImpulse: -460,      // px/sec upward kick per flap
+    maxFall: 720,           // terminal downward speed (keeps it controllable)
+    maxRise: 620,           // clamp upward speed
+    pillarGapBase: 300,     // horizontal px between pillars, wave 1
+    pillarGapMin: 168,      // tightest horizontal spacing (dense late waves)
+    pillarGapStep: 10,      // shrink per wave (sim-tuned 14->10: keeps inter-
+                            //   arrival time long enough through mid-waves that
+                            //   the worst-case gate-to-gate move stays reachable
+                            //   until ~wave 6-7, landing the death band on target
+                            //   rather than a wave early)
+    gateH: 124,             // vertical opening height of one gate (comfortable).
+                            //   sim-tuned 2026-07-04: 118->124 + step 3->2 so
+                            //   waves 1-5 are comfortable and the competent wall
+                            //   lands ~wave 6-7 (worst-case gate spread becomes
+                            //   unreachable by the asymmetric up-climb budget),
+                            //   matching the SI_REPORT 6-8 death band target.
+    gateHMin: 96,           // tightest gate opening at speed
+    gateHStep: 2,           // shrink per wave
+    wallW: 46,              // thickness of a pillar (the vertical bar plane)
+    pillarsPerWave: 8,      // pillars to clear a normal wave
+    bossPillars: 12,        // denser boss wave
+    comboStart: 3,          // consecutive correct before multiplier kicks up (CA lesson)
+    comboMin: 1.5,          // first multiplier tier
+    comboMax: 3.0,          // multiplier ceiling
+    hearts: 5,              // learning game needs a mistake buffer (CA lesson)
+    wrongGrace: 1,          // first N wrong passes per wave TEACH (no heart) (CA lesson)
+    startInvuln: 1.4,       // seconds of no-crash grace after a wave banner (CA lesson)
+    bossEvery: 5,           // boss wave cadence
+    bossTime: 30,           // boss countdown seconds
+    scannerChance: 0.05,    // ~5% of pillars carry a scanner star
+    scannerReveal: 3,       // number of upcoming pillars a scanner reveals
+    glideX: 0.30,           // glider's fixed horizontal position (0..1 of width)
+    hitstopMs: 80,          // freeze on a gate pass
+    shakePx: 3,             // screenshake magnitude (brief: 3px)
+    shakeMs: 60             // brief: 60ms
+  };
+
+  // =====================================================================
+  //  Game instance
+  // =====================================================================
+  function Game(idx, opts) {
+    var self = this;
+    this.idx = idx;
+    this.opts = opts;
+    this.rtl = !!opts.rtl;
+    this.reduced = false;
+    try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
+    this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+    this.closed = false;
+
+    // DOM
+    this.canvas = document.getElementById('gf-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.root = document.getElementById('gf-root');
+    if (this.rtl) document.documentElement.setAttribute('dir', 'rtl');
+
+    // theme colors (resolved once; standalone falls back to hex)
+    this.col = {
+      ink: cssVar('--gf-ink', '#eaf0ff'),
+      muted: cssVar('--gf-muted', '#9aa7c7'),
+      indigo: cssVar('--gf-indigo', '#6c5cff'),
+      green: cssVar('--gf-green', '#22c58b'),
+      rose: cssVar('--gf-rose', '#ff5470'),
+      amber: cssVar('--gf-amber', '#ffb020'),
+      line: cssVar('--gf-line', '#2a3355')
+    };
+    this.rgb = {
+      green: toRGB(this.col.green), rose: toRGB(this.col.rose),
+      amber: toRGB(this.col.amber), indigo: toRGB(this.col.indigo),
+      steel: { r: 176, g: 190, b: 220 }
+    };
+
+    // audio
+    this.sfx = new Sfx();
+
+    // prerendered sprites (built once)
+    this.sprites = {
+      pGreenSq: makeParticleSprite(this.rgb.green, 'sq', 10),
+      pGreenTri: makeParticleSprite(this.rgb.green, 'tri', 10),
+      pRoseSq: makeParticleSprite(this.rgb.rose, 'sq', 10),
+      pRoseTri: makeParticleSprite(this.rgb.rose, 'tri', 10),
+      pSteelSq: makeParticleSprite(this.rgb.steel, 'sq', 10),
+      pSteelTri: makeParticleSprite(this.rgb.steel, 'tri', 10),
+      pAmberSq: makeParticleSprite(this.rgb.amber, 'sq', 10),
+      star: makeStarSprite()
+    };
+
+    // state
+    this.state = 'start';   // start | playing | paused | over
+    this.score = 0;
+    this.lives = TUNE.hearts;
+    this.wave = 0;
+    this.seen = 0;          // gate targets that appeared (accuracy summary)
+    this.correct = 0;       // correct gate passes
+    this.rule = null;
+    this.streak = 0;        // consecutive correct passes (drives combo)
+    this.combo = 1;         // current score multiplier
+    this.wrongGraceLeft = 0;// remaining "teach only" wrong passes this wave
+
+    this.pillars = [];      // scrolling pillars, each with gates
+    this.particles = [];
+    this.popups = [];       // floating score text
+    this.stars = [];        // parallax starfield (built on resize)
+    this.shake = 0;         // remaining shake time (s)
+    this.hitstop = 0;       // remaining freeze time (s)
+    this.flash = 0;         // red damage flash 0..1
+    this.goodFlash = 0;
+    this.reveal = 0;        // scanner reveal count (pillars ahead shown)
+    this.invuln = 0;        // start-of-wave no-crash grace (s)
+    this._scanTick = 0;
+
+    // boss wave
+    this.boss = false;
+    this.bossTimer = 0;
+
+    // glider (physics). x is a fixed fraction of width; y is px; vy px/s.
+    this.glider = { x: TUNE.glideX, y: 0, vy: 0, tilt: 0, flapPuff: 0 };
+    this.thrust = 0;        // animated thruster phase
+
+    // pillar spawn bookkeeping
+    this.pillarQueue = 0;   // pillars still to spawn this wave
+    this.pillarsPassed = 0; // pillars whose plane the glider has crossed this wave
+    this.spawnX = 0;        // x at which the next pillar spawns (just past right edge)
+    this.pillarGap = TUNE.pillarGapBase;
+    this.gateH = TUNE.gateH;
+
+    this.W = 0; this.H = 0; this.dpr = 1; this.t = 0;
+    this.last = 0;
+
+    this._bind();
+    this._resize();
+    this._showOverlay('gf-start');
+    this._syncHud();
+    // main loop
+    this._raf = requestAnimationFrame(function (t) { self._loop(t); });
+  }
+
+  Game.prototype._byId = function (id) { return document.getElementById(id); };
+
+  Game.prototype._bind = function () {
+    var self = this;
+    this._handlers = [];
+    function on(el, ev, fn, opt) { if (!el) return; el.addEventListener(ev, fn, opt); self._handlers.push([el, ev, fn, opt]); }
+
+    // buttons
+    on(this._byId('gf-start-btn'), 'click', function () { self.sfx.resume(); self._begin(); });
+    on(this._byId('gf-again-btn'), 'click', function () { self.sfx.resume(); self._reset(); self._begin(); });
+    on(this._byId('gf-done-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('gf-error-btn'), 'click', function () { self._byId('gf-error').hidden = true; self.destroy(); if (self.onClose) { try { self.onClose(self._summary()); } catch (e) {} } });
+    on(this._byId('gf-pause-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('gf-resume-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('gf-quit-btn'), 'click', function () { self._gameOver(true); });
+    on(this._byId('gf-close-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('gf-fs-btn'), 'click', function () { self._toggleFullscreen(); });
+    on(this._byId('gf-mute-btn'), 'click', function () { self._toggleMute(); });
+
+    // keyboard: FLAP is the only gameplay input (Space / Up / W)
+    this._onKey = function (e) {
+      if (self.state !== 'playing') {
+        if (e.key === 'Enter' && self.state === 'start') { self.sfx.resume(); self._begin(); }
+        return;
+      }
+      if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { self._flap(); e.preventDefault(); }
+      else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { self._togglePause(); }
+      else if (e.key === 'm' || e.key === 'M') { self._toggleMute(); }
+    };
+    on(document, 'keydown', this._onKey);
+
+    // pointer: any tap on the canvas = flap (the ONLY input)
+    this._onDown = function (e) {
+      if (self.state !== 'playing') return;
+      self.sfx.resume();
+      self._flap();
+      e.preventDefault();
+    };
+    on(this.canvas, 'pointerdown', this._onDown);
+
+    this._onResize = function () { self._resize(); };
+    on(global, 'resize', this._onResize);
+    on(global, 'orientationchange', this._onResize);
+
+    // pause when tab hidden
+    this._onVis = function () { if (document.hidden && self.state === 'playing') self._togglePause(); };
+    on(document, 'visibilitychange', this._onVis);
+  };
+
+  Game.prototype._resize = function () {
+    var wrap = document.getElementById('gf-wrap');
+    var r = wrap.getBoundingClientRect();
+    this.dpr = clamp(global.devicePixelRatio || 1, 1, 2.5);
+    this.W = Math.round(r.width);
+    this.H = Math.round(r.height);
+    this.canvas.width = Math.round(this.W * this.dpr);
+    this.canvas.height = Math.round(this.H * this.dpr);
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this._buildStars();
+    if (!this.glider.y) this.glider.y = this.H * 0.5;
+  };
+
+  // ---- parallax starfield (3 layers, scroll horizontally) --------------
+  Game.prototype._buildStars = function () {
+    this.stars = [];
+    if (this.reduced) return;   // reduced-motion kills parallax (keeps play)
+    var layers = [
+      { n: 100, sp: 14, a: 0.30, s: 1.4 },
+      { n: 50,  sp: 30, a: 0.15, s: 2.1 },
+      { n: 25,  sp: 54, a: 0.05, s: 3.0 }
+    ];
+    for (var L = 0; L < layers.length; L++) {
+      var cfg = layers[L];
+      for (var i = 0; i < cfg.n; i++) {
+        this.stars.push({ x: rand(0, this.W), y: rand(0, this.H), sp: cfg.sp, a: cfg.a, s: cfg.s });
+      }
+    }
+  };
+
+  // ---- lifecycle -------------------------------------------------------
+  Game.prototype._showOverlay = function (id) {
+    ['gf-start', 'gf-pause', 'gf-over', 'gf-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = (o !== id);
+    });
+  };
+  Game.prototype._hideOverlays = function () {
+    ['gf-start', 'gf-pause', 'gf-over', 'gf-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = true;
+    });
+  };
+
+  Game.prototype._reset = function () {
+    this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
+    this.streak = 0; this.combo = 1; this.reveal = 0; this.invuln = 0; this.boss = false; this.bossTimer = 0;
+    this.pillars.length = 0; this.particles.length = 0; this.popups.length = 0;
+    this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0;
+    this.glider.y = this.H * 0.5; this.glider.vy = 0; this.glider.tilt = 0;
+    this.wrongGraceLeft = 0; this.pillarsPassed = 0; this.pillarQueue = 0;
+  };
+
+  Game.prototype._begin = function () {
+    this._hideOverlays();
+    this.state = 'playing';
+    this.glider.y = this.H * 0.5; this.glider.vy = 0;
+    this._syncHud();
+    this._nextWave();
+  };
+
+  Game.prototype._togglePause = function () {
+    if (this.state === 'playing') {
+      this.state = 'paused';
+      var p = document.getElementById('gf-pause-rule');
+      if (p && this.rule) p.textContent = this._ruleSentence();
+      this._showOverlay('gf-pause');
+    } else if (this.state === 'paused') {
+      this.state = 'playing';
+      this._hideOverlays();
+      this.last = 0; // avoid a big dt jump
+    }
+  };
+
+  Game.prototype._toggleMute = function () {
+    this.sfx.muted = !this.sfx.muted;
+    var b = this._byId('gf-mute-btn');
+    if (b) { b.innerHTML = this.sfx.muted ? '&#128263;' : '&#128266;'; b.setAttribute('aria-label', this.sfx.muted ? 'Unmute' : 'Mute'); }
+  };
+
+  // ---- waves + rules ---------------------------------------------------
+  Game.prototype._nextWave = function () {
+    this.wave++;
+    this.boss = (this.wave % TUNE.bossEvery === 0);
+
+    var choice = pick(this.idx.usableAxes);
+    var axis = choice.axis;
+    var target = pick(choice.present);
+    var decoys = choice.present.filter(function (c) { return c !== target; });
+    this.rule = { axis: axis, target: target, decoys: decoys };
+
+    // ESCALATION: +8%/wave scroll speed, capped at 200%.
+    var speedMul = Math.min(TUNE.speedCapMul, Math.pow(1 + TUNE.speedStep, this.wave - 1));
+    this.scrollSpeed = TUNE.baseSpeed * speedMul;
+    if (this.boss) this.scrollSpeed *= 1.06;  // bosses scroll a touch faster still
+                                              //   (sim-tuned 1.12->1.06: the old
+                                              //   bump front-loaded difficulty at
+                                              //   boss wave 5, killing a wave early)
+    // horizontal spacing tightens + gate opening shrinks with wave (bounded)
+    this.pillarGap = clamp(TUNE.pillarGapBase - (this.wave - 1) * TUNE.pillarGapStep, TUNE.pillarGapMin, TUNE.pillarGapBase);
+    if (this.boss) this.pillarGap = Math.max(TUNE.pillarGapMin, this.pillarGap - 24);
+    this.gateH = clamp(TUNE.gateH - (this.wave - 1) * TUNE.gateHStep, TUNE.gateHMin, TUNE.gateH);
+
+    this.pillarQueue = this.boss ? TUNE.bossPillars : TUNE.pillarsPerWave;
+    this.pillarsPassed = 0;
+    // first pillar spawns a comfortable distance to the right (reading runway)
+    this.spawnX = this.W + 60;
+    this.wrongGraceLeft = TUNE.wrongGrace;
+    this.invuln = TUNE.startInvuln;
+
+    // boss timer
+    if (this.boss) { this.bossTimer = TUNE.bossTime; this.sfx.boss(); }
+
+    // clear any stragglers so a wave always starts clean
+    this.pillars.length = 0;
+
+    this._showBanner();
+    this._syncHud();
+    this.sfx.wave();
+  };
+
+  Game.prototype._ruleSentence = function () {
+    var ax = this.rule.axis;
+    var tgt = ax.nice[this.rule.target];
+    var spare = this.rule.decoys.map(function (c) { return ax.nice[c]; }).join(' and ');
+    return 'Fly through the ' + tgt + '. Avoid the ' + spare + '.';
+  };
+
+  Game.prototype._showBanner = function () {
+    var ax = this.rule.axis;
+    var rEl = document.getElementById('gf-banner-rule');
+    var sEl = document.getElementById('gf-banner-sub');
+    var banner = document.getElementById('gf-banner');
+    if (rEl) {
+      var lead = this.boss
+        ? 'BOSS WAVE ' + this.wave + ' -- fly through the '
+        : 'WAVE ' + this.wave + ' -- fly through the ';
+      rEl.innerHTML = esc(lead) + '<span class="gf-banner-target">' + formulaHTML(ax.nice[this.rule.target]) + '</span>';
+    }
+    if (sEl) {
+      var spare = this.rule.decoys.map(function (c) { return formulaHTML(ax.nice[c]); }).join(' and ');
+      var tail = this.boss ? ' &middot; beat the 30s clock' : '';
+      sEl.innerHTML = 'Avoid the <span class="gf-banner-spare">' + spare + '</span>' + tail;
+    }
+    if (banner) {
+      banner.classList.remove('gf-hide');
+      clearTimeout(this._bannerT);
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('gf-hide'); }, this.boss ? 3200 : 2600);
+    }
+  };
+
+  // brief teaching toast built from the passed gate's OWN category + the wave rule
+  Game.prototype._teach = function (gate) {
+    var ax = this.rule.axis;
+    var el = document.getElementById('gf-teach');
+    if (!el) return;
+    var cls = ax.one[gate.category] || String(gate.category).toUpperCase();
+    var wanted = ax.nice[this.rule.target];
+    var article = /^[AEIOU]/.test(cls) ? 'an' : 'a';
+    // e.g. "NH3 is a BASE -- the rule was SALTS"
+    el.innerHTML = formulaHTML(gate.label) + ' is ' + article + ' <b>' + esc(cls) + '</b> -- the rule was ' + esc(wanted);
+    el.classList.add('gf-on');
+    clearTimeout(this._teachT);
+    this._teachT = setTimeout(function () { if (el) el.classList.remove('gf-on'); }, 2200);
+  };
+
+  // ---- input -----------------------------------------------------------
+  Game.prototype._flap = function () {
+    if (this.state !== 'playing') return;
+    this.glider.vy = TUNE.flapImpulse;
+    this.glider.flapPuff = 1;   // triggers thruster puff
+    this.sfx.flap();
+  };
+
+  // ---- pillar construction --------------------------------------------
+  // Build a pillar: a vertical stack of gates (openings) separated by solid
+  // wall segments. Each gate carries a labelled pod. Exactly ONE gate matches
+  // the wave rule's target category; the rest carry decoys from the same axis.
+  Game.prototype._makePillar = function (x, scanner) {
+    var byCat = this.idx.byCat;
+    var target = this.rule.target, decoys = this.rule.decoys;
+    var gapH = this.gateH;
+    var pad = 26;                       // keep gates off the very top/bottom edges
+    var usable = this.H - pad * 2;
+    // number of gates that FIT vertically (each gate needs gapH + a wall segment)
+    var wallSeg = 42;                   // solid wall between/around gates
+    var perSlot = gapH + wallSeg;
+    var nGates = clamp(Math.floor((usable + wallSeg) / perSlot), 2, 3);
+    // choose which slot is the correct (target) gate
+    var correctSlot = (Math.random() * nGates) | 0;
+
+    // vertical layout: distribute nGates evenly across the usable band
+    var slotH = usable / nGates;
+    var gates = [];
+    for (var i = 0; i < nGates; i++) {
+      var isTarget = (i === correctSlot);
+      var cat = isTarget ? target : pick(decoys);
+      var item = pick(byCat[cat] || byCat[target]);
+      // center the gate opening within its slot band
+      var bandTop = pad + i * slotH;
+      var cy = bandTop + slotH / 2 + rand(-slotH * 0.12, slotH * 0.12);
+      var top = clamp(cy - gapH / 2, pad, this.H - pad - gapH);
+      var fit = this._fitLabel(item.label);
+      gates.push({
+        label: item.label, category: cat, rowId: item.rowId, lo: item.lo,
+        isTarget: isTarget, top: top, bottom: top + gapH, fontPx: fit.fontPx, podW: fit.w
+      });
+      if (isTarget) this.seen++;
+    }
+    return {
+      x: x, w: TUNE.wallW, gates: gates, scanner: !!scanner,
+      passed: false, aura: 0
+    };
+  };
+
+  // Choose a font size + pod width so the (possibly subscripted) label fits with
+  // ~12px padding each side, never clipping. Ported from salt_invaders _fitLabel.
+  Game.prototype._LABEL = { padX: 12, minW: 36, maxW: 120, subScale: 0.72, sizes: [14, 13, 12, 11, 10, 9] };
+  Game.prototype._fitLabel = function (label) {
+    var ctx = this.ctx, L = this._LABEL;
+    var usableTextMax = L.maxW - L.padX * 2;
+    var chosen = L.sizes[L.sizes.length - 1], textW = 0;
+    for (var s = 0; s < L.sizes.length; s++) {
+      var fs = L.sizes[s];
+      ctx.font = '900 ' + fs + 'px -apple-system, "Segoe UI", sans-serif';
+      var tw = measureFormula(ctx, label, fs, L.subScale);
+      chosen = fs; textW = tw;
+      if (tw <= usableTextMax) break;   // fits at this size -> use it
+    }
+    var w = clamp(Math.ceil(textW + L.padX * 2), L.minW, L.maxW);
+    return { w: w, fontPx: chosen };
+  };
+
+  // ---- update ----------------------------------------------------------
+  Game.prototype._update = function (dt) {
+    var i, pl;
+
+    // hitstop: freeze gameplay a beat on a gate pass (but let timers wind down)
+    if (this.hitstop > 0) {
+      this.hitstop = Math.max(0, this.hitstop - dt);
+      if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
+      this.thrust += dt * 12;
+      return;
+    }
+
+    // boss countdown
+    if (this.boss && this.state === 'playing') {
+      this.bossTimer -= dt;
+      if (this.bossTimer <= 0) { this.bossTimer = 0; this._bossTimeout(); return; }
+    }
+
+    // scanner reveal timer (reveal is a COUNT of pillars ahead; it decays as
+    // those pillars pass, handled at pass time, but also tick a beep while >0)
+    if (this.reveal > 0) {
+      this._scanTick += dt;
+      if (this._scanTick > 0.30) { this._scanTick = 0; this.sfx.scan(this.reveal); }
+    }
+    if (this.invuln > 0) this.invuln = Math.max(0, this.invuln - dt);
+
+    this.thrust += dt * 12;
+    if (this.glider.flapPuff > 0) this.glider.flapPuff = Math.max(0, this.glider.flapPuff - dt * 4);
+
+    // ---- glider physics (flap + gravity) ----
+    var gl = this.glider;
+    gl.vy = clamp(gl.vy + TUNE.gravity * dt, -TUNE.maxRise, TUNE.maxFall);
+    gl.y += gl.vy * dt;
+    // tilt toward velocity for feel
+    gl.tilt = clamp(gl.vy / 900, -0.5, 0.7);
+    // ceiling / floor are solid walls: clamp + cost a heart on contact
+    var gy = gl.y, topLim = 16, botLim = this.H - 16;
+    if (gy < topLim) { gl.y = topLim; if (gl.vy < 0) gl.vy = 0; this._edgeCrash(); }
+    else if (gy > botLim) { gl.y = botLim; if (gl.vy > 0) gl.vy = 0; this._edgeCrash(); }
+
+    // parallax stars scroll left
+    if (this.stars.length) {
+      for (i = 0; i < this.stars.length; i++) {
+        var st = this.stars[i];
+        st.x -= st.sp * dt;
+        if (st.x < -2) { st.x = this.W + 2; st.y = rand(0, this.H); }
+      }
+    }
+
+    // ---- spawn pillars from the wave queue ----
+    // Spawn based on the rightmost pillar's x so spacing is exact regardless of dt.
+    if (this.pillarQueue > 0) {
+      var rightMost = -Infinity;
+      for (i = 0; i < this.pillars.length; i++) if (this.pillars[i].x > rightMost) rightMost = this.pillars[i].x;
+      var needX = (rightMost === -Infinity) ? this.spawnX : (rightMost + this.pillarGap);
+      if (needX <= this.W + this.pillarGap) {
+        var scanner = Math.random() < TUNE.scannerChance;
+        this.pillars.push(this._makePillar(Math.max(needX, this.W + 40), scanner));
+        this.pillarQueue--;
+      }
+    }
+
+    // ---- scroll + collide pillars ----
+    var glX = gl.x * this.W;
+    for (i = this.pillars.length - 1; i >= 0; i--) {
+      pl = this.pillars[i];
+      pl.x -= this.scrollSpeed * dt;
+      if (pl.scanner) pl.aura += dt;
+
+      // has the glider's x crossed this pillar's plane THIS frame?
+      if (!pl.passed && pl.x + pl.w * 0.5 <= glX) {
+        pl.passed = true;
+        this._resolvePass(pl, gl);
+        if (this.state !== 'playing') return;   // gameOver may have fired
+      }
+
+      // off the left edge -> remove
+      if (pl.x + pl.w < -40) { this.pillars.splice(i, 1); continue; }
+    }
+
+    // particles
+    for (i = this.particles.length - 1; i >= 0; i--) {
+      var p = this.particles[i];
+      p.life -= dt;
+      if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.rot += p.vr * dt;
+    }
+    // popups
+    for (i = this.popups.length - 1; i >= 0; i--) {
+      var pp = this.popups[i];
+      pp.life -= dt; pp.y += pp.vy * dt;
+      if (pp.life <= 0) this.popups.splice(i, 1);
+    }
+
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
+    if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.2);
+    if (this.goodFlash > 0) this.goodFlash = Math.max(0, this.goodFlash - dt * 3.5);
+
+    // wave complete? (queue drained AND every pillar cleared off screen)
+    if (this.state === 'playing' && this.pillarQueue === 0 && this.pillars.length === 0) {
+      if (this.boss) {
+        this.boss = false;
+        this.score += 100;
+        this._popup(this.W * 0.5, this.H * 0.42, 'BOSS CLEARED +100', this.col.amber);
+        this.sfx.powerup();
+      }
+      this._nextWave();
+    }
+  };
+
+  Game.prototype._bossTimeout = function () {
+    // boss clock ran out -> costs a heart, then rolls into the next wave
+    this.boss = false;
+    this._loseLife(0.8);
+    this._popup(this.W * 0.5, this.H * 0.4, 'TIME UP -1 life', this.col.rose);
+    this.sfx.wrong();
+    if (this.lives <= 0) return;
+    this.pillarQueue = 0;
+    this.pillars.length = 0;
+    this._nextWave();
+  };
+
+  // ---- the CORE educational branch: which gate did the glider pass? ----
+  Game.prototype._resolvePass = function (pl, gl) {
+    var gy = gl.y;
+
+    // scanner star pillar: passing it (anywhere) reveals the next few pillars
+    if (pl.scanner) {
+      this.reveal = TUNE.scannerReveal;
+      this._scanTick = 0;
+      this.goodFlash = 0.4;
+      this._burst(pl.x, gy, this.rgb.indigo, 14, 'steel');
+      this._popup(pl.x, gy, 'SCANNER', this.col.indigo);
+      this.sfx.powerup();
+      this._hitstop();
+      this.pillarsPassed++;
+      this._syncHud();
+      return;
+    }
+
+    // decay a live reveal as pillars go by
+    if (this.reveal > 0) this.reveal = Math.max(0, this.reveal - 1);
+    this.pillarsPassed++;
+
+    // find which gate opening the glider's y falls inside (if any)
+    var hitGate = null;
+    for (var i = 0; i < pl.gates.length; i++) {
+      var g = pl.gates[i];
+      if (gy >= g.top && gy <= g.bottom) { hitGate = g; break; }
+    }
+
+    if (!hitGate) {
+      // glider was inside a WALL segment -> a crash (heart), unless invuln
+      if (this.invuln > 0) { return; }
+      this.streak = 0; this.combo = 1;
+      this._loseLife(0.9);
+      this._burst(gl.x * this.W, gy, this.rgb.steel, 14, 'steel');
+      this._popup(gl.x * this.W, gy, 'CRASH', this.col.rose);
+      this.sfx.bump();
+      this._addShake(true);
+      this._hitstop();
+      if (this.lives <= 0) { this._gameOver(false); return; }
+      this._syncHud();
+      return;
+    }
+
+    if (hitGate.isTarget) {
+      // correct: points x combo + green sparkle (color revealed NOW)
+      this.streak++;
+      this._updateCombo();
+      var gain = Math.round(10 * this.combo);
+      this.score += gain;
+      this.correct++;
+      this.goodFlash = 0.5;
+      this._addShake();
+      this._burst(pl.x, (hitGate.top + hitGate.bottom) / 2, this.rgb.green, 15, 'green');
+      this._popup(pl.x, gy, '+' + gain + (this.combo > 1 ? ' x' + this.combo.toFixed(1) : ''), this.col.green);
+      this._hitstop();
+      this.sfx.right();
+      this._emit(hitGate, 1);
+      this._syncHud();
+    } else {
+      // wrong gate: the pod was a "spare" category. First wrongGrace/wave TEACH
+      // (amber, no heart) per CA_REPORT lesson; further wrongs cost a heart.
+      this.streak = 0; this.combo = 1;
+      if (this.wrongGraceLeft > 0 || this.invuln > 0) {
+        if (this.wrongGraceLeft > 0) this.wrongGraceLeft--;
+        this._burst(pl.x, (hitGate.top + hitGate.bottom) / 2, this.rgb.amber, 12, 'amber');
+        this._popup(pl.x, gy, 'TEACH', this.col.amber);
+        this._teach(hitGate);
+        this._hitstop();
+        this.sfx.wrong();
+        this._emit(hitGate, 0);
+        this._syncHud();
+        return;
+      }
+      this._loseLife(0.9);
+      this._burst(pl.x, (hitGate.top + hitGate.bottom) / 2, this.rgb.rose, 14, 'rose');
+      this._popup(pl.x, gy, 'WRONG', this.col.rose);
+      this._teach(hitGate);
+      this._hitstop();
+      this.sfx.wrong();
+      this._emit(hitGate, 0);
+      if (this.lives <= 0) { this._gameOver(false); return; }
+      this._syncHud();
+    }
+  };
+
+  // crash into the ceiling/floor: a heart (rate-limited so a slide along the
+  // edge does not drain all hearts in one frame-run).
+  Game.prototype._edgeCrash = function () {
+    if (this.state !== 'playing') return;
+    if (this.invuln > 0) return;
+    if (this._edgeCd && this.t < this._edgeCd) return;
+    this._edgeCd = this.t + 0.9;   // 0.9s cooldown between edge hits
+    this.streak = 0; this.combo = 1;
+    this._loseLife(0.8);
+    this._popup(this.glider.x * this.W, this.glider.y, 'BUMP', this.col.rose);
+    this.sfx.bump();
+    if (this.lives <= 0) { this._gameOver(false); return; }
+    this._syncHud();
+  };
+
+  Game.prototype._updateCombo = function () {
+    if (this.streak < TUNE.comboStart) { this.combo = 1; return; }
+    var over = this.streak - TUNE.comboStart;
+    this.combo = clamp(TUNE.comboMin + over * 0.25, TUNE.comboMin, TUNE.comboMax);
+  };
+
+  Game.prototype._loseLife = function (flashAmt) {
+    this.lives--;
+    this.flash = flashAmt || 0.8;
+    this._addShake(true);
+    var pill = this._byId('gf-lives-pill');
+    if (pill) { pill.classList.remove('gf-pulse'); void pill.offsetWidth; pill.classList.add('gf-pulse'); }
+  };
+
+  Game.prototype._emit = function (gate, score) {
+    if (!this.onEmit || gate.rowId == null) return;
+    try { this.onEmit(gate.rowId, gate.lo || null, 'flyer', score ? 1 : 0, 1); } catch (er) {}
+  };
+
+  // ---- juice -----------------------------------------------------------
+  Game.prototype._addShake = function (big) {
+    if (this.reduced) return;
+    this.shake = TUNE.shakeMs / 1000 * (big ? 1.6 : 1);
+  };
+  Game.prototype._hitstop = function () {
+    if (this.reduced) return;
+    this.hitstop = TUNE.hitstopMs / 1000;
+  };
+  Game.prototype._burst = function (x, y, rgb, n, kind) {
+    if (this.reduced) n = Math.min(n, 6);
+    var sq = this.sprites['p' + cap(kind) + 'Sq'] || this.sprites.pSteelSq;
+    var tri = this.sprites['p' + cap(kind) + 'Tri'] || this.sprites.pSteelTri;
+    for (var i = 0; i < n; i++) {
+      var a = rand(0, 6.2832), sp = rand(60, 260);
+      this.particles.push({
+        x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
+        life: rand(0.28, 0.55), size: rand(6, 12),
+        rot: rand(0, 6.28), vr: rand(-9, 9),
+        spr: (Math.random() < 0.5) ? sq : tri
+      });
+    }
+  };
+  Game.prototype._popup = function (x, y, text, color) {
+    this.popups.push({ x: x, y: y, text: text, color: color, life: 0.95, vy: -50 });
+  };
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ---- render ----------------------------------------------------------
+  Game.prototype._draw = function () {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    ctx.clearRect(0, 0, W, H);
+
+    // starfield (behind the shake transform so it stays anchored)
+    this._drawStars();
+
+    ctx.save();
+    if (this.shake > 0 && !this.reduced) {
+      var m = TUNE.shakePx * (this.shake / (TUNE.shakeMs / 1000));
+      ctx.translate(rand(-m, m), rand(-m, m));
+    }
+
+    // pillars (walls + pods)
+    for (var i = 0; i < this.pillars.length; i++) this._drawPillar(this.pillars[i], i);
+
+    // particles (blit prerendered sprites)
+    for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
+
+    // glider (drawn craft + thruster puff)
+    this._drawGlider();
+
+    // popups
+    ctx.textAlign = 'center'; ctx.font = '900 16px -apple-system, sans-serif';
+    for (i = 0; i < this.popups.length; i++) {
+      var pp = this.popups[i];
+      var k = clamp(pp.life / 0.95, 0, 1);
+      ctx.globalAlpha = k;
+      ctx.fillStyle = pp.color;
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = this.reduced ? 0 : 3;
+      ctx.fillText(pp.text, pp.x, pp.y);
+      ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+
+    // damage flash (full screen, over the shake transform)
+    if (this.flash > 0) {
+      ctx.fillStyle = 'rgba(255,84,112,' + (this.flash * 0.32).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (this.goodFlash > 0) {
+      ctx.fillStyle = 'rgba(34,197,139,' + (this.goodFlash * 0.16).toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    // scanner reveal tint (subtle blue wash while a reveal is live)
+    if (this.reveal > 0) {
+      ctx.fillStyle = 'rgba(108,92,255,0.06)';
+      ctx.fillRect(0, 0, W, H);
+    }
+  };
+
+  Game.prototype._drawStars = function () {
+    if (!this.stars.length || this.reduced) return;
+    var ctx = this.ctx, spr = this.sprites.star;
+    for (var i = 0; i < this.stars.length; i++) {
+      var st = this.stars[i];
+      ctx.globalAlpha = st.a;
+      ctx.drawImage(spr, st.x - st.s, st.y - st.s, st.s * 2, st.s * 2);
+    }
+    ctx.globalAlpha = 1;
+  };
+
+  // Draw one pillar: solid wall segments (steel bars) with gate openings, and a
+  // labelled pod centered in each opening. Category color is REVEALED only when:
+  //   (a) a scanner reveal is live and this pillar is within reveal range, or
+  //   (b) the glider has already passed this pillar's plane (feedback).
+  // Otherwise every pod is a uniform metallic capsule -> no color-match tell.
+  Game.prototype._drawPillar = function (pl, index) {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    var x = pl.x, w = pl.w;
+
+    // is this pillar's category revealed?  scanner reveals the NEXT `reveal`
+    // pillars that have not yet been passed (nearest first). We approximate
+    // "within range" by index order among unpassed pillars.
+    var revealScanner = false;
+    if (this.reveal > 0 && !pl.passed) {
+      // count how many unpassed pillars precede this one (are further left / nearer)
+      var ahead = 0;
+      for (var q = 0; q < this.pillars.length; q++) {
+        var o = this.pillars[q];
+        if (!o.passed && !o.scanner && o.x < pl.x) ahead++;
+      }
+      revealScanner = ahead < this.reveal;
+    }
+
+    // Scanner star pillar: a glowing rotating star instead of gated pods
+    if (pl.scanner) {
+      this._drawScannerStar(pl, x, H * 0.5);
+      return;
+    }
+
+    // Build the list of solid wall segments = full height minus the gate gaps.
+    // Draw them as steel gradient bars.
+    var gates = pl.gates;
+    // sort gates top->bottom (they already are, but be safe)
+    var sorted = gates.slice().sort(function (a, b) { return a.top - b.top; });
+    var segs = [];
+    var cursor = 0;
+    for (var i = 0; i < sorted.length; i++) {
+      var g = sorted[i];
+      if (g.top > cursor) segs.push([cursor, g.top]);
+      cursor = Math.max(cursor, g.bottom);
+    }
+    if (cursor < H) segs.push([cursor, H]);
+
+    // wall gradient (steel bar)
+    var wg = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
+    wg.addColorStop(0, 'rgba(120,132,168,0.92)');
+    wg.addColorStop(0.5, 'rgba(176,190,220,0.95)');
+    wg.addColorStop(1, 'rgba(96,108,146,0.92)');
+    for (i = 0; i < segs.length; i++) {
+      var s = segs[i];
+      this._roundRect(x - w / 2, s[0], w, s[1] - s[0], 6);
+      ctx.fillStyle = wg; ctx.fill();
+      ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(20,26,44,0.5)'; ctx.stroke();
+    }
+
+    // pods (one per gate), centered in the opening
+    for (i = 0; i < gates.length; i++) this._drawPod(gates[i], x, pl.passed, revealScanner);
+  };
+
+  Game.prototype._drawPod = function (g, x, passed, revealScanner) {
+    var ctx = this.ctx;
+    var cy = (g.top + g.bottom) / 2;
+    var w = g.podW, h = 34;
+
+    var revealed = (passed || revealScanner);
+    var edge;
+    if (revealed) {
+      var rc = g.isTarget ? this.rgb.green : this.rgb.rose;
+      edge = 'rgba(' + rc.r + ',' + rc.g + ',' + rc.b + ',0.95)';
+    } else {
+      edge = 'rgba(150,166,205,0.55)';  // neutral steel edge for EVERYONE
+    }
+
+    // metallic vertical gradient hull (same for all -> no color-match tell)
+    var gr = ctx.createLinearGradient(0, cy - h / 2, 0, cy + h / 2);
+    gr.addColorStop(0, 'rgba(206,214,236,0.95)');
+    gr.addColorStop(0.45, 'rgba(120,132,168,0.94)');
+    gr.addColorStop(0.55, 'rgba(96,108,146,0.95)');
+    gr.addColorStop(1, 'rgba(150,162,196,0.94)');
+
+    this._roundRect(x - w / 2, cy - h / 2, w, h, 11);
+    ctx.fillStyle = gr; ctx.fill();
+    // top specular highlight (metal sheen)
+    ctx.save();
+    this._roundRect(x - w / 2, cy - h / 2, w, h, 11); ctx.clip();
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    ctx.fillRect(x - w / 2, cy - h / 2, w, h * 0.32);
+    ctx.restore();
+    // edge (neutral, or category glow when revealed)
+    if (revealed && !this.reduced) {
+      var rc2 = g.isTarget ? this.rgb.green : this.rgb.rose;
+      ctx.shadowColor = 'rgb(' + rc2.r + ',' + rc2.g + ',' + rc2.b + ')'; ctx.shadowBlur = 4;
+    }
+    this._roundRect(x - w / 2, cy - h / 2, w, h, 11);
+    ctx.lineWidth = revealed ? 2.4 : 1.4; ctx.strokeStyle = edge; ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // ASCII label -- font/width chosen at build to fit; formulas subscript.
+    ctx.fillStyle = '#0c1020';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var fs = g.fontPx || 12;
+    ctx.font = '900 ' + fs + 'px -apple-system, "Segoe UI", sans-serif';
+    drawFormula(ctx, g.label, x, cy + 1, fs, this._LABEL.subScale, 0.22);
+    ctx.textBaseline = 'alphabetic';
+  };
+
+  Game.prototype._drawScannerStar = function (pl, x, cy) {
+    var ctx = this.ctx;
+    if (this.reduced) {
+      // static star (no rotation) for reduced motion
+      this._star(x, cy, 16, 8, 0);
+      ctx.fillStyle = this.col.indigo; ctx.fill();
+      return;
+    }
+    ctx.save();
+    ctx.translate(x, cy);
+    ctx.rotate(pl.aura * 1.6);
+    ctx.shadowColor = this.col.indigo; ctx.shadowBlur = 10;
+    this._star(0, 0, 18, 9, 5);
+    ctx.fillStyle = 'rgba(108,92,255,0.95)'; ctx.fill();
+    ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(234,240,255,0.85)'; ctx.stroke();
+    ctx.restore();
+  };
+
+  // build a 5-point star path centered at (cx,cy)
+  Game.prototype._star = function (cx, cy, R, r, rot) {
+    var ctx = this.ctx;
+    ctx.beginPath();
+    for (var i = 0; i < 10; i++) {
+      var rad = (i % 2 === 0) ? R : r;
+      var a = rot + i * Math.PI / 5 - Math.PI / 2;
+      var px = cx + Math.cos(a) * rad, py = cy + Math.sin(a) * rad;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  };
+
+  Game.prototype._drawGlider = function () {
+    var ctx = this.ctx;
+    var x = this.glider.x * this.W;
+    var y = this.glider.y;
+    var tilt = this.glider.tilt;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(tilt);
+
+    // thruster puff behind the glider (stronger just after a flap)
+    if (!this.reduced) {
+      var puff = 8 + this.glider.flapPuff * 12 + Math.sin(this.thrust) * 2 + Math.random() * 3;
+      var fg = ctx.createLinearGradient(-14, 0, -14 - puff, 0);
+      fg.addColorStop(0, 'rgba(255,176,32,0.9)');
+      fg.addColorStop(0.5, 'rgba(255,84,112,0.6)');
+      fg.addColorStop(1, 'rgba(255,84,112,0)');
+      ctx.fillStyle = fg;
+      ctx.beginPath();
+      ctx.moveTo(-12, -5); ctx.lineTo(-12, 5); ctx.lineTo(-12 - puff, 0);
+      ctx.closePath(); ctx.fill();
+    }
+
+    // gradient hull glider (rounded wing craft; abstract, no weapon imagery)
+    var hg = ctx.createLinearGradient(0, -12, 0, 12);
+    hg.addColorStop(0, '#9d92ff');
+    hg.addColorStop(0.5, this.col.indigo);
+    hg.addColorStop(1, '#4b3fd6');
+    ctx.fillStyle = hg;
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.4;
+    if (!this.reduced) { ctx.shadowColor = this.col.indigo; ctx.shadowBlur = 4; }
+    ctx.beginPath();
+    ctx.moveTo(16, 0);        // nose (pointing right, the direction of travel)
+    ctx.lineTo(-6, -11);      // upper wing
+    ctx.lineTo(-12, -4);
+    ctx.lineTo(-12, 4);
+    ctx.lineTo(-6, 11);       // lower wing
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+    // cockpit dot
+    ctx.fillStyle = 'rgba(234,240,255,0.9)';
+    ctx.beginPath(); ctx.arc(4, 0, 3, 0, 6.2832); ctx.fill();
+    ctx.restore();
+  };
+
+  Game.prototype._drawParticle = function (p) {
+    var ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = clamp(p.life * 2.4, 0, 1);
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.drawImage(p.spr, -p.size / 2, -p.size / 2, p.size, p.size);
+    ctx.restore();
+  };
+
+  Game.prototype._roundRect = function (x, y, w, h, r) {
+    var ctx = this.ctx;
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+
+  // ---- HUD -------------------------------------------------------------
+  Game.prototype._syncHud = function () {
+    var s = document.getElementById('gf-score-n'); if (s) s.textContent = this.score;
+    var l = document.getElementById('gf-lives-n'); if (l) l.textContent = Math.max(0, this.lives);
+    var w = document.getElementById('gf-wave-n'); if (w) w.textContent = this.wave;
+    var cp = document.getElementById('gf-combo-pill'), cn = document.getElementById('gf-combo-n');
+    if (cp && cn) {
+      if (this.combo > 1) { cn.textContent = this.combo.toFixed(1); cp.classList.add('gf-on'); }
+      else cp.classList.remove('gf-on');
+    }
+    var tp = document.getElementById('gf-timer-pill'), tn = document.getElementById('gf-timer-n');
+    if (tp && tn) {
+      if (this.boss) {
+        tp.classList.add('gf-on');
+        var secs = Math.ceil(this.bossTimer);
+        tn.textContent = secs;
+        if (secs <= 10) tp.classList.add('gf-low'); else tp.classList.remove('gf-low');
+      } else { tp.classList.remove('gf-on'); tp.classList.remove('gf-low'); }
+    }
+  };
+
+  // ---- game over / close ----------------------------------------------
+  Game.prototype._gameOver = function (quit) {
+    if (this.state === 'over') return;
+    this.state = 'over';
+    var fs = document.getElementById('gf-final-score'); if (fs) fs.textContent = this.score;
+    var fl = document.getElementById('gf-final-line');
+    if (fl) {
+      var acc = this.seen ? Math.round((this.correct / this.seen) * 100) : 0;
+      fl.textContent = quit
+        ? 'You reached wave ' + this.wave + '. Score ' + this.score + '.'
+        : 'Wave ' + this.wave + '. You flew ' + this.correct + ' of ' + this.seen + ' correct gates (' + acc + '%).';
+    }
+    this._showOverlay('gf-over');
+  };
+
+  Game.prototype._summary = function () {
+    return {
+      subject: this.opts.subject || null,
+      chapterLabel: this.opts.chapterLabel || null,
+      seen: this.seen,
+      correct: this.correct,
+      score: this.score,
+      wave: this.wave,
+      tool: 'flyer'
+    };
+  };
+
+  Game.prototype._finishAndClose = function () {
+    var sum = this._summary();
+    this.destroy();
+    if (this.onClose) { try { this.onClose(sum); } catch (e) {} }
+  };
+
+  Game.prototype._loop = function (t) {
+    if (this.destroyed) return;
+    var self = this;
+    this._raf = requestAnimationFrame(function (tt) { self._loop(tt); });
+    if (!this.last) this.last = t;
+    var dt = (t - this.last) / 1000;
+    this.last = t;
+    dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
+    this.t += dt;
+    if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
+    this._draw();
+  };
+
+  Game.prototype._toggleFullscreen = function () {
+    var el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); // Safari desktop
+        else {
+          // iOS Safari has no element fullscreen for arbitrary DOM. Fallback:
+          // hint the user + rely on the already-fullscreen fixed overlay layout.
+          try { showToastLike('Add to Home Screen for fullscreen on iPhone/iPad.'); } catch (e) {}
+        }
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    } catch (e) {
+      try { showToastLike('Fullscreen not available here.'); } catch (er) {}
+    }
+    var self = this; setTimeout(function () { self._resize(); }, 120);
+  };
+
+  Game.prototype.destroy = function () {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.state = 'over';
+    if (this._raf) cancelAnimationFrame(this._raf);
+    clearTimeout(this._bannerT);
+    clearTimeout(this._teachT);
+    if (this._handlers) {
+      for (var i = 0; i < this._handlers.length; i++) {
+        var h = this._handlers[i];
+        try { h[0].removeEventListener(h[1], h[2], h[3]); } catch (e) {}
+      }
+      this._handlers.length = 0;
+    }
+    try { if (this.sfx && this.sfx.ctx && this.sfx.ctx.close) this.sfx.ctx.close(); } catch (e) {}
+    try { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); } catch (e) {}
+    var te = document.getElementById('gf-teach'); if (te) te.classList.remove('gf-on');
+    this._hideOverlays();
+    if (live === this) live = null;
+  };
+
+  // small helper: esc + a toast-ish fallback that does not depend on host
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function showToastLike(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(12,16,30,.92);color:#eaf0ff;padding:10px 16px;border-radius:12px;font:600 13px -apple-system,sans-serif;z-index:200000;border:1px solid #2a3355;max-width:80%;text-align:center';
+    document.body.appendChild(t);
+    setTimeout(function () { try { document.body.removeChild(t); } catch (e) {} }, 3200);
+  }
+
+  global.GATE_FLYER = GF;
+
+  // ---- standalone auto-boot: if opened directly (no host), start on Start btn.
+  // The host will call GATE_FLYER.open(pool, opts) itself and this no-ops.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoBoot);
+  } else { autoBoot(); }
+  function autoBoot() {
+    setTimeout(function () {
+      if (!live && global.GATE_FLYER && !global.__GF_HOST_DRIVEN__) {
+        global.GATE_FLYER.open(null, {
+          enabled: true,
+          subject: 'Chemistry',
+          chapterLabel: 'Demo pool',
+          rtl: (document.documentElement.getAttribute('dir') === 'rtl'),
+          onEmit: function () {},
+          onClose: function (s) { try { showToastLike('Session score ' + (s && s.score) + '. Reopen to play again.'); } catch (e) {} }
+        });
+      }
+    }, 30);
+  }
+
+})(typeof window !== 'undefined' ? window : this);
+</script>
+</body>
+</html>
