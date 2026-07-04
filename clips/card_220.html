@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Metacognito · A Tariff on Imports</title>
+<style>
+  /* SELF-HOSTED Space Grotesk (the diagram-label font) - no external dependency, no CSP allowlist, works offline.
+     One variable woff2 (latin subset, weights 300-700) at out/fonts/, referenced relative to the card HTML. */
+  @font-face{ font-family:'Space Grotesk'; font-style:normal; font-weight:300 700; font-display:swap;
+    src:url('fonts/SpaceGrotesk-latin.woff2') format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the clip is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    /* designed, FIXED diagram-label font (axis labels, figure/curve/molecule labels) - NOT user-toggled. See PRD_FONTS.md */
+    --label-font:'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --correct:#22b3a6; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --correct:#22b3a6; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; } html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:12px; -webkit-text-size-adjust:100%; }
+  .stage{ position:relative; width:100%; aspect-ratio:16/9; background:var(--surface); border-radius:18px; overflow:hidden; }
+  .slide{ position:absolute; inset:0; opacity:0; transition:opacity .28s ease; }
+  .slide.on{ opacity:1; }
+  .slide svg{ width:100%; height:100%; display:block; }
+  /* line-by-line reveal: each sentence fades + slides in from the left as the voice reaches it */
+  .slide .ln{ opacity:0; transform:translateX(-16px); transition:opacity .5s ease, transform .5s cubic-bezier(.2,.7,.2,1); }
+  .slide .ln.show{ opacity:1; transform:translateX(0); }
+  .bar{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .pp{ flex:none; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer; color:#fff;
+       background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); font-size:18px; box-shadow:var(--shadow); }
+  .pp:active{ transform:scale(.93); }
+  .track{ flex:1; height:6px; border-radius:3px; background:color-mix(in srgb, var(--indigo) 18%, var(--line)); cursor:pointer; position:relative; }
+  .fill{ height:100%; border-radius:3px; background:var(--indigo); width:0%; }
+  .time{ flex:none; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; min-width:74px; text-align:right; }
+  .spd{ flex:none; font:inherit; font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; cursor:pointer;
+        color:var(--ink); background:var(--surface-2); border:1px solid var(--line); }
+  @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } .pp:active{ transform:none; } .slide .ln{ opacity:1; transform:none; transition:none; } }
+  /* clickable keyword glossary - dotted underline + tap popup, mirroring the flashcards */
+  .vocab-term{ text-decoration:underline dotted; text-decoration-color:color-mix(in srgb, var(--indigo) 55%, var(--muted)); text-decoration-thickness:1.4px; text-underline-offset:2px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .vocab-popup{ position:fixed; z-index:50; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px; box-shadow:0 8px 28px rgba(0,0,0,.24); max-width:260px; min-width:150px; max-height:72vh; overflow-y:auto; overscroll-behavior:contain; }
+  .vocab-popup.hidden{ display:none; }
+  .vocab-term-title{ font-weight:800; font-size:14px; color:var(--ink); margin-bottom:5px; }
+  .vocab-arabic{ font-size:19px; color:var(--indigo); direction:rtl; text-align:right; margin-bottom:5px; font-weight:600; line-height:1.5; }
+  .vocab-def{ font-size:12.5px; color:var(--muted); line-height:1.45; overflow-wrap:break-word; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage"></div>
+  <div class="bar">
+    <button class="pp" id="pp" aria-label="Play">▶</button>
+    <div class="track" id="track"><div class="fill" id="fill"></div></div>
+    <button class="spd" id="spd" aria-label="Playback speed">1×</button>
+    <div class="time" id="time">0:00</div>
+  </div>
+  <audio id="au" preload="metadata" src="https://cdn.jsdelivr.net/gh/metacognito-study/metacognito-audioecon@main/mp3/220.mp3"></audio>
+  <div class="vocab-popup hidden" id="vocabPopup" role="dialog" aria-label="Keyword meaning">
+    <div class="vocab-term-title"></div><div class="vocab-arabic"></div><div class="vocab-def"></div>
+  </div>
+<script>
+(function(){
+  var SLIDES = [{"at":0,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>How does a tariff change the home price, home production, home consumption, and the quantity imported?</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"26\" width=\"197\" height=\"34\" rx=\"17\" fill=\"var(--indigo-soft,#eef0ff)\"/><text x=\"42\" y=\"49\" font-size=\"15\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\"><tspan class=\"vocab-term\" data-vocab-key=\"international trade\">International trade</tspan></text><text x=\"612\" y=\"49\" text-anchor=\"end\" font-size=\"16\" font-weight=\"700\" fill=\"var(--muted,#606b84)\">#220</text><text font-size=\"28\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"150\">How does a <tspan class=\"vocab-term\" data-vocab-key=\"tariff\">tariff</tspan> change the</tspan><tspan x=\"24\" y=\"190\">home price, home production,</tspan><tspan x=\"24\" y=\"230\">home consumption, and the</tspan><tspan x=\"24\" y=\"270\">quantity imported?</tspan></text><rect x=\"24\" y=\"300\" width=\"156\" height=\"38\" rx=\"19\" fill=\"var(--indigo,#5545e8)\"/><path d=\"M44 311 L44 327 L56 319 Z\" fill=\"#fff\"/><text x=\"64\" y=\"324\" font-size=\"15\" font-weight=\"700\" fill=\"#fff\">play · 2:55</text></svg>"},{"at":25.16,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>The tariff lifts the home price from 20 to 30, the world price plus the tariff. Home supply rises because home firms now earn more per shirt. Home demand falls because buyers pay more. Imports shrink, because both moves narrow the gap between home supply and home demand. A single tax on imports moves all four at once.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">ONE <tspan class=\"vocab-term\" data-vocab-key=\"tax\">TAX</tspan>, FOUR EFFECTS</text><text class=\"ln\" data-g=\"0\" data-w=\"50\" x=\"24\" y=\"91\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">The <tspan class=\"vocab-term\" data-vocab-key=\"tariff\">tariff</tspan> lifts the home price from 20 to 30, the</text><text class=\"ln\" data-g=\"0\" data-w=\"28\" x=\"24\" y=\"115\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan class=\"vocab-term\" data-vocab-key=\"world price\">world price</tspan> plus the tariff.</text><text class=\"ln\" data-g=\"1\" data-w=\"50\" x=\"24\" y=\"139\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Home <tspan class=\"vocab-term\" data-vocab-key=\"supply\">supply</tspan> rises because home <tspan class=\"vocab-term\" data-vocab-key=\"firms\">firms</tspan> now earn more</text><text class=\"ln\" data-g=\"1\" data-w=\"10\" x=\"24\" y=\"163\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">per shirt.</text><text class=\"ln\" data-g=\"2\" data-w=\"42\" x=\"24\" y=\"187\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Home <tspan class=\"vocab-term\" data-vocab-key=\"demand\">demand</tspan> falls because <tspan class=\"vocab-term\" data-vocab-key=\"buyers\">buyers</tspan> pay more.</text><text class=\"ln\" data-g=\"3\" data-w=\"49\" x=\"24\" y=\"211\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan class=\"vocab-term\" data-vocab-key=\"imports\">Imports</tspan> shrink, because both moves narrow the gap</text><text class=\"ln\" data-g=\"3\" data-w=\"36\" x=\"24\" y=\"235\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">between home supply and home demand.</text><text class=\"ln\" data-g=\"4\" data-w=\"47\" x=\"24\" y=\"259\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">A single tax on imports moves all four at once.</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">Price up, home supply up, home demand down, imports down</text></svg>"},{"at":46.64,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>A Tariff Shrinks Imports</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text font-size=\"24\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"44\">A <tspan class=\"vocab-term\" data-vocab-key=\"tariff\">Tariff</tspan> Shrinks <tspan class=\"vocab-term\" data-vocab-key=\"imports\">Imports</tspan></tspan></text><g transform=\"translate(24,64)\" font-family=\"var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)\"><line x1='70' y1='32' x2='70' y2='185' stroke='var(--ink,#18213a)' stroke-width='2'/><line x1='70' y1='185' x2='560' y2='185' stroke='var(--ink,#18213a)' stroke-width='2'/><text x='300' y='205' text-anchor='middle' font-size='10.5' font-weight='700' fill='var(--muted,#606b84)'>quantity (cotton shirts)</text><text x='30' y='106' text-anchor='middle' font-size='10.5' font-weight='700' fill='var(--muted,#606b84)' transform='rotate(-90 30 106)'>price ($)</text><line x1='75' y1='170' x2='330' y2='42' stroke='var(--indigo,#5545e8)' stroke-width='2.6'/><text x='332' y='40' font-size='10' font-weight='800' fill='var(--indigo,#5545e8)'><tspan class=\"vocab-term\" data-vocab-key=\"supply\">supply</tspan></text><line x1='380' y1='42' x2='540' y2='162' stroke='var(--correct,#0e8f86)' stroke-width='2.6'/><text x='498' y='176' font-size='10' font-weight='800' fill='var(--correct,#0e8f86)'><tspan class=\"vocab-term\" data-vocab-key=\"demand\">demand</tspan></text><line x1='70' y1='110' x2='540' y2='110' stroke='var(--muted,#606b84)' stroke-width='2' stroke-dasharray='6 4'/><text x='546' y='113' font-size='9.5' font-weight='800' fill='var(--muted,#606b84)'>world 20</text><text x='64' y='114' text-anchor='end' font-size='9.5' font-weight='800' fill='var(--muted,#606b84)'>20</text><line x1='70' y1='72' x2='430' y2='72' stroke='var(--rose,#f43f61)' stroke-width='2.4'/><text x='436' y='69' font-size='9.5' font-weight='800' fill='var(--rose,#f43f61)'>price 30</text><text x='64' y='76' text-anchor='end' font-size='9.5' font-weight='800' fill='var(--rose,#f43f61)'>30</text><circle cx='195' cy='110' r='3.6' fill='var(--indigo,#5545e8)'/><circle cx='470' cy='110' r='3.6' fill='var(--correct,#0e8f86)'/><circle cx='270' cy='72' r='3.6' fill='var(--indigo,#5545e8)'/><circle cx='420' cy='72' r='3.6' fill='var(--correct,#0e8f86)'/><line x1='195' y1='110' x2='195' y2='185' stroke='var(--muted,#606b84)' stroke-width='1' stroke-dasharray='3 3'/><line x1='470' y1='110' x2='470' y2='185' stroke='var(--muted,#606b84)' stroke-width='1' stroke-dasharray='3 3'/><text x='195' y='160' text-anchor='middle' font-size='9' font-weight='700' fill='var(--ink,#18213a)'>25</text><text x='470' y='160' text-anchor='middle' font-size='9' font-weight='700' fill='var(--ink,#18213a)'>80</text><text x='270' y='66' text-anchor='middle' font-size='8.5' font-weight='700' fill='var(--ink,#18213a)'>40</text><text x='420' y='66' text-anchor='middle' font-size='8.5' font-weight='700' fill='var(--ink,#18213a)'>70</text><text x='332' y='124' text-anchor='middle' font-size='9' font-weight='800' fill='var(--muted,#606b84)'>imports 55</text><text x='345' y='88' text-anchor='middle' font-size='9' font-weight='800' fill='var(--rose,#f43f61)'>imports 30</text></g><text x=\"24\" y=\"335\" font-size=\"9\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">At the <tspan class=\"vocab-term\" data-vocab-key=\"world price\">world price</tspan> 20, imports run from home supply 25 to demand 80, a gap of 55. The tariff raises</text><text x=\"24\" y=\"348\" font-size=\"9\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">the price line to 30: supply rises to 40, demand falls to 70, so imports shrink to 30.</text></svg>"},{"at":60.78,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>New imports equal home demand minus home supply, 70 minus 40, which equals 30 shirts. Imports fell from 55 shirts to 30, a drop of 25. Home production rose by 15 shirts and home buying fell by 10. Those two changes together account for the full 25 shirt drop in imports.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE MATH: <tspan class=\"vocab-term\" data-vocab-key=\"imports\">IMPORTS</tspan> DROP BY 25</text><text class=\"ln\" data-g=\"0\" data-w=\"48\" x=\"24\" y=\"103\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">New imports equal home <tspan class=\"vocab-term\" data-vocab-key=\"demand\">demand</tspan> minus home <tspan class=\"vocab-term\" data-vocab-key=\"supply\">supply</tspan>,</text><text class=\"ln\" data-g=\"0\" data-w=\"36\" x=\"24\" y=\"127\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">70 minus 40, which equals 30 shirts.</text><text class=\"ln\" data-g=\"1\" data-w=\"48\" x=\"24\" y=\"151\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Imports fell from 55 shirts to 30, a drop of 25.</text><text class=\"ln\" data-g=\"2\" data-w=\"49\" x=\"24\" y=\"175\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Home production rose by 15 shirts and home buying</text><text class=\"ln\" data-g=\"2\" data-w=\"11\" x=\"24\" y=\"199\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">fell by 10.</text><text class=\"ln\" data-g=\"3\" data-w=\"50\" x=\"24\" y=\"223\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Those two changes together account for the full 25</text><text class=\"ln\" data-g=\"3\" data-w=\"22\" x=\"24\" y=\"247\" font-size=\"18\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">shirt drop in imports.</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">Imports = 70 minus 40 = 30; the 25 drop splits 15 supply and 10 demand</text></svg>"},{"at":85.48,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>A student said a tariff cuts imports only because buyers buy less. The tariff actually cuts imports through two channels at once. Rising home supply crowds out some imports from the supply side, and falling home demand trims imports from the demand side. Another student drew the tariff as a leftward shift of demand, but a tariff does not shift the demand curve.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE TRAP: TWO CHANNELS, NOT ONE</text><text class=\"ln\" data-g=\"0\" data-w=\"56\" x=\"24\" y=\"86\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">A student said a <tspan class=\"vocab-term\" data-vocab-key=\"tariff\">tariff</tspan> cuts <tspan class=\"vocab-term\" data-vocab-key=\"imports\">imports</tspan> only because <tspan class=\"vocab-term\" data-vocab-key=\"buyers\">buyers</tspan></text><text class=\"ln\" data-g=\"0\" data-w=\"9\" x=\"24\" y=\"108\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">buy less.</text><text class=\"ln\" data-g=\"1\" data-w=\"56\" x=\"24\" y=\"130\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">The tariff actually cuts imports through two channels at</text><text class=\"ln\" data-g=\"1\" data-w=\"6\" x=\"24\" y=\"152\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">once.</text><text class=\"ln\" data-g=\"2\" data-w=\"51\" x=\"24\" y=\"174\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Rising home <tspan class=\"vocab-term\" data-vocab-key=\"supply\">supply</tspan> <tspan class=\"vocab-term\" data-vocab-key=\"crowds\">crowds</tspan> out some imports from the</text><text class=\"ln\" data-g=\"2\" data-w=\"55\" x=\"24\" y=\"196\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">supply side, and falling home <tspan class=\"vocab-term\" data-vocab-key=\"demand\">demand</tspan> trims imports from</text><text class=\"ln\" data-g=\"2\" data-w=\"16\" x=\"24\" y=\"218\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">the demand side.</text><text class=\"ln\" data-g=\"3\" data-w=\"54\" x=\"24\" y=\"240\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Another student drew the tariff as a leftward shift of</text><text class=\"ln\" data-g=\"3\" data-w=\"53\" x=\"24\" y=\"262\" font-size=\"16\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">demand, but a tariff does not shift the <tspan class=\"vocab-term\" data-vocab-key=\"demand curve\">demand curve</tspan>.</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">A tariff cuts imports from both sides: more home supply and less home demand</text></svg>"},{"at":162.82,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>A Tariff on Imports</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"36\" width=\"8\" height=\"250\" rx=\"4\" fill=\"var(--indigo,#5545e8)\"/><text font-size=\"34\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"48\" y=\"70\">A <tspan class=\"vocab-term\" data-vocab-key=\"tariff\">Tariff</tspan> on <tspan class=\"vocab-term\" data-vocab-key=\"imports\">Imports</tspan></tspan></text><text class=\"ln\" data-g=\"0\" data-w=\"51\" x=\"48\" y=\"128\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">A tariff lifts the home price above the <tspan class=\"vocab-term\" data-vocab-key=\"world price\">world price</tspan></text><text class=\"ln\" data-g=\"0\" data-w=\"26\" x=\"48\" y=\"148\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">by the size of the tariff.</text><text class=\"ln\" data-g=\"1\" data-w=\"49\" x=\"48\" y=\"168\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">On the graph it shows up as a new flat price line</text><text class=\"ln\" data-g=\"1\" data-w=\"46\" x=\"48\" y=\"188\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">above the world price line, not a shift of any</text><text class=\"ln\" data-g=\"1\" data-w=\"6\" x=\"48\" y=\"208\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">curve.</text><text class=\"ln\" data-g=\"2\" data-w=\"51\" x=\"48\" y=\"228\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">The higher price raises home production, trims home</text><text class=\"ln\" data-g=\"2\" data-w=\"52\" x=\"48\" y=\"248\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">buying, and cuts imports, all through those same two</text><text class=\"ln\" data-g=\"2\" data-w=\"17\" x=\"48\" y=\"268\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">channels at once.</text><mask id=\"dood0\"><image href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKMAAABpCAYAAABWH5NSAAAC9klEQVR4nO3c626DMAyGYVz1/m85E9UqIcSpkMSfnff516mDkDjOgWzTBAAAAAAAAAAAAAAAAAAAAAAAAAAAAABopvw7+xlyeE2itgKOIMzNJjF3A87M5J4FgTPjk8xH1oxPKhgxtvck6jvsHmW8+TtPM2LPjMpUInBmPAsUhuZcpIMRY0kTjDWGwPU1an9G0Dnj2rJhl8MzDZ5HmGBkfphfmmEa59RfpUoH4zwEMwzXpxqQr2g9meDMFYBLUg27XphEqEBVttFp1Rd+LplRfe6SUQlQ32/lStnrvREqVo0FGGmk54xqm9Y1P1/57uyXz1Nw0vuM6j259fOUjVPuve7tIVVmVOeZvSxA5pTOjHuVGqGXt372cpI1W5x4ah3Q0sEYoTf/ItLZy737t2yTLsG4V4lHletd8WpZvSSsj7XmmWeESsw8epSOG+XSwzTyT13cgrF2RY6Wda1zIPau33fGxmoxtPS6ZtkIgCf3+15veY2tnyl0BNdgPDqRc+W0znpBcGehdEeN662fp+xcs0YgXrnP3e+l2PTutZJWHcqvlMuc5odex/bCv4FZv6PNwCo9095ocvQ7nudHu27t9Hgw1Ux4xgQ6lPdB5lQLGJVGjagInKhPF4z4Te3Vu/Sc8WiFDF9FKBBTLGCQIxBdgnHvCBR86947ED9l6HUjgk+TCQRh98yo9NDQbJPXyA8/MhNsC/fXTYqVklURr3eX1TTbPdjC1s6ATDAryryBITtiRmYcUBHt/G7/+MnjvtAeprsXqsUpaY8y1CiLSjlUuG7tXKnAswa72gg1rtOjLOZUDoVgdi+A5/B+twFaTDPMuSwE401PG6DFX/dFL4sRjH0boGWF1/gnqNnqBAjLrVeoZBKlshSRcngJt7WTcY6lVBZP4YJRZfX5tBxqZVEgv8+4/P4WlWtE26ucsc/4gFImUXl7Uthn9KU0x1IpSxEpx6MyTMFdbYRRVuRKdQIAAAAAAAAAAAAAAAAAAAAAAAAAAABMffwBLx8sn7B4daYAAAAASUVORK5CYII=\" x=\"520.0\" y=\"177.4\" width=\"92.0\" height=\"59.3\" preserveAspectRatio=\"xMidYMid meet\"/></mask><rect x=\"520.0\" y=\"177.4\" width=\"92.0\" height=\"59.3\" fill=\"var(--indigo,#5545e8)\" mask=\"url(#dood0)\"/><rect x=\"24\" y=\"296\" width=\"592\" height=\"46\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"324\" text-anchor=\"middle\" font-size=\"12\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">home price = world price + tariff → imports = home <tspan class=\"vocab-term\" data-vocab-key=\"demand\">demand</tspan> minus home <tspan class=\"vocab-term\" data-vocab-key=\"supply\">supply</tspan></text></svg>"}];            // [{svg, at}]  at = start time in seconds
+  var au = document.getElementById('au'), stage = document.getElementById('stage');
+  var pp = document.getElementById('pp'), fill = document.getElementById('fill');
+  var track = document.getElementById('track'), timeEl = document.getElementById('time');
+  var spd = document.getElementById('spd');
+
+  // theme handoff (mirrors the econ visualizers): ?theme/font/scale/bg + postMessage.
+  // The clip wears the host app's colour theme, FONT family, and BACKGROUND so it
+  // looks native wherever it is embedded. font can be a known key or any CSS family;
+  // bg sets the clip surface to the app's chosen background colour.
+  var FONTS={ inter:"Inter,ui-sans-serif,system-ui,sans-serif",
+    system:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif",
+    serif:"Georgia,'Times New Roman',serif", mono:"ui-monospace,Menlo,monospace",
+    rounded:"'Nunito','Quicksand',ui-rounded,sans-serif", manrope:"Manrope,sans-serif",
+    poppins:"Poppins,sans-serif", lexend:"Lexend,sans-serif" };
+  function applyTheme(t,f,s,bg){ var d=document.documentElement;
+    if(t) d.dataset.theme=t;
+    if(f){ d.dataset.font=f; d.style.setProperty('--app-font', FONTS[f.toLowerCase()]||f); }
+    if(s) d.style.setProperty('--fz', s);
+    if(bg){ d.style.setProperty('--surface', bg); document.body.style.background=bg; } }
+  (function(){ var q=new URLSearchParams(location.search);
+    applyTheme(q.get('theme'), q.get('font'), q.get('scale'), q.get('bg')); })();
+  window.addEventListener('message', function(e){ var m=e.data||{};
+    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale, m.bg); } });
+
+  // render slides stacked; index each slide's reveal units. One unit = one SENTENCE
+  // (all of a sentence's wrapped lines share a data-g and reveal together, so a
+  // sentence is never shown half-finished). Weight = sentence length.
+  var LN=[];                                   // LN[i] = [{els:[...],cum,tot,t}] per sentence
+  SLIDES.forEach(function(sl,i){ var d=document.createElement('div');
+    d.className='slide'+(i===0?' on':''); d.id='sl'+i; d.innerHTML=sl.svg; stage.appendChild(d);
+    var els=[].slice.call(d.querySelectorAll('.ln')), groups=[], by={};
+    els.forEach(function(e){ var g=e.getAttribute('data-g')||'0';
+      if(!by[g]){ by[g]={els:[],w:0,cum:0,tot:0,t:0}; groups.push(by[g]); }
+      by[g].els.push(e); by[g].w+=(+e.getAttribute('data-w')||10); });
+    var tot=0; groups.forEach(function(g){ tot+=g.w; });
+    var cum=0; groups.forEach(function(g){ g.cum=cum; g.tot=tot; cum+=g.w; });
+    LN[i]=groups; });
+
+  // spread each slide's sentences across this fraction of its air-time (start of this
+  // slide to start of the next), weighted by sentence length -> longer sentences hold longer.
+  var REVEAL=0.78;
+  function computeLineTimes(){ var dur=au.duration||0;
+    for(var i=0;i<SLIDES.length;i++){ var span=(i+1<SLIDES.length?SLIDES[i+1].at:dur)-SLIDES[i].at;
+      if(!(span>0)) span=3;
+      LN[i].forEach(function(g){ g.t=SLIDES[i].at+(g.tot? g.cum/g.tot:0)*REVEAL*span; }); } }
+  function setLines(i,t){ var L=LN[i]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var on=t>=L[k].t, es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.toggle('show', on); } }
+  function resetLines(i){ var L=LN[i]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.remove('show'); } }
+
+  var cur=0;
+  function showFor(t){ var idx=0;
+    for(var i=0;i<SLIDES.length;i++){ if(t>=SLIDES[i].at) idx=i; }
+    if(idx!==cur){ var a=document.getElementById('sl'+cur), b=document.getElementById('sl'+idx);
+      if(a)a.classList.remove('on'); if(b)b.classList.add('on'); resetLines(idx); cur=idx; }
+    setLines(idx,t); }
+
+  function fmt(s){ s=Math.max(0,s|0); return (s/60|0)+':'+('0'+(s%60)).slice(-2); }
+  function tick(){ var d=au.duration||0, t=au.currentTime||0;
+    fill.style.width=(d? (t/d*100):0)+'%'; timeEl.textContent=fmt(t)+' / '+fmt(d); showFor(t); }
+
+  pp.onclick=function(){ if(au.paused){ au.play(); } else { au.pause(); } };
+  au.addEventListener('play', function(){ pp.textContent='⏸'; pp.setAttribute('aria-label','Pause'); });
+  au.addEventListener('pause', function(){ pp.textContent='▶'; pp.setAttribute('aria-label','Play'); });
+  au.addEventListener('timeupdate', tick);
+  au.addEventListener('loadedmetadata', function(){ computeLineTimes(); tick(); });
+  au.addEventListener('durationchange', computeLineTimes);
+  au.addEventListener('ended', function(){ cur=0; SLIDES.forEach(function(_,i){
+    document.getElementById('sl'+i).classList.toggle('on', i===0); resetLines(i); }); });
+  track.onclick=function(e){ var r=track.getBoundingClientRect();
+    if(au.duration) au.currentTime=(e.clientX-r.left)/r.width*au.duration; };
+  var speeds=[1,1.25,1.5,0.85], si=0;
+  spd.onclick=function(){ si=(si+1)%speeds.length; au.playbackRate=speeds[si]; spd.textContent=speeds[si]+'×'; };
+
+  // ── A<->B segment repeater bridge (the host app drives this via postMessage). The PARENT app owns the
+  // A/B button + the painted band/markers; this page owns its inner <audio>: it captures currentTime on
+  // setA/setB, LOOPS (seek to A when t >= B), clears, and REPORTS {t,d,a,b,state} back so the parent can
+  // paint. Same A/B model as the app's audio player. Fully back-compatible: a host that never posts __abv
+  // and never listens leaves this inert, and we only report UP when actually embedded (parent != self). ──
+  var AB_PARENT = (window.parent && window.parent !== window) ? window.parent : null;
+  var abA=null, abB=null, abState=0;   // 0 idle · 1 A set, awaiting B · 2 looping A<->B
+  function abReport(type){ if(!AB_PARENT) return; try{ AB_PARENT.postMessage({ __abv:true, type:(type||'time'),
+    t:au.currentTime||0, d:au.duration||0, a:abA, b:abB, state:abState }, '*'); }catch(e){} }
+  function abHandle(cmd){
+    var c=au.currentTime||0;
+    if(cmd==='setA'){ abA=c; abB=null; abState=1; }
+    else if(cmd==='setB'){
+      if(abA==null || c<=abA+0.25){ abA=c; abB=null; abState=1; }                 // B must be after A, else re-set A
+      else { abB=c; abState=2; try{ au.currentTime=abA; }catch(e){} var p=au.play(); if(p&&p.catch) p.catch(function(){}); }
+    } else if(cmd==='clear'){ abA=null; abB=null; abState=0; }
+    abReport('state');                                                            // reconcile the parent immediately
+  }
+  window.addEventListener('message', function(e){ var m=e.data||{};
+    if(m && m.__abv===true){ if(m.cmd){ abHandle(m.cmd); } else if(m.type==='ping'){ abReport('ready'); } } });
+  au.addEventListener('timeupdate', function(){
+    if(abState===2 && abA!=null && abB!=null && (au.currentTime||0) >= abB-0.04){ try{ au.currentTime=abA; }catch(e){} }
+    abReport('time'); });
+  // B near the very end: if 'ended' fires before the loop-check catches B, replay from A (never stop on a loop)
+  au.addEventListener('ended', function(){ if(abState===2 && abA!=null){ try{ au.currentTime=abA; }catch(e){} var p=au.play(); if(p&&p.catch) p.catch(function(){}); } }, true);
+  au.addEventListener('loadedmetadata', function(){ abReport('ready'); });        // announce support once timing is known
+  abReport('ready');                                                              // and immediately, for a parent already listening
+
+  // ── Clickable keyword glossary (mirrors the flashcards). build.mjs underlines
+  // glossary terms in the slide SVG as <tspan class="vocab-term" data-vocab-key>;
+  // tapping one pops up its Arabic + brief English gloss. Tap again / tap away closes. ──
+  var VOCAB = {"international trade":{"t":"International trade","ar":"التجارة الدولية: تبادل السلع والخدمات بين الدول","def":"International trade is the exchange of goods and services across national borders."},"tariff":{"t":"Tariff","ar":"التعرفة الجمركية: ضريبة على السلع المستوردة","def":"A tariff is a tax imposed by a government on imported goods and services."},"tax":{"t":"Tax","ar":"","def":"A mandatory payment to the government."},"world price":{"t":"World price","ar":"السعر العالمي: سعر السلعة في السوق الدولية","def":"The world price is the price of a good or service in the global market, outside of any domestic taxes or subsidies."},"supply":{"t":"Supply","ar":"العرض: كمية المنتجات التي يرغب ويقدر المنتجون على بيعها.","def":"Supply is the quantity of a good or service that producers are willing and able to offer for sale at various prices."},"firms":{"t":"Firms","ar":"الشركات: المنظمات التي تنتج وتبيع السلع والخدمات.","def":"Firms are organizations that produce and sell goods and services."},"demand":{"t":"Demand","ar":"الطلب: رغبة المستهلك وقدرته على الشراء","def":"The willingness and ability of consumers to purchase a good or service at various prices during a specific period."},"buyers":{"t":"Buyers","ar":"المشترون: الناس أو الشركات التي تشتري السلع والخدمات.","def":"Individuals or entities who purchase goods and services in a market."},"imports":{"t":"Imports","ar":"الواردات: سلع وخدمات تشتريها دولة من دول أخرى.","def":"Goods and services brought into a country from another country."},"crowds":{"t":"Crowd","ar":"يزدحم","def":"to pack closely together"},"demand curve":{"t":"Demand curve","ar":"منحنى الطلب: رسم بياني للسعر والكمية المطلوبة","def":"A graph showing the relationship between the price of a good and the quantity consumers are willing and able to buy."}};
+  var vpop = document.getElementById('vocabPopup'), vKey = '';
+  function hideVocab(){ vpop.classList.add('hidden'); vKey=''; }
+  function showVocab(el){ var key=el.getAttribute('data-vocab-key'), e=VOCAB[key];
+    if(!e){ return; }
+    if(!vpop.classList.contains('hidden') && vKey===key){ hideVocab(); return; }  // tap same term toggles off
+    vKey=key;
+    vpop.querySelector('.vocab-term-title').textContent=e.t||key;                 // exact term casing (pH, pOH, NaCl)
+    var ar=vpop.querySelector('.vocab-arabic'); ar.textContent=e.ar||''; ar.style.display=e.ar?'':'none';
+    vpop.querySelector('.vocab-def').textContent=e.def||'';
+    vpop.classList.remove('hidden'); vpop.style.visibility='hidden';              // measure off-screen, then place
+    var r=el.getBoundingClientRect(), pw=vpop.offsetWidth, ph=vpop.offsetHeight;
+    var left=Math.max(8, Math.min(r.left+r.width/2-pw/2, window.innerWidth-pw-8));
+    var top=r.bottom+8; if(top+ph>window.innerHeight-8) top=r.top-ph-8; if(top<8) top=8;
+    vpop.style.left=left+'px'; vpop.style.top=top+'px'; vpop.style.visibility=''; }
+  stage.addEventListener('click', function(e){ var t=e.target.closest && e.target.closest('.vocab-term');
+    if(t){ e.stopPropagation(); showVocab(t); } });
+  document.addEventListener('click', function(e){ if(vpop.classList.contains('hidden')) return;
+    if(e.target.closest && (e.target.closest('.vocab-term') || e.target.closest('.vocab-popup'))) return; hideVocab(); });
+  window.addEventListener('resize', hideVocab);
+})();
+</script>
+</body>
+</html>

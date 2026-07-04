@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Metacognito · Bond Order in a Resonance Structure</title>
+<style>
+  /* SELF-HOSTED Space Grotesk (the diagram-label font) - no external dependency, no CSP allowlist, works offline.
+     One variable woff2 (latin subset, weights 300-700) at out/fonts/, referenced relative to the card HTML. */
+  @font-face{ font-family:'Space Grotesk'; font-style:normal; font-weight:300 700; font-display:swap;
+    src:url('fonts/SpaceGrotesk-latin.woff2') format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+  /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the clip is app-native ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    /* designed, FIXED diagram-label font (axis labels, figure/curve/molecule labels) - NOT user-toggled. See PRD_FONTS.md */
+    --label-font:'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
+    --correct:#0e8f86; --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --correct:#22b3a6; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --correct:#22b3a6; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; } html,body{ margin:0; }
+  body{ font-family:var(--app-font); background:var(--surface); color:var(--ink); padding:12px; -webkit-text-size-adjust:100%; }
+  .stage{ position:relative; width:100%; aspect-ratio:16/9; background:var(--surface); border-radius:18px; overflow:hidden; }
+  .slide{ position:absolute; inset:0; opacity:0; transition:opacity .28s ease; }
+  .slide.on{ opacity:1; }
+  .slide svg{ width:100%; height:100%; display:block; }
+  /* line-by-line reveal: each sentence fades + slides in from the left as the voice reaches it */
+  .slide .ln{ opacity:0; transform:translateX(-16px); transition:opacity .5s ease, transform .5s cubic-bezier(.2,.7,.2,1); }
+  .slide .ln.show{ opacity:1; transform:translateX(0); }
+  .bar{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .pp{ flex:none; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer; color:#fff;
+       background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); font-size:18px; box-shadow:var(--shadow); }
+  .pp:active{ transform:scale(.93); }
+  .track{ flex:1; height:6px; border-radius:3px; background:color-mix(in srgb, var(--indigo) 18%, var(--line)); cursor:pointer; position:relative; }
+  .fill{ height:100%; border-radius:3px; background:var(--indigo); width:0%; }
+  .time{ flex:none; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; min-width:74px; text-align:right; }
+  .spd{ flex:none; font:inherit; font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; cursor:pointer;
+        color:var(--ink); background:var(--surface-2); border:1px solid var(--line); }
+  @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } .pp:active{ transform:none; } .slide .ln{ opacity:1; transform:none; transition:none; } }
+  /* clickable keyword glossary - dotted underline + tap popup, mirroring the flashcards */
+  .vocab-term{ text-decoration:underline dotted; text-decoration-color:color-mix(in srgb, var(--indigo) 55%, var(--muted)); text-decoration-thickness:1.4px; text-underline-offset:2px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .vocab-popup{ position:fixed; z-index:50; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px; box-shadow:0 8px 28px rgba(0,0,0,.24); max-width:260px; min-width:150px; max-height:72vh; overflow-y:auto; overscroll-behavior:contain; }
+  .vocab-popup.hidden{ display:none; }
+  .vocab-term-title{ font-weight:800; font-size:14px; color:var(--ink); margin-bottom:5px; }
+  .vocab-arabic{ font-size:19px; color:var(--indigo); direction:rtl; text-align:right; margin-bottom:5px; font-weight:600; line-height:1.5; }
+  .vocab-def{ font-size:12.5px; color:var(--muted); line-height:1.45; overflow-wrap:break-word; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage"></div>
+  <div class="bar">
+    <button class="pp" id="pp" aria-label="Play">▶</button>
+    <div class="track" id="track"><div class="fill" id="fill"></div></div>
+    <button class="spd" id="spd" aria-label="Playback speed">1×</button>
+    <div class="time" id="time">0:00</div>
+  </div>
+  <audio id="au" preload="metadata" src="https://cdn.jsdelivr.net/gh/metacognito-study/metacognito-audiochem@main/mp3/818.mp3"></audio>
+  <div class="vocab-popup hidden" id="vocabPopup" role="dialog" aria-label="Keyword meaning">
+    <div class="vocab-term-title"></div><div class="vocab-arabic"></div><div class="vocab-def"></div>
+  </div>
+<script>
+(function(){
+  var SLIDES = [{"at":0,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Take the nitrate ion NO₃⁻, where one N to O bond is double across three drawings. Can you work out the bond order?</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"26\" width=\"116\" height=\"34\" rx=\"17\" fill=\"var(--indigo-soft,#eef0ff)\"/><text x=\"42\" y=\"49\" font-size=\"15\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\"><tspan class=\"vocab-term\" data-vocab-key=\"bond order\">Bond order</tspan></text><text x=\"612\" y=\"49\" text-anchor=\"end\" font-size=\"16\" font-weight=\"700\" fill=\"var(--muted,#606b84)\">#818</text><text font-size=\"28\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"150\">Take the nitrate <tspan class=\"vocab-term\" data-vocab-key=\"ion\">ion</tspan> NO₃⁻,</tspan><tspan x=\"24\" y=\"190\">where one N to O bond is</tspan><tspan x=\"24\" y=\"230\">double across three drawings.</tspan><tspan x=\"24\" y=\"270\">Can you work out the bond</tspan><tspan x=\"24\" y=\"310\">order?</tspan></text><rect x=\"24\" y=\"300\" width=\"156\" height=\"38\" rx=\"19\" fill=\"var(--indigo,#5545e8)\"/><path d=\"M44 311 L44 327 L56 319 Z\" fill=\"#fff\"/><text x=\"64\" y=\"324\" font-size=\"15\" font-weight=\"700\" fill=\"#fff\">play · 1:24</text></svg>"},{"at":25.08,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Total the bonds between that pair of atoms across the structures, then divide by the number of structures. A nitrogen to oxygen bond that is double in one drawing and single in the other two gives 2 + 1 + 1 = 4.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE METHOD</text><text class=\"ln\" data-g=\"0\" data-w=\"36\" x=\"24\" y=\"91\" font-size=\"25\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Total the bonds between that pair of</text><text class=\"ln\" data-g=\"0\" data-w=\"33\" x=\"24\" y=\"125\" font-size=\"25\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">atoms across the structures, then</text><text class=\"ln\" data-g=\"0\" data-w=\"35\" x=\"24\" y=\"159\" font-size=\"25\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">divide by the number of structures.</text><text class=\"ln\" data-g=\"1\" data-w=\"33\" x=\"24\" y=\"193\" font-size=\"25\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">A nitrogen to oxygen bond that is</text><text class=\"ln\" data-g=\"1\" data-w=\"35\" x=\"24\" y=\"227\" font-size=\"25\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">double in one drawing and single in</text><text class=\"ln\" data-g=\"1\" data-w=\"34\" x=\"24\" y=\"261\" font-size=\"25\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">the other two gives 2 + 1 + 1 = 4.</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">Add the bonds for that pair across all structures, then divide by the count</text></svg>"},{"at":41.62,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Nitrate Bond Order</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text font-size=\"24\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"44\">Nitrate <tspan class=\"vocab-term\" data-vocab-key=\"bond order\">Bond Order</tspan></tspan></text><g transform=\"translate(24,64)\" font-family=\"var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)\"><text x='300' y='16' text-anchor='middle' font-size='11' font-weight='700' fill='var(--muted,#606b84)'>Bond order = total bonds for the pair, divided by the number of structures</text><rect x='44' y='34' width='258' height='150' rx='10' fill='var(--surface-2,#eef1f7)' stroke='var(--line,#e5eaf2)' stroke-width='1.4'/><text x='173' y='58' text-anchor='middle' font-size='12' font-weight='800' fill='var(--indigo,#5545e8)'>add the bonds</text><text x='173' y='84' text-anchor='middle' font-size='10.5' font-weight='700' fill='var(--ink,#18213a)'>double, single, single</text><text x='173' y='118' text-anchor='middle' font-size='16' font-weight='800' fill='var(--ink,#18213a)'>2 + 1 + 1</text><text x='173' y='154' text-anchor='middle' font-size='18' font-weight='800' fill='var(--correct,#0e8f86)'>= 4</text><rect x='320' y='34' width='258' height='150' rx='10' fill='var(--surface-2,#eef1f7)' stroke='var(--line,#e5eaf2)' stroke-width='1.4'/><text x='449' y='58' text-anchor='middle' font-size='12' font-weight='800' fill='var(--rose,#e0476b)'>divide by structures</text><text x='449' y='84' text-anchor='middle' font-size='10.5' font-weight='700' fill='var(--ink,#18213a)'>4 bonds over 3 drawings</text><text x='449' y='118' text-anchor='middle' font-size='16' font-weight='800' fill='var(--ink,#18213a)'>4 ÷ 3</text><text x='449' y='154' text-anchor='middle' font-size='18' font-weight='800' fill='var(--correct,#0e8f86)'>= 1.33</text></g><text x=\"24\" y=\"334\" font-size=\"10\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">One N to O bond is double in one structure and single in the other two. Add:</text><text x=\"24\" y=\"348\" font-size=\"10\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">2 + 1 + 1 = 4. Divide by the 3 structures: 4 ÷ 3 = 1.33, a bond order between one and two.</text></svg>"},{"at":52.54,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>The classic trap is reading the bond order from just the single best drawing, saying the bond is just one or just two. The real bond order is the average over all the structures, not one snapshot.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE TRAP</text><text class=\"ln\" data-g=\"0\" data-w=\"36\" x=\"24\" y=\"98\" font-size=\"23\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">The classic trap is reading the bond</text><text class=\"ln\" data-g=\"0\" data-w=\"31\" x=\"24\" y=\"129\" font-size=\"23\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">order from just the single best</text><text class=\"ln\" data-g=\"0\" data-w=\"39\" x=\"24\" y=\"160\" font-size=\"23\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">drawing, saying the bond is just one or</text><text class=\"ln\" data-g=\"0\" data-w=\"9\" x=\"24\" y=\"191\" font-size=\"23\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">just two.</text><text class=\"ln\" data-g=\"1\" data-w=\"39\" x=\"24\" y=\"222\" font-size=\"23\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">The real <tspan class=\"vocab-term\" data-vocab-key=\"bond order\">bond order</tspan> is the average over</text><text class=\"ln\" data-g=\"1\" data-w=\"37\" x=\"24\" y=\"253\" font-size=\"23\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">all the structures, not one snapshot.</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">Do not read the bond order from one drawing: average over every structure</text></svg>"},{"at":77.84,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Bond Order in a Resonance Structure</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"36\" width=\"8\" height=\"250\" rx=\"4\" fill=\"var(--indigo,#5545e8)\"/><text font-size=\"34\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"48\" y=\"70\"><tspan class=\"vocab-term\" data-vocab-key=\"bond order\">Bond Order</tspan> in a</tspan><tspan x=\"48\" y=\"110\"><tspan class=\"vocab-term\" data-vocab-key=\"resonance structure\">Resonance Structure</tspan></tspan></text><text class=\"ln\" data-g=\"0\" data-w=\"48\" x=\"48\" y=\"168\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">Bond order is the sum of the bonds for a pair of</text><text class=\"ln\" data-g=\"0\" data-w=\"50\" x=\"48\" y=\"188\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">atoms across every resonance structure, divided by</text><text class=\"ln\" data-g=\"0\" data-w=\"30\" x=\"48\" y=\"208\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">how many structures there are.</text><text class=\"ln\" data-g=\"1\" data-w=\"48\" x=\"48\" y=\"228\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">For NO₃⁻ one N to O bond is 2 + 1 + 1 = 4 over 3</text><text class=\"ln\" data-g=\"1\" data-w=\"26\" x=\"48\" y=\"248\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">drawings, so 4 ÷ 3 = 1.33.</text><text class=\"ln\" data-g=\"2\" data-w=\"38\" x=\"48\" y=\"268\" font-size=\"14\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">Never read it from one snapshot alone.</text><mask id=\"dood0\"><image href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAADTCAYAAACiE6CRAAAEBElEQVR4nO3cUW/aMBiGUTz1//9lT73gFaqAQmqcL/E5V1u1jjh+cJzQ7XIBAAAAAAAAAAAAAAA4p3ZZWO+93/t6a23J89JWnvR3tZNH0laO4NHk9o3fd3RflwW8O3ltYyRHt0QM10nc+o7uJ49gqRhWm9StTnHte/UavzWG9uL3H30vcbiD3zKhoyap7/jaM5S/TLwyAbM3fO2N1/v5tcpxlI3hiA+E2p1j+zmOv25ml4vh9gRWPGnvuD3+23F9/7ra2MrFUPmdMzqMakH8uxRy5hBG3+EssTJ8G/2OuXfCf/v7+4cnqVIEV22FTWOlD6r6hjBnKXEQ9y4Tn76bmPUAqT8ZR7XLYsnLxLNr6qhIRk9Af3H1qTLxh4rh0cl7dNJHPh3sA6/nlSf/cDF8cgJXnfTTxDBqMp6F0E4wsUvH8K5VJ/wwD51W0gs+ZxADIQZCDIQYCDHcfJx8WfxuRgyEGAgxEGIgxECIgfU+qHrl1rEv/kmmlYH1VoZn7+xqP4u4FysDIQZCDIQYCDEQYiDEwHrPGZ5Z/fnClZWBEAMhBkIMhBh20v3zOiqzMhBiIMRAiIEQAyEGQgyEGAgxEGIgxECIgRADIYadtII/dykGQgw76X64hcqsDIQYCDEQYiDEQIiBEAMhBkIMhBgIMRBiIMRAiIEQAyEGQgyEGAgxEGIgxECIgRADIQZCDIQYCDEQYthJ80/yqczKQIiBEAMhBkIMhBgIMRBiIMRAiIEQAyEGQgyEGAgxEGIgxECIgRADIQZCDIQYCDEQYiDEQIiBEAMhBkIMhBgIMRBiIMRAiIEQw0567/1SjBgIMRBflwWMWJJbwf+qbzQrw4Gv8aMtsTKs8K4ewcpAiGFnrdCq1SpejyudoJXGveueYYVN2ZbzsVcUX1UiuJ6A1QJpd8a9VxSt0rK49ztjtkfj3evyMW0DeTvA78GtMuFb/Dw/s1bLf3uEMOM1q+svTPDsIKbeWv4Wwor7hvbiOZlyLJ9+gS37gDOvJH3j2Gbsp0o+jv4e8HXwZwijP7l7qqRkDL/dct37c1X0Xy5x1Y53l8vEiBPx7l7iUye+Tz6OWavj1BhGD6bqRrN9cIyniOF2H3D9/azXHq1NPvbbc3eaDeS9jeFHSy98fa744dXX3hvDM9wtfGoFO+VnE89WgSonYrZ3xj3rM5upMfw2oCPflo189Pzoe08Rw5Zr4TubvyqR9IHHvMfeYfpJ3DrIT9wZvPJuHGXrOE/12cQ9o58kVnne0AaP4ZQbyGf23ECu+tplYzj75vFI49v9AP669Fc4iWc47m/lDmjGvmDrz1b8RcXJ/6n8AR5l83ikSX/ksAc+M5524AkGAAAAAAAAAAAAAIDLuv4D0oAhg/y+2NsAAAAASUVORK5CYII=\" x=\"522.5\" y=\"157.0\" width=\"86.9\" height=\"140.0\" preserveAspectRatio=\"xMidYMid meet\"/></mask><rect x=\"522.5\" y=\"157.0\" width=\"86.9\" height=\"140.0\" fill=\"var(--indigo,#5545e8)\" mask=\"url(#dood0)\"/><rect x=\"24\" y=\"296\" width=\"592\" height=\"46\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"324\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">bond order = total bonds ÷ structures; NO₃⁻: 4 ÷ 3 = 1.33</text></svg>"}];            // [{svg, at}]  at = start time in seconds
+  var au = document.getElementById('au'), stage = document.getElementById('stage');
+  var pp = document.getElementById('pp'), fill = document.getElementById('fill');
+  var track = document.getElementById('track'), timeEl = document.getElementById('time');
+  var spd = document.getElementById('spd');
+
+  // theme handoff (mirrors the econ visualizers): ?theme/font/scale/bg + postMessage.
+  // The clip wears the host app's colour theme, FONT family, and BACKGROUND so it
+  // looks native wherever it is embedded. font can be a known key or any CSS family;
+  // bg sets the clip surface to the app's chosen background colour.
+  var FONTS={ inter:"Inter,ui-sans-serif,system-ui,sans-serif",
+    system:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif",
+    serif:"Georgia,'Times New Roman',serif", mono:"ui-monospace,Menlo,monospace",
+    rounded:"'Nunito','Quicksand',ui-rounded,sans-serif", manrope:"Manrope,sans-serif",
+    poppins:"Poppins,sans-serif", lexend:"Lexend,sans-serif" };
+  function applyTheme(t,f,s,bg){ var d=document.documentElement;
+    if(t) d.dataset.theme=t;
+    if(f){ d.dataset.font=f; d.style.setProperty('--app-font', FONTS[f.toLowerCase()]||f); }
+    if(s) d.style.setProperty('--fz', s);
+    if(bg){ d.style.setProperty('--surface', bg); document.body.style.background=bg; } }
+  (function(){ var q=new URLSearchParams(location.search);
+    applyTheme(q.get('theme'), q.get('font'), q.get('scale'), q.get('bg')); })();
+  window.addEventListener('message', function(e){ var m=e.data||{};
+    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale, m.bg); } });
+
+  // render slides stacked; index each slide's reveal units. One unit = one SENTENCE
+  // (all of a sentence's wrapped lines share a data-g and reveal together, so a
+  // sentence is never shown half-finished). Weight = sentence length.
+  var LN=[];                                   // LN[i] = [{els:[...],cum,tot,t}] per sentence
+  SLIDES.forEach(function(sl,i){ var d=document.createElement('div');
+    d.className='slide'+(i===0?' on':''); d.id='sl'+i; d.innerHTML=sl.svg; stage.appendChild(d);
+    var els=[].slice.call(d.querySelectorAll('.ln')), groups=[], by={};
+    els.forEach(function(e){ var g=e.getAttribute('data-g')||'0';
+      if(!by[g]){ by[g]={els:[],w:0,cum:0,tot:0,t:0}; groups.push(by[g]); }
+      by[g].els.push(e); by[g].w+=(+e.getAttribute('data-w')||10); });
+    var tot=0; groups.forEach(function(g){ tot+=g.w; });
+    var cum=0; groups.forEach(function(g){ g.cum=cum; g.tot=tot; cum+=g.w; });
+    LN[i]=groups; });
+
+  // spread each slide's sentences across this fraction of its air-time (start of this
+  // slide to start of the next), weighted by sentence length -> longer sentences hold longer.
+  var REVEAL=0.78;
+  function computeLineTimes(){ var dur=au.duration||0;
+    for(var i=0;i<SLIDES.length;i++){ var span=(i+1<SLIDES.length?SLIDES[i+1].at:dur)-SLIDES[i].at;
+      if(!(span>0)) span=3;
+      LN[i].forEach(function(g){ g.t=SLIDES[i].at+(g.tot? g.cum/g.tot:0)*REVEAL*span; }); } }
+  function setLines(i,t){ var L=LN[i]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var on=t>=L[k].t, es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.toggle('show', on); } }
+  function resetLines(i){ var L=LN[i]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.remove('show'); } }
+
+  var cur=0;
+  function showFor(t){ var idx=0;
+    for(var i=0;i<SLIDES.length;i++){ if(t>=SLIDES[i].at) idx=i; }
+    if(idx!==cur){ var a=document.getElementById('sl'+cur), b=document.getElementById('sl'+idx);
+      if(a)a.classList.remove('on'); if(b)b.classList.add('on'); resetLines(idx); cur=idx; }
+    setLines(idx,t); }
+
+  function fmt(s){ s=Math.max(0,s|0); return (s/60|0)+':'+('0'+(s%60)).slice(-2); }
+  function tick(){ var d=au.duration||0, t=au.currentTime||0;
+    fill.style.width=(d? (t/d*100):0)+'%'; timeEl.textContent=fmt(t)+' / '+fmt(d); showFor(t); }
+
+  pp.onclick=function(){ if(au.paused){ au.play(); } else { au.pause(); } };
+  au.addEventListener('play', function(){ pp.textContent='⏸'; pp.setAttribute('aria-label','Pause'); });
+  au.addEventListener('pause', function(){ pp.textContent='▶'; pp.setAttribute('aria-label','Play'); });
+  au.addEventListener('timeupdate', tick);
+  au.addEventListener('loadedmetadata', function(){ computeLineTimes(); tick(); });
+  au.addEventListener('durationchange', computeLineTimes);
+  au.addEventListener('ended', function(){ cur=0; SLIDES.forEach(function(_,i){
+    document.getElementById('sl'+i).classList.toggle('on', i===0); resetLines(i); }); });
+  track.onclick=function(e){ var r=track.getBoundingClientRect();
+    if(au.duration) au.currentTime=(e.clientX-r.left)/r.width*au.duration; };
+  var speeds=[1,1.25,1.5,0.85], si=0;
+  spd.onclick=function(){ si=(si+1)%speeds.length; au.playbackRate=speeds[si]; spd.textContent=speeds[si]+'×'; };
+
+  // ── A<->B segment repeater bridge (the host app drives this via postMessage). The PARENT app owns the
+  // A/B button + the painted band/markers; this page owns its inner <audio>: it captures currentTime on
+  // setA/setB, LOOPS (seek to A when t >= B), clears, and REPORTS {t,d,a,b,state} back so the parent can
+  // paint. Same A/B model as the app's audio player. Fully back-compatible: a host that never posts __abv
+  // and never listens leaves this inert, and we only report UP when actually embedded (parent != self). ──
+  var AB_PARENT = (window.parent && window.parent !== window) ? window.parent : null;
+  var abA=null, abB=null, abState=0;   // 0 idle · 1 A set, awaiting B · 2 looping A<->B
+  function abReport(type){ if(!AB_PARENT) return; try{ AB_PARENT.postMessage({ __abv:true, type:(type||'time'),
+    t:au.currentTime||0, d:au.duration||0, a:abA, b:abB, state:abState }, '*'); }catch(e){} }
+  function abHandle(cmd){
+    var c=au.currentTime||0;
+    if(cmd==='setA'){ abA=c; abB=null; abState=1; }
+    else if(cmd==='setB'){
+      if(abA==null || c<=abA+0.25){ abA=c; abB=null; abState=1; }                 // B must be after A, else re-set A
+      else { abB=c; abState=2; try{ au.currentTime=abA; }catch(e){} var p=au.play(); if(p&&p.catch) p.catch(function(){}); }
+    } else if(cmd==='clear'){ abA=null; abB=null; abState=0; }
+    abReport('state');                                                            // reconcile the parent immediately
+  }
+  window.addEventListener('message', function(e){ var m=e.data||{};
+    if(m && m.__abv===true){ if(m.cmd){ abHandle(m.cmd); } else if(m.type==='ping'){ abReport('ready'); } } });
+  au.addEventListener('timeupdate', function(){
+    if(abState===2 && abA!=null && abB!=null && (au.currentTime||0) >= abB-0.04){ try{ au.currentTime=abA; }catch(e){} }
+    abReport('time'); });
+  // B near the very end: if 'ended' fires before the loop-check catches B, replay from A (never stop on a loop)
+  au.addEventListener('ended', function(){ if(abState===2 && abA!=null){ try{ au.currentTime=abA; }catch(e){} var p=au.play(); if(p&&p.catch) p.catch(function(){}); } }, true);
+  au.addEventListener('loadedmetadata', function(){ abReport('ready'); });        // announce support once timing is known
+  abReport('ready');                                                              // and immediately, for a parent already listening
+
+  // ── Clickable keyword glossary (mirrors the flashcards). build.mjs underlines
+  // glossary terms in the slide SVG as <tspan class="vocab-term" data-vocab-key>;
+  // tapping one pops up its Arabic + brief English gloss. Tap again / tap away closes. ──
+  var VOCAB = {"bond order":{"t":"Bond order","ar":"رتبة الرابطة","def":"The number of electron pairs shared between two atoms in a covalent bond. A single bond has a bond order of 1, a double bond has a bond order of 2, and a triple bond has a bond order of 3."},"ion":{"t":"Ion","ar":"أيون","def":"An atom or molecule with a net electric charge due to the loss or gain of one or more electrons."},"resonance structure":{"t":"Resonance structure","ar":"بنية رنين (بنى رنين)","def":"One of several possible Lewis structures for a molecule or ion that cannot be adequately represented by a single structure. Resonance structures differ only in the placement of electrons, not in the arrangement of atoms."}};
+  var vpop = document.getElementById('vocabPopup'), vKey = '';
+  function hideVocab(){ vpop.classList.add('hidden'); vKey=''; }
+  function showVocab(el){ var key=el.getAttribute('data-vocab-key'), e=VOCAB[key];
+    if(!e){ return; }
+    if(!vpop.classList.contains('hidden') && vKey===key){ hideVocab(); return; }  // tap same term toggles off
+    vKey=key;
+    vpop.querySelector('.vocab-term-title').textContent=e.t||key;                 // exact term casing (pH, pOH, NaCl)
+    var ar=vpop.querySelector('.vocab-arabic'); ar.textContent=e.ar||''; ar.style.display=e.ar?'':'none';
+    vpop.querySelector('.vocab-def').textContent=e.def||'';
+    vpop.classList.remove('hidden'); vpop.style.visibility='hidden';              // measure off-screen, then place
+    var r=el.getBoundingClientRect(), pw=vpop.offsetWidth, ph=vpop.offsetHeight;
+    var left=Math.max(8, Math.min(r.left+r.width/2-pw/2, window.innerWidth-pw-8));
+    var top=r.bottom+8; if(top+ph>window.innerHeight-8) top=r.top-ph-8; if(top<8) top=8;
+    vpop.style.left=left+'px'; vpop.style.top=top+'px'; vpop.style.visibility=''; }
+  stage.addEventListener('click', function(e){ var t=e.target.closest && e.target.closest('.vocab-term');
+    if(t){ e.stopPropagation(); showVocab(t); } });
+  document.addEventListener('click', function(e){ if(vpop.classList.contains('hidden')) return;
+    if(e.target.closest && (e.target.closest('.vocab-term') || e.target.closest('.vocab-popup'))) return; hideVocab(); });
+  window.addEventListener('resize', hideVocab);
+})();
+</script>
+</body>
+</html>
