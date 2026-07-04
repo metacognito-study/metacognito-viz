@@ -572,6 +572,15 @@
     fastAnswer: 1.6, slowAnswer: 6.0,
     turboBonus: 15,         // extra per correct while in turbo
     finishBonusP1: 120, finishBonusP2: 60, finishBonusP3: 25,
+    // Anti-spam: the finish-BONUS + "You win!" banner reward RETRIEVAL, not
+    // button-mashing. A guesser can still finish the 20-question race first on
+    // raw click-speed (progress is answer-count-driven, by design), but the
+    // 1st-place bonus/banner only lands if end-of-race accuracy clears this
+    // floor. Sim (sim/RR_REPORT.md): at 0.45 a masher is denied its "win" ~46%
+    // of the time while a competent reader is NEVER denied and a 60%-reader
+    // only ~6%. Below-floor finishers see an honest "Race complete" summary
+    // that leads with their score (the true skill measure) instead. 0 disables.
+    winAccFloor: 0.45,
     // AI pace-cars (solo). Each has a base competence; rubber-banding nudges them
     // toward the player so nobody runs away with it. Three distinct rivals.
     ai: [
@@ -1501,11 +1510,17 @@
     var line = this._byId('rr-final-line');
 
     if (!quit) {
-      // finish bonus by place
-      var bonus = this.finishPlace === 1 ? TUNE.finishBonusP1 : (this.finishPlace === 2 ? TUNE.finishBonusP2 : (this.finishPlace === 3 ? TUNE.finishBonusP3 : 0));
+      // Anti-spam accuracy gate (see TUNE.winAccFloor + sim/RR_REPORT.md): the
+      // place BONUS + "You win!" framing only pay if the player actually engaged
+      // (end-of-race accuracy >= floor). A pure masher can still cross first on
+      // click-speed, but it earns an honest score-led summary, not a win banner.
+      var acc0 = this.seen ? (this.correct / this.seen) : 0;
+      var earned = !TUNE.winAccFloor || acc0 >= TUNE.winAccFloor;
+      // finish bonus by place (only when earned)
+      var bonus = !earned ? 0 : (this.finishPlace === 1 ? TUNE.finishBonusP1 : (this.finishPlace === 2 ? TUNE.finishBonusP2 : (this.finishPlace === 3 ? TUNE.finishBonusP3 : 0)));
       this.score += bonus;
       var ord = ['1st', '2nd', '3rd', '4th'][clamp(this.finishPlace - 1, 0, 3)];
-      if (title) title.textContent = this.finishPlace === 1 ? 'You win!' : 'Finish';
+      if (title) title.textContent = (this.finishPlace === 1 && earned) ? 'You win!' : (earned ? 'Finish' : 'Race complete');
       if (placeLine) placeLine.textContent = ord + ' place' + (bonus ? '  (+' + bonus + ' bonus)' : '');
     } else {
       if (title) title.textContent = 'Race ended';
