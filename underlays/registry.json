@@ -974,6 +974,233 @@
      "exIdx": 4
     }
    ]
+  },
+  {
+   "sheet": "chem",
+   "row": 873,
+   "exIdx": 1,
+   "asset": "u_873_e1_heating_curve_h2o.svg",
+   "mode": "example-image",
+   "what": "H2O heating curve shown-state: 5 segments (-20C solid rise, 0C melt plateau, liquid rise, long 100C boil plateau, gas rise); plateau temperatures readable off y-ticks -20/0/100",
+   "answer_leak_check": "PASS: no segment names, no melting/boiling/freezing labels, no dHfus/dHvap values on the figure (identifying and naming segments is the 873/1530 task; 1534 reads the temps off the axis - that reading IS its task)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 875,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1530,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1534,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1535,
+   "exIdx": 1,
+   "asset": "u_1535_e1_cooling_curve_h2o.svg",
+   "mode": "example-image",
+   "what": "H2O cooling curve shown-state: gas fall from 120C, condensation plateau at 100C, liquid fall, freezing plateau at 0C, solid fall to -20C; temps readable off y-ticks",
+   "answer_leak_check": "PASS: no transition names (freezing/condensation are the answers being read), no segment labels",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 923,
+   "exIdx": 1,
+   "asset": "u_923_e1_kno3_solubility_curve.svg",
+   "mode": "example-image",
+   "what": "KNO3 solubility-vs-temperature curve on full 20-degree/40-gram grid, real curve data (13@0, 32@20, 64@40, 85@50, 106@60, 170@80) consistent with every value the cells quote",
+   "answer_leak_check": "PASS: no point markers or callouts at the queried temperatures (reading 20/40/50/60/80 values off the grid IS the task), no saturated/unsaturated zone shading, no crystallization annotation for the 60->20 cooling question",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 927,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 927,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 928,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 929,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 930,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1054,
+   "exIdx": 1,
+   "asset": "u_1054_e1_pe_1step_50_130_20.svg",
+   "mode": "example-image",
+   "what": "Single-step PE profile shown-state: reactants 50 kJ, transition state 130 kJ, products 20 kJ, all readable off gridlined y-ticks (values verbatim from cells)",
+   "answer_leak_check": "PASS: no dH/Ea(fwd)/Ea(rev) arrows or labels, no exo/endo annotation (labeling those on the diagram is exactly the 1054/1055 task set)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1054,
+     "exIdx": 2
+    },
+    {
+     "sheet": "chem",
+     "row": 1055,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1055,
+     "exIdx": 2
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1044,
+   "exIdx": 1,
+   "asset": "u_1044_e1_pe_2step_profile.svg",
+   "mode": "example-image",
+   "what": "Two-step PE profile shown-state: react 0 -> TS1 60 -> intermediate 30 -> TS2 120 -> products -20 kJ (verbatim cell values, readable off gridlined y-ticks)",
+   "answer_leak_check": "PASS: no rate-determining-step marker, no Ea arrows, no exo/endo verdict, humps and valley unlabeled (identifying step 1, the intermediate, and the RDS are the 1044/1058/1063 tasks)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1058,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1063,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1061,
+   "exIdx": 1,
+   "asset": "u_1061_e1_pe_3step_generic.svg",
+   "mode": "example-image",
+   "what": "Generic three-step PE profile: 3 humps, 2 valleys, products below reactants; no numeric scale",
+   "answer_leak_check": "PASS: humps/valleys uncounted and unlabeled, no step or intermediate annotations (counting them is the exercise)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1351,
+   "exIdx": 1,
+   "asset": "u_1351_e1_titration_sasb.svg",
+   "mode": "example-image",
+   "what": "Strong acid-strong base titration curve shown-state (25.00 mL 0.100 M HCl vs 0.100 M NaOH): starts pH 1.0, symmetric steep jump through pH 7 at 25.00 mL, plateau ~12.5; mL and pH scales readable",
+   "answer_leak_check": "PASS: no equivalence-point dot, no dashed guides, no region labels (reading initial pH, locating equivalence volume/pH, and identifying the steep zone are the 1351/1353/1356/1419 tasks)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1353,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1356,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 1419,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1366,
+   "exIdx": 1,
+   "asset": "u_1366_e1_titration_wasb.svg",
+   "mode": "example-image",
+   "what": "Weak acid-strong base titration curve shown-state (25.00 mL 0.100 M CH3COOH vs 0.100 M NaOH): start pH 2.9, buffer flattening near pH 4.74 around 12.5 mL, equivalence at 25.00 mL pH 8.7, gentler S than SA-SB",
+   "answer_leak_check": "PASS: no half-equivalence marker, no pKa dashed line, no buffer-region bracket, no equivalence dot (reading initial pH, spotting pH=pKa at half-equivalence, and explaining equivalence>7 are the tasks); curve geometry itself is the given",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1382,
+   "exIdx": 1,
+   "asset": "u_1382_e1_titration_wbsa.svg",
+   "mode": "example-image",
+   "what": "Weak base-strong acid titration curve shown-state (25.00 mL 0.100 M NH3 vs 0.100 M HCl): start pH 11.1, buffer flattening near pH 9.26 around 12.5 mL, equivalence at 25.00 mL pH 5.3, inverted S",
+   "answer_leak_check": "PASS: no half-equivalence marker or 14-pKb line, no equivalence dot, no buffer bracket (reading those features is the 1382/1388 task set)",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1388,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1092,
+   "exIdx": 1,
+   "asset": "u_1092_e1_equilib_approach_generic.svg",
+   "mode": "example-image",
+   "what": "Generic A<=>B approach-to-equilibrium: [A] decays from high (steep then flattening), [B] rises from 0, both plateau at the same time; curves colour-keyed and labeled [A]/[B]",
+   "answer_leak_check": "PASS: no t_eq marker or dashed vertical (identifying the moment equilibrium is reached IS the task), no forward/reverse-rate annotations",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1130,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1126,
+   "exIdx": 1,
+   "asset": "u_1126_e1_equilib_approach_nh3.svg",
+   "mode": "example-image",
+   "what": "N2+3H2<=>2NH3 approach-to-equilibrium: starts at the verbatim cell values (0.50/1.50/0 M), plateaus at 0.30/0.90/0.40 M so the consumption ratio is exactly 1:3:2; species colour-keyed and named",
+   "answer_leak_check": "PASS: no t_eq marker (marking it IS the task), no rate-comparison annotations; plateau values are internally consistent extras, not quoted answers",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1127,
+   "exIdx": 1,
+   "asset": "u_1127_e1_equilib_approach_hi.svg",
+   "mode": "example-image",
+   "what": "H2+I2<=>2HI approach-to-equilibrium: [H2]=[I2] drawn as one overlapping curve 0.100->0.022 M, [HI] 0->0.156 M (verbatim cell values), plateaus approximately readable off 0.05-gridded scale",
+   "answer_leak_check": "PASS: no Kc value or calculation shown, no dashed plateau guides (reading the equilibrium concentrations and computing Kc = [HI]^2/([H2][I2]) IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1372,
+   "exIdx": 1,
+   "asset": "u_1372_e1_titration_wa_vs_sa_overlay.svg",
+   "mode": "example-image",
+   "what": "Overlay shown-state: SA-SB curve (indigo solid, start pH 1.0, equivalence 7) and WA-SB curve (rose dashed, start pH 2.9, buffer flattening, equivalence 8.7) on one grid; curves named strong acid / weak acid (identities given in cell)",
+   "answer_leak_check": "PASS: no callouts on the four distinguishing features (higher initial pH, buffer region, pH=pKa at half-equivalence, equivalence>7) - listing them from the comparison IS the task",
+   "serves": []
   }
  ]
 }

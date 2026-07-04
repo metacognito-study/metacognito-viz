@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_923_e1 KNO3 solubility curve shown-state | chem rows 923/927/928/929/930 | real KNO3 curve (13@0, 32@20, 64@40, 85@50, 106@60, 170@80 - matches every value quoted in the cells); full grid so read-off is possible; NO point markers, NO crystallization annotations -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="250" y1="420" x2="250" y2="120" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="360" y1="420" x2="360" y2="120" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="470" y1="420" x2="470" y2="120" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="580" y1="420" x2="580" y2="120" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="690" y1="420" x2="690" y2="120" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="140" y1="360" x2="690" y2="360" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="140" y1="300" x2="690" y2="300" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="140" y1="240" x2="690" y2="240" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="140" y1="180" x2="690" y2="180" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="140" y1="120" x2="690" y2="120" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<line x1="250" y1="420" x2="250" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="250" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >20</text>
+<line x1="360" y1="420" x2="360" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="360" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >40</text>
+<line x1="470" y1="420" x2="470" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="470" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >60</text>
+<line x1="580" y1="420" x2="580" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="580" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >80</text>
+<line x1="690" y1="420" x2="690" y2="427" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="690" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >100</text>
+<line x1="134" y1="360" x2="140" y2="360" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="365" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >40</text>
+<line x1="134" y1="300" x2="140" y2="300" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="305" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >80</text>
+<line x1="134" y1="240" x2="140" y2="240" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="245" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >120</text>
+<line x1="134" y1="180" x2="140" y2="180" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="185" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >160</text>
+<line x1="134" y1="120" x2="140" y2="120" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="125" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >200</text>
+<polyline points="140,400 195,389 250,372 305,351 360,324 415,293 470,261 525,213 580,165" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="470" y="478" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >temperature (°C)</text>
+<text x="52" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 52 260)">solubility (g per 100 g H₂O)</text>
+</svg>
