@@ -46,6 +46,23 @@
        and an animated thruster flame, prerendered particle sprites, explosions,
        screenshake, hitstop, bold score popups, wave title cards, synth SFX.
 
+  OWNER ENHANCEMENTS (2026-07-04, sim-retuned -- see sim/SI_REPORT.md)
+    A. VERTICAL SHIP MOVEMENT: the ship no longer only slides along the floor;
+       it can rise UP (and drop back down) into the LOWER band of the field
+       (shipBandFrac, default 45%), clamped so it can NEVER reach the top spawn
+       line. Controls: arrows / WASD (up+down added) and 2D touch-drag (the old
+       horizontal drag now tracks both axes). "Especially fun for multiplayer."
+       Reduced-motion + old-iPad 60fps preserved (movement is pure integration,
+       no extra allocation per frame).
+    B. ARMORED / MULTI-HIT CAPSULES: some capsules take 2-3 hits. Each
+       non-killing hit shows a NEUTRAL geometric crack (steel-grey, NOT the
+       category color -> the color reveal still fires ONLY on the destroying hit
+       or under the scanner, so reading stays honest and no category can be told
+       apart early). The reveal-on-destruction TARGETS are the tougher ones
+       (higher armor chance, can reach hp 3); a fraction of ordinary decoy
+       word-blocks are armored too (lower chance, capped at hp 2) for variety.
+       Rates sim-tuned so the wave-of-death band stays ~6-8, not tedious.
+
   HOW THE HOST PASSES A CHAPTER-CAPPED POOL  (drop-in with the existing games)
     The host calls, exactly like cgOpenGamePicker_ in _align/core/Index.core.html
     calls mod.open(pool, {...}) for SpeedSwipe/Sniper/Sequence:
@@ -378,6 +395,293 @@
     return { r: 200, g: 200, b: 200 };
   }
 
+  // AVATAR_SHARED_v1
+  // ============================================================================
+  //  avatarForLevel(ctx, x, y, size, level, color)  ·  SHARED · byte-identical
+  //  across all 6 game shells. Author once here; paste verbatim into each game's
+  //  module scope (between the clamp/toRGB helpers and the Game constructor).
+  //
+  //  Draws the player craft at a visual TIER derived from `level` (1..20, clamp).
+  //  Canonical orientation: NOSE points +x (to the RIGHT), centered at (x,y).
+  //  `size` = hull half-length in px (base ~16-22). `color` = the player's hue
+  //  (any "#rrggbb" or "rgb(...)"); different players pass different colors, the
+  //  SHAPE/DETAIL scales with level so a L2 and a L18 craft never look alike.
+  //
+  //  HALAL: pure geometry (wedges, rings, diamonds, an 8-point star) - no
+  //  creatures/faces. ASCII-safe. Reduced-motion: caller passes reduced=true (or
+  //  we auto-detect) to freeze trails/pulses/orbits to static positions.
+  //
+  //  Design: council-guided (Gemini heavy + DeepSeek audit), see
+  //  AVATAR_PROGRESSION.md. Key rule from the audit: LEVEL reads via topological
+  //  complexity (extra vertices, split wings, pods, halo), NOT raw size; and at
+  //  high tiers COLOR migrates from hull-fill to emissive accents so per-player
+  //  color stays distinct from level detail.
+  // ============================================================================
+  function avatarForLevel(ctx, x, y, size, level, color, reduced) {
+    // -- normalize inputs -------------------------------------------------------
+    var L = level | 0; if (L < 1) L = 1; if (L > 20) L = 20;
+    var band = Math.ceil(L / 4);            // 1..5
+    var sub = ((L - 1) % 4);                // 0..3 progress within band
+    var S = (size > 0 ? size : 16);
+    if (reduced == null) {
+      try { reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+      catch (e) { reduced = false; }
+    }
+    // parse color -> {r,g,b}
+    var col = (function (c) {
+      c = String(c == null ? '' : c).trim();
+      var m = c.match(/^#?([0-9a-f]{6})$/i);
+      if (m) { var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+      m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+      if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+      return { r: 108, g: 92, b: 255 };     // indigo default
+    })(color);
+    var clampAV = function (v, a, b) { return v < a ? a : (v > b ? b : v); };
+    var lig = function (c, k) {            // lighten toward white by k (0..1)
+      return { r: clampAV(Math.round(c.r + (255 - c.r) * k), 0, 255),
+               g: clampAV(Math.round(c.g + (255 - c.g) * k), 0, 255),
+               b: clampAV(Math.round(c.b + (255 - c.b) * k), 0, 255) };
+    };
+    var drk = function (c, k) {            // darken by factor k (0..1 keeps k of value)
+      return { r: Math.round(c.r * k), g: Math.round(c.g * k), b: Math.round(c.b * k) };
+    };
+    var rgba = function (c, a) { return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')'; };
+    var NEUT = { r: 214, g: 222, b: 240 }; // cool neutral (high-tier hull)
+    var t = (function () { try { return Date.now() / 1000; } catch (e) { return 0; } })();
+    var pulse = reduced ? 1 : (0.85 + 0.15 * Math.sin(t * 3));  // gentle breathing
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // At high bands the hull turns neutral and COLOR becomes emissive accent, so
+    // a red-L18 and blue-L18 stay instantly distinct against the busy geometry.
+    var hull = (band >= 3) ? NEUT : col;
+    var accent = col;                       // canopy / nodes / halo / exhaust glow
+    var emissive = lig(col, band >= 3 ? 0.25 : 0.10);
+
+    // ---- (0) EXHAUST FLAME (all bands; behind hull) ---------------------------
+    (function () {
+      var fl = S * (0.55 + band * 0.06);
+      if (!reduced) fl *= (0.85 + Math.random() * 0.35);
+      var g = ctx.createLinearGradient(-S * 0.95, 0, -S * 0.95 - fl, 0);
+      g.addColorStop(0, rgba(lig(accent, 0.4), 0.9));
+      g.addColorStop(0.5, 'rgba(255,150,90,0.55)');
+      g.addColorStop(1, 'rgba(255,110,120,0)');
+      ctx.fillStyle = g;
+      var hh = S * (0.28 + band * 0.02);
+      ctx.beginPath();
+      ctx.moveTo(-S * 0.9, -hh); ctx.lineTo(-S * 0.9, hh); ctx.lineTo(-S * 0.9 - fl, 0);
+      ctx.closePath(); ctx.fill();
+      // band>=3: twin nozzles get their own small flames
+      if (band >= 3) {
+        var oy = S * 0.42;
+        for (var s = -1; s <= 1; s += 2) {
+          var g2 = ctx.createLinearGradient(-S * 0.7, s * oy, -S * 0.7 - fl * 0.6, s * oy);
+          g2.addColorStop(0, rgba(lig(accent, 0.4), 0.85)); g2.addColorStop(1, 'rgba(255,110,120,0)');
+          ctx.fillStyle = g2;
+          ctx.beginPath();
+          ctx.moveTo(-S * 0.66, s * oy - S * 0.12); ctx.lineTo(-S * 0.66, s * oy + S * 0.12);
+          ctx.lineTo(-S * 0.66 - fl * 0.6, s * oy); ctx.closePath(); ctx.fill();
+        }
+      }
+    })();
+
+    // ---- SIDE PODS (band >= 3): parallel capsules flanking the hull -----------
+    if (band >= 3) {
+      var podR = S * 0.16, podX0 = -S * 0.35, podX1 = S * 0.22, podY = S * (0.5 + (band - 3) * 0.06);
+      ctx.strokeStyle = rgba(drk(hull, 0.7), 1); ctx.lineWidth = 1.2;
+      for (var ps = -1; ps <= 1; ps += 2) {
+        // strut
+        ctx.strokeStyle = rgba(drk(hull, 0.75), 0.9); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-S * 0.1, ps * S * 0.28); ctx.lineTo(-S * 0.1, ps * podY); ctx.stroke();
+        // capsule
+        var pg = ctx.createLinearGradient(0, ps * podY - podR, 0, ps * podY + podR);
+        pg.addColorStop(0, rgba(lig(hull, 0.25), 1)); pg.addColorStop(1, rgba(drk(hull, 0.65), 1));
+        ctx.fillStyle = pg;
+        ctx.beginPath();
+        ctx.arc(podX0, ps * podY, podR, Math.PI * 0.5, Math.PI * 1.5);
+        ctx.lineTo(podX1, ps * podY - podR);
+        ctx.arc(podX1, ps * podY, podR, Math.PI * 1.5, Math.PI * 0.5);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = rgba(NEUT, 0.5); ctx.lineWidth = 1; ctx.stroke();
+        // emissive pod tip = player color
+        ctx.fillStyle = rgba(emissive, 0.95);
+        ctx.beginPath(); ctx.arc(podX1, ps * podY, podR * 0.42, 0, 6.2832); ctx.fill();
+      }
+    }
+
+    // ---- HULL SILHOUETTE (band-dependent vertex set) --------------------------
+    var hg = ctx.createLinearGradient(0, -S, 0, S);
+    hg.addColorStop(0, rgba(lig(hull, 0.35), 1));
+    hg.addColorStop(0.5, rgba(hull, 1));
+    hg.addColorStop(1, rgba(drk(hull, 0.6), 1));
+    ctx.fillStyle = hg;
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.3;
+    if (band >= 5 && !reduced) { ctx.shadowColor = rgba(accent, 0.9); ctx.shadowBlur = 6; }
+
+    var nose = S * (0.95 + sub * 0.03 + (band >= 2 ? 0.12 : 0));   // elongates from band2
+    var wingBack = -S * 0.7;
+    var wingY = S * (0.6 + band * 0.04);
+
+    ctx.beginPath();
+    if (band === 1) {
+      // Initiate: wedge -> chevron (aft notch deepens with sub)
+      var notch = -S * (0.28 + sub * 0.12);
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(wingBack, -wingY);
+      ctx.lineTo(notch, 0);
+      ctx.lineTo(wingBack, wingY);
+    } else if (band === 2) {
+      // Scholar: swept-delta, sharper backswept wingtips
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(-S * 0.15, -wingY);
+      ctx.lineTo(wingBack, -wingY * 0.62);
+      ctx.lineTo(-S * 0.5, 0);
+      ctx.lineTo(wingBack, wingY * 0.62);
+      ctx.lineTo(-S * 0.15, wingY);
+    } else if (band === 3) {
+      // Adept: double-delta with a leading-edge kink (heavier cruiser)
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(S * 0.2, -wingY * 0.55);
+      ctx.lineTo(-S * 0.15, -wingY);
+      ctx.lineTo(wingBack, -wingY * 0.5);
+      ctx.lineTo(-S * 0.55, 0);
+      ctx.lineTo(wingBack, wingY * 0.5);
+      ctx.lineTo(-S * 0.15, wingY);
+      ctx.lineTo(S * 0.2, wingY * 0.55);
+    } else if (band === 4) {
+      // Vanguard: compact forward core (wings drawn separately, disconnected)
+      ctx.moveTo(nose, 0);
+      ctx.lineTo(-S * 0.1, -wingY * 0.5);
+      ctx.lineTo(-S * 0.55, 0);
+      ctx.lineTo(-S * 0.1, wingY * 0.5);
+    } else {
+      // Apex: streamlined spearhead / kite
+      ctx.moveTo(nose * 1.05, 0);
+      ctx.lineTo(-S * 0.05, -wingY * 0.5);
+      ctx.lineTo(-S * 0.6, 0);
+      ctx.lineTo(-S * 0.05, wingY * 0.5);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // ---- BAND 2+: twin aft fins ----------------------------------------------
+    if (band >= 2) {
+      ctx.fillStyle = rgba(drk(hull, 0.55), 0.9);
+      for (var f = -1; f <= 1; f += 2) {
+        ctx.beginPath();
+        ctx.moveTo(-S * 0.35, f * wingY * 0.45);
+        ctx.lineTo(wingBack - S * 0.12, f * wingY * (0.9 + band * 0.05));
+        ctx.lineTo(-S * 0.15, f * wingY * 0.4);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+
+    // ---- BAND 4: disconnected forward-swept wings (negative-space gap) --------
+    if (band === 4) {
+      var wg = ctx.createLinearGradient(0, -wingY, 0, wingY);
+      wg.addColorStop(0, rgba(lig(hull, 0.3), 1)); wg.addColorStop(1, rgba(drk(hull, 0.6), 1));
+      ctx.fillStyle = wg; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
+      for (var w = -1; w <= 1; w += 2) {
+        ctx.beginPath();
+        ctx.moveTo(-S * 0.05, w * (wingY * 0.62));         // inner, gap from hull
+        ctx.lineTo(S * 0.15, w * wingY * 1.05);            // forward-swept tip
+        ctx.lineTo(-S * 0.55, w * wingY * 0.95);
+        ctx.lineTo(-S * 0.35, w * wingY * 0.6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+    }
+
+    // ---- ACCENT STRIPE / PANEL LINES -----------------------------------------
+    if (band >= 1) {
+      ctx.strokeStyle = rgba(lig(accent, band >= 3 ? 0.2 : 0.5), band >= 3 ? 0.9 : 0.7);
+      ctx.lineWidth = band >= 3 ? 1.6 : 1;
+      ctx.beginPath(); ctx.moveTo(nose * 0.85, 0); ctx.lineTo(-S * 0.4, 0); ctx.stroke();
+    }
+    if (band >= 2) {   // angled panel lines mirroring the hull edge
+      ctx.strokeStyle = rgba(drk(hull, 0.4), 0.5); ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(S * 0.1, -S * 0.14); ctx.lineTo(-S * 0.35, -S * 0.14);
+      ctx.moveTo(S * 0.1, S * 0.14); ctx.lineTo(-S * 0.35, S * 0.14);
+      ctx.stroke();
+    }
+
+    // ---- CANOPY (band 1 L4 diamond -> emissive core at high bands) ------------
+    if (band >= 4) {
+      // radial emissive core (white center -> player color)
+      var rg = ctx.createRadialGradient(S * 0.05, 0, 0.5, S * 0.05, 0, S * 0.5);
+      rg.addColorStop(0, 'rgba(255,255,255,0.95)');
+      rg.addColorStop(0.5, rgba(lig(accent, 0.2), 0.95));
+      rg.addColorStop(1, rgba(accent, 0));
+      ctx.fillStyle = rg;
+      if (!reduced) { ctx.globalAlpha = pulse; }
+      ctx.beginPath(); ctx.arc(S * 0.05, 0, S * 0.4, 0, 6.2832); ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (L >= 4) {
+      // geometric canopy diamond (contrasting)
+      ctx.fillStyle = 'rgba(234,240,255,0.9)';
+      var cx = S * 0.12, cr = S * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(cx + cr, 0); ctx.lineTo(cx, -cr * 0.7); ctx.lineTo(cx - cr, 0); ctx.lineTo(cx, cr * 0.7);
+      ctx.closePath(); ctx.fill();
+    } else {
+      // simple cockpit dot
+      ctx.fillStyle = 'rgba(234,240,255,0.85)';
+      ctx.beginPath(); ctx.arc(S * 0.15, 0, S * 0.12, 0, 6.2832); ctx.fill();
+    }
+
+    // ---- BAND 4: orbital nodes (diamonds) ------------------------------------
+    if (band === 4) {
+      var nodes = 1 + sub;                 // 1..4 growing across the band
+      ctx.fillStyle = rgba(emissive, 0.95);
+      for (var i = 0; i < nodes; i++) {
+        var a = (reduced ? (Math.PI / 4) : (t * 1.1)) + (i / nodes) * 6.2832;
+        var ox = Math.cos(a) * S * 0.85, oy = Math.sin(a) * S * 0.85;
+        var nr = S * 0.11;
+        ctx.beginPath();
+        ctx.moveTo(ox + nr, oy); ctx.lineTo(ox, oy - nr); ctx.lineTo(ox - nr, oy); ctx.lineTo(ox, oy + nr);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+
+    // ---- BAND 5: concentric geometric halo (arc / dashed / 8-point star) ------
+    if (band === 5) {
+      var haloR = S * (1.15 + sub * 0.05);
+      ctx.save();
+      if (!reduced) ctx.rotate(t * 0.4);
+      // sub 0: solid ring ; sub>=1: dashed ; sub>=2: + second concentric ring ;
+      // sub 3: + 8-point star overlay (mastery)
+      ctx.strokeStyle = rgba(emissive, 0.9); ctx.lineWidth = 1.6;
+      if (!reduced && sub >= 1) ctx.setLineDash([S * 0.3, S * 0.22]);
+      ctx.beginPath(); ctx.arc(0, 0, haloR, 0, 6.2832); ctx.stroke();
+      ctx.setLineDash([]);
+      if (sub >= 2) {
+        ctx.strokeStyle = rgba(accent, 0.6); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(0, 0, haloR * 0.78, 0, 6.2832); ctx.stroke();
+      }
+      if (sub >= 3) {
+        // 8-point geometric star (two overlaid squares) - halal geometric motif
+        ctx.strokeStyle = rgba(lig(accent, 0.3), 0.8); ctx.lineWidth = 1.1;
+        for (var q = 0; q < 2; q++) {
+          ctx.save(); ctx.rotate(q * Math.PI / 4);
+          ctx.beginPath();
+          for (var v = 0; v < 4; v++) {
+            var pa = (v / 4) * 6.2832;
+            var px = Math.cos(pa) * haloR * 0.62, py = Math.sin(pa) * haloR * 0.62;
+            if (v === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath(); ctx.stroke(); ctx.restore();
+        }
+      }
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+
   // =====================================================================
   //  Chemical-formula subscript rendering  (FIX 2, 2026-07-04)
   //  Source stays ASCII ("H2O"); digits are STYLED as subscripts at render
@@ -546,6 +850,8 @@
   Sfx.prototype.powerup = function () { var s = this; [0, 60, 120].forEach(function (d, i) { setTimeout(function () { s._blip('sine', 700 + i * 260, 700 + i * 260, 0.10, 0.07); }, d); }); };
   // rising "scanner active" beep loop tick
   Sfx.prototype.scan    = function (k) { this._blip('sine', 900 + k * 40, 1100 + k * 40, 0.05, 0.04); };
+  // metallic "clink" for a non-killing hit on an armored capsule (short, bright)
+  Sfx.prototype.armor   = function () { this._blip('square', 820, 520, 0.06, 0.05); };
   Sfx.prototype.boss    = function () { this._blip('sawtooth', 90, 60, 0.5, 0.12); };
 
   // =====================================================================
@@ -642,7 +948,41 @@
     nearMissWindow: 6,      // rolling window of recent scored shots for accuracy
     hitstopMs: 80,          // freeze on a destruction
     shakePx: 3,             // screenshake magnitude (spec: 3px)
-    shakeMs: 60
+    shakeMs: 60,
+
+    // ---- vertical ship movement (2026-07-04 owner request) --------------
+    // The ship may rise off the floor into the LOWER band of the field so a
+    // player can meet capsules early (great for multiplayer spacing). It is
+    // clamped so it can NEVER reach the top spawn line -- the reachable band
+    // is the lower shipBandFrac of the play area, measured up from the floor.
+    shipBandFrac: 0.45,     // ship may occupy the lowest 45% of the field
+    shipMoveX: 0.95,        // horizontal move speed (frac of width / sec)
+    shipMoveY: 0.90,        // vertical move speed (frac of band / sec)
+
+    // ---- armored / multi-hit capsules (2026-07-04 owner request) --------
+    // Some capsules take MORE than one hit. Each non-killing hit shows a
+    // NEUTRAL geometric crack (never the category color -- that reveal still
+    // only happens on the destroying hit / under the scanner, keeping reading
+    // honest). Two independent armor rolls per capsule:
+    //   * TARGET capsules (the ones that pay a color reveal on destruction)
+    //     are the tougher ones per the owner: higher armor chance + can reach
+    //     the max HP tier.
+    //   * a fraction of ordinary DECOY word-blocks are armored too, for
+    //     variety, but at a lower rate and capped at hp 2.
+    // Rates are sim-tuned (sim/SI_REPORT.md) to add interest without making
+    // the game tedious or unloseable.
+    armorTargetChance: 0.18, // P(a target is armored) -- sim-tuned: at 0.34 the
+                             //   extra re-fire time + on-screen lingering pulled
+                             //   the competent wave-of-death down to ~6 (mean 5.7)
+                             //   and made phone a wall at wave 5. 0.18 holds the
+                             //   iPad death band at p50=7 (mean 6.7), phone p50=5,
+                             //   spray still crushed (ratio 0.04). See SI_REPORT.md.
+    armorDecoyChance: 0.12,  // P(a decoy is armored) -- decoys are spared by
+                             //   readers so this barely moves difficulty; kept
+                             //   for visual variety across the field.
+    armorTargetHpMax: 3,     // targets can reach hp 3 (2 or 3)
+    armorDecoyHpMax: 2,      // decoys cap at hp 2
+    scannerArmored: false    // scanner powerup is always a single, easy hit
   };
 
   // =====================================================================
@@ -653,6 +993,7 @@
     this.idx = idx;
     this.opts = opts;
     this.rtl = !!opts.rtl;
+    this.level = clamp((opts.level != null ? opts.level : 1) | 0, 1, 20) || 1;   // player level -> avatar tier (avatarForLevel)
     this.reduced = false;
     try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
@@ -726,9 +1067,11 @@
     this.boss = false;
     this.bossTimer = 0;
 
-    // shooter
-    this.shooter = { x: 0.5, w: 54, h: 18, cooldown: 0 };  // x is 0..1 fraction
-    this.moveDir = 0;
+    // shooter. x is a 0..1 fraction of width; y is a 0..1 fraction of the
+    // reachable vertical band (0 = resting on the floor, 1 = top of the band).
+    this.shooter = { x: 0.5, y: 0, w: 54, h: 18, cooldown: 0 };
+    this.moveDir = 0;       // horizontal input (-1/0/1)
+    this.moveDirY = 0;      // vertical input (-1 down / 0 / +1 up)
     this.thrust = 0;        // animated thruster phase
 
     this.W = 0; this.H = 0; this.dpr = 1; this.t = 0;
@@ -769,33 +1112,46 @@
       }
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { self.moveDir = self.rtl ? 1 : -1; e.preventDefault(); }
       else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { self.moveDir = self.rtl ? -1 : 1; e.preventDefault(); }
+      else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { self.moveDirY = 1; e.preventDefault(); }
+      else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { self.moveDirY = -1; e.preventDefault(); }
       else if (e.key === ' ' || e.key === 'Spacebar') { self._fire(); e.preventDefault(); }
       else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { self._togglePause(); }
       else if (e.key === 'm' || e.key === 'M') { self._toggleMute(); }
     };
     this._onKeyUp = function (e) {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') self.moveDir = 0;
+      else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') self.moveDirY = 0;
     };
     on(document, 'keydown', this._onKey);
     on(document, 'keyup', this._onKeyUp);
 
-    // pointer: drag to move shooter, tap to fire
-    this._ptr = { down: false, moved: false, id: null, startX: 0, startT: 0 };
+    // pointer: drag to move shooter in 2D (x and y), tap to fire
+    this._ptr = { down: false, moved: false, id: null, startX: 0, startY: 0, startT: 0 };
+    // Map a client point to the ship's x-fraction (0..1) and y-band-fraction
+    // (0 = floor, 1 = top of the reachable band). The finger tracks the ship
+    // directly on both axes, matching the old horizontal drag feel.
+    this._ptrToShip = function (clientX, clientY, r) {
+      self.shooter.x = clamp((clientX - r.left) / r.width, 0.04, 0.96);
+      var floor = self._shooterFloorY();
+      var band = self.H * TUNE.shipBandFrac;
+      var py = (clientY - r.top) * (self.H / Math.max(1, r.height));  // css->play px
+      self.shooter.y = clamp((floor - py) / Math.max(1, band), 0, 1);
+    };
     this._onDown = function (e) {
       if (self.state !== 'playing') return;
       self.sfx.resume();
       var r = self.canvas.getBoundingClientRect();
       self._ptr.down = true; self._ptr.moved = false; self._ptr.id = e.pointerId;
-      self._ptr.startX = e.clientX; self._ptr.startT = performance.now();
-      self.shooter.x = clamp((e.clientX - r.left) / r.width, 0.04, 0.96);
+      self._ptr.startX = e.clientX; self._ptr.startY = e.clientY; self._ptr.startT = performance.now();
+      self._ptrToShip(e.clientX, e.clientY, r);
       try { self.canvas.setPointerCapture(e.pointerId); } catch (er) {}
       e.preventDefault();
     };
     this._onMove = function (e) {
       if (!self._ptr.down || e.pointerId !== self._ptr.id) return;
       var r = self.canvas.getBoundingClientRect();
-      if (Math.abs(e.clientX - self._ptr.startX) > 6) self._ptr.moved = true;
-      self.shooter.x = clamp((e.clientX - r.left) / r.width, 0.04, 0.96);
+      if (Math.abs(e.clientX - self._ptr.startX) > 6 || Math.abs(e.clientY - self._ptr.startY) > 6) self._ptr.moved = true;
+      self._ptrToShip(e.clientX, e.clientY, r);
       e.preventDefault();
     };
     this._onUp = function (e) {
@@ -865,7 +1221,8 @@
     this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
     this.streak = 0; this.combo = 1; this.shotLog = []; this.reveal = 0; this.boss = false; this.bossTimer = 0;
     this.entities.length = 0; this.bullets.length = 0; this.particles.length = 0; this.popups.length = 0;
-    this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0; this.shooter.x = 0.5;
+    this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0;
+    this.shooter.x = 0.5; this.shooter.y = 0; this.moveDir = 0; this.moveDirY = 0;
   };
 
   Game.prototype._begin = function () {
@@ -987,12 +1344,22 @@
   };
 
   // ---- firing ----------------------------------------------------------
+  // Reachable vertical band. Ship y-fraction 0 rests on the floor (H-34);
+  // fraction 1 is the top of the reachable band (lowest shipBandFrac of the
+  // field). Clamped so the ship can NEVER reach the top spawn line.
+  Game.prototype._shooterFloorY = function () { return this.H - 34; };
+  Game.prototype._shooterY = function () {
+    var floor = this._shooterFloorY();
+    var band = this.H * TUNE.shipBandFrac;   // how far up the ship may rise
+    return floor - this.shooter.y * band;
+  };
+
   Game.prototype._fire = function () {
     if (this.state !== 'playing') return;
     if (this.shooter.cooldown > 0) return;
     this.shooter.cooldown = 0.17;
     var sx = this.shooter.x * this.W;
-    var sy = this.H - 46;
+    var sy = this._shooterY() - 12;   // muzzle just above the ship nose
     this.bullets.push({ x: sx, y: sy, vy: -600, r: 3.5, nearFlag: {} });
     this.sfx.shoot();
   };
@@ -1028,8 +1395,9 @@
 
     this.thrust += dt * 12;
 
-    // shooter movement (keyboard)
-    if (this.moveDir) this.shooter.x = clamp(this.shooter.x + this.moveDir * 0.95 * dt, 0.04, 0.96);
+    // shooter movement (keyboard) -- horizontal AND vertical
+    if (this.moveDir) this.shooter.x = clamp(this.shooter.x + this.moveDir * TUNE.shipMoveX * dt, 0.04, 0.96);
+    if (this.moveDirY) this.shooter.y = clamp(this.shooter.y + this.moveDirY * TUNE.shipMoveY * dt, 0, 1);
     if (this.shooter.cooldown > 0) this.shooter.cooldown -= dt;
 
     // parallax stars fall
@@ -1067,6 +1435,7 @@
       e = this.entities[i];
       e.y += e.vy * dt;
       e.wob += dt;
+      if (e.dmgFlash > 0) e.dmgFlash = Math.max(0, e.dmgFlash - dt * 4);   // armor-hit white pulse
       if (e.aura) e.aura += dt;   // scanner powerup rotating aura
       // reached bottom?
       if (e.y > this.H - 34) {
@@ -1082,6 +1451,19 @@
         if (!e.isTarget && !e.scanner && dx < TUNE.nearMissPx && dy < e.h) bl.nearFlag[i] = true;
         if (dx < e.w * 0.5 + 6 && dy < e.h * 0.5 + 6) {
           this.bullets.splice(j, 1);
+          if (e.hp > 1) {
+            // ARMORED: a non-killing hit. Crack it (neutral steel debris, NO
+            // category color -> no reveal), pulse, chip a bit of shake/sfx,
+            // and leave the capsule falling with one less HP. The capsule is
+            // NOT removed and _resolveHit is NOT called until the final hit.
+            e.hp--;
+            e.dmgFlash = 0.18;
+            this._logShot(1);         // a hit that lands on armor still counts as an on-target shot
+            this._burst(e.x, e.y, this.rgb.steel, this.reduced ? 4 : 8, 'steel');
+            this._addShake();
+            this.sfx.armor();
+            break;                    // this bullet is spent; entity survives
+          }
           this.entities.splice(i, 1);
           this._resolveHit(e);
           break;
@@ -1142,10 +1524,25 @@
     var fit = this._fitLabel(item.label);
     var w = fit.w, h = 40;   // ~40px tall uniform capsule (spec); width fits label
     var x = rand(w * 0.6, this.W - w * 0.6);
+    // ARMOR: roll multi-hit HP. The reveal-on-destruction TARGETS are the
+    // tougher ones (higher chance, can reach hp 3); a fraction of ordinary
+    // decoys are armored too (lower chance, capped at hp 2). Scanner is always
+    // a single hit. Armor is a NEUTRAL mechanic -- see _drawEntity: the crack
+    // overlay is steel-grey, never the category color (that reveal still only
+    // fires on the destroying hit / scanner, so reading stays honest).
+    var hp = 1;
+    if (!q.scanner) {
+      if (isTarget) {
+        if (Math.random() < TUNE.armorTargetChance) hp = (Math.random() < 0.5) ? 2 : TUNE.armorTargetHpMax;
+      } else {
+        if (Math.random() < TUNE.armorDecoyChance) hp = TUNE.armorDecoyHpMax;
+      }
+    }
     var ent = {
       label: item.label, category: item.category, rowId: item.rowId, lo: item.lo,
       isTarget: isTarget, scanner: !!q.scanner,
       x: x, y: -h, w: w, h: h, fontPx: fit.fontPx,
+      hp: hp, hp0: hp, dmgFlash: 0,   // dmgFlash: brief white pulse on a non-killing hit
       vy: this.waveSpeed * rand(0.92, 1.12), wob: rand(0, 6.28),
       aura: q.scanner ? 0 : 0
     };
@@ -1442,6 +1839,22 @@
     ctx.lineWidth = revealed ? 2.4 : 1.4; ctx.strokeStyle = edge; ctx.stroke();
     ctx.shadowBlur = 0;
 
+    // ARMOR damage: neutral geometric cracks scaling with hits taken. These are
+    // steel-grey ONLY (never the category color) -> an armored capsule cannot be
+    // told apart by category before its destroying-hit reveal. Drawn clipped to
+    // the hull so they read as fractures across the metal, plus a brief white
+    // pulse on the hit itself. Skipped entirely when hp0 <= 1 (normal capsule).
+    if (e.hp0 > 1 && e.hp < e.hp0) {
+      this._drawCracks(e, x, y, w, h);
+    }
+    if (e.dmgFlash > 0) {
+      ctx.save();
+      this._roundRect(x - w / 2, y - h / 2, w, h, 12); ctx.clip();
+      ctx.fillStyle = 'rgba(255,255,255,' + (e.dmgFlash * 0.9).toFixed(3) + ')';
+      ctx.fillRect(x - w / 2, y - h / 2, w, h);
+      ctx.restore();
+    }
+
     // ASCII label -- font size + width were chosen at spawn to fit exactly
     // (FIX 1), and chem formulas render with true subscripts (FIX 2).
     ctx.fillStyle = '#0c1020';
@@ -1452,44 +1865,63 @@
     ctx.textBaseline = 'alphabetic';
   };
 
+  // Neutral geometric cracks for an armored capsule. `damage` = hits taken so
+  // far (1 or 2). Cracks are steel-grey jagged polylines from random edge
+  // anchors toward the middle, seeded stably per-entity so they don't jitter
+  // frame to frame. NEVER category-colored -> preserves the no-color-tell rule.
+  Game.prototype._drawCracks = function (e, x, y, w, h) {
+    var ctx = this.ctx;
+    var damage = e.hp0 - e.hp;               // 1 or 2
+    var cracks = damage + 1;                 // 2 cracks after 1 hit, 3 after 2
+    var segs = 3;
+    // stable per-entity PRNG so the fracture pattern is fixed once the capsule
+    // is cracked (no per-frame jitter). Seeded from spawn x + label length.
+    var seed = ((Math.round(e.x * 7.31) ^ (e.label.length * 2654435761)) >>> 0) || 1;
+    function nx() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    // precompute each crack's polyline points once, then stroke twice (a dark
+    // chisel + a bright metal highlight) for a geometric fracture look.
+    var lines = [];
+    for (var c = 0; c < cracks; c++) {
+      var pts = [];
+      var px = x - w / 2 + nx() * w;
+      var py = (nx() < 0.5) ? (y - h / 2) : (y + h / 2);
+      pts.push([px, py]);
+      for (var g = 0; g < segs; g++) {
+        px += (x - px) * (0.35 + nx() * 0.3) + (nx() - 0.5) * w * 0.28;
+        py += (y - py) * (0.35 + nx() * 0.3) + (nx() - 0.5) * h * 0.28;
+        pts.push([px, py]);
+      }
+      lines.push(pts);
+    }
+    ctx.save();
+    this._roundRect(x - w / 2, y - h / 2, w, h, 12); ctx.clip();
+    ctx.lineCap = 'round';
+    for (var pass = 0; pass < 2; pass++) {
+      if (pass === 0) { ctx.strokeStyle = 'rgba(40,48,66,0.55)'; ctx.lineWidth = 2.2; }
+      else { ctx.strokeStyle = 'rgba(214,222,240,0.85)'; ctx.lineWidth = 1.0; }
+      for (var li = 0; li < lines.length; li++) {
+        var p = lines[li];
+        ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+        for (var k = 1; k < p.length; k++) ctx.lineTo(p[k][0], p[k][1]);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  };
+
   Game.prototype._drawShooter = function () {
     var ctx = this.ctx;
     var x = this.shooter.x * this.W;
-    var y = this.H - 34;
+    var y = this._shooterY();
 
-    // animated thruster flame first (behind hull)
-    if (!this.reduced) {
-      var fl = 10 + Math.sin(this.thrust) * 5 + Math.random() * 4;
-      var fg = ctx.createLinearGradient(0, y + 10, 0, y + 10 + fl);
-      fg.addColorStop(0, 'rgba(255,176,32,0.95)');
-      fg.addColorStop(0.5, 'rgba(255,84,112,0.75)');
-      fg.addColorStop(1, 'rgba(255,84,112,0)');
-      ctx.fillStyle = fg;
-      ctx.beginPath();
-      ctx.moveTo(x - 6, y + 10); ctx.lineTo(x + 6, y + 10); ctx.lineTo(x, y + 10 + fl);
-      ctx.closePath(); ctx.fill();
-    }
-
-    // gradient hull ship (rounded arrowhead, abstract craft; no weapon/violence imagery)
-    var hg = ctx.createLinearGradient(0, y - 18, 0, y + 12);
-    hg.addColorStop(0, '#9d92ff');
-    hg.addColorStop(0.5, this.col.indigo);
-    hg.addColorStop(1, '#4b3fd6');
-    ctx.fillStyle = hg;
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.4;
-    if (!this.reduced) { ctx.shadowColor = this.col.indigo; ctx.shadowBlur = 4; }
+    // player craft: clean geometric arrow, nose points UP (drawn nose-+x then rotated -90 deg)
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = this.col.indigo;
     ctx.beginPath();
-    ctx.moveTo(x, y - 20);
-    ctx.lineTo(x - 16, y + 6);
-    ctx.lineTo(x - 8, y + 10);
-    ctx.lineTo(x + 8, y + 10);
-    ctx.lineTo(x + 16, y + 6);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.shadowBlur = 0;
-    // cockpit dot
-    ctx.fillStyle = 'rgba(234,240,255,0.9)';
-    ctx.beginPath(); ctx.arc(x, y - 6, 3, 0, 6.2832); ctx.fill();
+    ctx.moveTo(16, 0); ctx.lineTo(-10, -11); ctx.lineTo(-5, 0); ctx.lineTo(-10, 11); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
 
     // faint aim line
     ctx.strokeStyle = 'rgba(108,92,255,0.22)';
