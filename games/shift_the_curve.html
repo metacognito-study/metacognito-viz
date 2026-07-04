@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Shift the Curve</title>
+<!--
+============================================================================
+  SHIFT THE CURVE  -  P1 solo review build  (2026-07-04, S&D shift trainer)
+============================================================================
+  REVIEW NOTE
+  -----------
+  ENGINE / LICENSE
+    Hand-rolled vanilla Canvas2D game loop, ZERO external dependencies. No CDN,
+    no engine, no network at all -> it runs fully OFFLINE the first time the
+    file is opened (nothing to cache; there is nothing external to fetch). All
+    sound is synthesised at runtime with the WebAudio API -> no audio assets.
+
+    Same house engine as salt_invaders.html, gate_flyer.html and
+    concept_asteroids.html: the pool/opts contract, the DEMO_POOL shape, the
+    arcade kit (parallax starfield, prerendered particles, screenshake, hitstop,
+    synth SFX, combo, boss cadence) and the teaching toast are the SAME patterns,
+    ported to a NEW mechanic. Everything here is original code, so no third-party
+    license attaches to this file.
+
+  THE MECHANIC  (why "shift" and not "invaders" / "flyer")
+    A blank supply-and-demand diagram sits on the board: two axes (P up, Q right),
+    a downward-sloping DEMAND line, an upward-sloping SUPPLY line, and the
+    equilibrium point where they cross. This is the SAME S&D underlay aesthetic
+    the app already uses.
+
+    An EVENT / SHOCK card flies in from the top (e.g. "Oil price spikes",
+    "Consumer confidence falls", "New tech lowers production cost", "Income rises
+    (normal good)"). The player must answer with the CORRECT one-curve shift
+    before the card's fuse burns out:
+        {  Demand -> right  |  Demand -> left  |  Supply -> right  |  Supply -> left  }
+    Four fixed answer PADS sit at the corners; tap / swipe / arrow-key one.
+
+    CORRECT: the named curve animates the right way, the equilibrium DOT slides
+    to the new crossing, a small P/Q delta annotation appears (Pup Qup etc.),
+    combo ticks, sparkle burst. WRONG: the WRONG shift is shown BRIEFLY (the
+    curve nudges the wrong way and springs back) with a subscripted teaching
+    toast ("Input cost UP shifts SUPPLY LEFT, not demand"), then the CORRECT
+    shift plays so the player still sees the right answer. This is the econ
+    analogue of the classification games but VISUAL + DIRECTIONAL.
+
+    NO COLOR-TELL: the four answer pads are the SAME metallic capsule with an
+    ASCII label; none is pre-tinted toward "correct". The green (right) / rose
+    (wrong) reveal happens ONLY at the instant the player commits an answer --
+    never on the pads while the card is in the air. The curves themselves keep
+    their fixed hues (demand + supply are always distinct lines, as on a real
+    diagram) but WHICH pad is right is never colour-leaked.
+
+    ESCALATION: card fuses shorten +7%/wave (cap 200% faster), and from the boss
+    waves onward "which is CERTAIN?" TWO-SHIFT items appear -- a shock that moves
+    BOTH curves (e.g. "input cost up AND incomes up") where only ONE of P or Q
+    changes for certain; the player still answers with the single most-certain
+    curve move. Bosses hit at waves 5, 10, 15 with a countdown clock.
+
+  HOW THE HOST PASSES A CHAPTER-CAPPED POOL  (drop-in with the existing games)
+    Identical to SpeedSwipe / Salt Invaders / Gate Flyer:
+
+        window.SHIFT_THE_CURVE.open(pool, {
+          enabled: true,                 // REQUIRED flag gate; open() no-ops otherwise
+          subject: 'Economics',          // cosmetic
+          chapterLabel: 'Up to chapter 9',
+          rtl: false,                    // mirrors HUD/layout for Arabic
+          onEmit:  cgEmitMicrotaskSignal_,   // onEmit(rowId, lo, 'shiftcurve', 0|1, 1)
+          onClose: function (summary) { ... } // summary = {subject,chapterLabel,seen,
+                                              //   correct,score,wave,tool:'shiftcurve'}
+        });
+
+    pool is an array of { label, category, rowId?, lo? } items ALREADY capped to
+    the student's furthest chapter by the host's furthestChapter() filter, where
+    category is the CORRECT shift answer, one of:
+        'D_right' | 'D_left' | 'S_right' | 'S_left'
+    label is the shock text. This module never reads a global bank and never
+    filters by chapter itself -- it trusts the pool it is given, staying decoupled
+    exactly like the siblings. window.SHIFT_THE_CURVE.start is an alias for .open
+    per the P1 brief.
+
+  DEMO POOL
+    A built-in ~24-item DEMO_POOL of AP-Econ shocks spread across the 4 shift
+    answers, first-encounter-correct AP micro demand/supply determinants. Used
+    ONLY when the host passes no pool. Halal + imaginary: goods are generic ("a
+    normal good", "a country's oil"), no real institutions. Every classification
+    is flagged for Elena's econ review in sim/STC_ECON_REVIEW.md before ship.
+
+  DIFFICULTY  (calibrated per sim/STC_REPORT.md; pattern from sim/SI_REPORT.md)
+    A headless Monte-Carlo (sim/stc_*) models a human reading the shock
+    (~250 ms/word) then deciding the 4-way shift (~350 ms, Hick-Hyman 4-way),
+    then a ~250 ms tap. Card fuse time is sized so a competent AP-econ reader
+    reaches wave ~6-8 before loss while a pure guesser (4 pads = 25%) fails fast.
+    5 hearts, comboStart 3, first-of-wave grace (TEACH not heart), startInvuln so
+    the first card is readable. See sim/STC_REPORT.md for the numbers.
+
+  WHAT REMAINS FOR MULTIPLAYER  (NOT in this P1 file, per PRD)
+    PRD_ARCADE_GAMES.md P2 co-op (RTDB /gameRooms/<id> + 5-digit codes, an
+    authoritative host, clients render never derive). None of that networking is
+    present here -- this is the solo P1 shell only.
+
+  ASCII-only visible text. No em-dashes / underscores in labels. Halal-safe:
+  cards shatter into geometric particles, abstract curves, no violence/gore.
+============================================================================
+-->
+<style>
+  :root {
+    /* Host page injects these vars; standalone review falls back to the hex. */
+    --sc-bg1: var(--surface-2, #0d1220);
+    --sc-bg2: var(--surface, #131a2c);
+    --sc-ink: var(--ink, #eaf0ff);
+    --sc-muted: var(--muted, #9aa7c7);
+    --sc-indigo: var(--indigo, #6c5cff);
+    --sc-green: var(--green, #22c58b);
+    --sc-rose: var(--rose, #ff5470);
+    --sc-amber: var(--amber, #ffb020);
+    --sc-line: var(--line, #2a3355);
+    --sc-demand: var(--cyan, #38bdf8);   /* demand curve hue (fixed, not a tell) */
+    --sc-supply: var(--amber, #ffb020);  /* supply curve hue (fixed, not a tell) */
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #06070d; color: var(--sc-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #sc-root { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #sc-wrap {
+    position: relative; width: 100%; height: 100%; max-width: 900px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #sc-canvas {
+    display: block; width: 100%; height: 100%;
+    touch-action: none; background: radial-gradient(120% 90% at 50% 0%, var(--sc-bg2), var(--sc-bg1) 70%, #06070d);
+    image-rendering: optimizeSpeed;
+  }
+  /* Top HUD + rule banner + buttons are DOM (crisp text, easy a11y), overlaid on canvas */
+  #sc-hud {
+    position: absolute; top: 0; left: 0; right: 0; padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; pointer-events: none;
+    font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  }
+  #sc-hud .sc-pill {
+    background: rgba(10,14,26,.55); border: 1px solid var(--sc-line); border-radius: 999px;
+    padding: 5px 11px; display: inline-flex; gap: 6px; align-items: center; backdrop-filter: blur(3px);
+    transition: transform .12s ease;
+  }
+  #sc-hud .sc-lives { color: var(--sc-rose); }
+  #sc-hud .sc-score { color: var(--sc-amber); }
+  #sc-hud .sc-wave { color: var(--sc-indigo); }
+  #sc-hud .sc-combo {
+    color: var(--sc-green); opacity: 0; transform: scale(.85);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  #sc-hud .sc-combo.sc-on { opacity: 1; transform: scale(1); }
+  .sc-lives.sc-pulse { animation: sc-heartpulse .32s ease; }
+  @keyframes sc-heartpulse { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+  #sc-hud .sc-timer { color: var(--sc-rose); display: none; }
+  #sc-hud .sc-timer.sc-on { display: inline-flex; }
+  #sc-hud .sc-timer.sc-low { animation: sc-timerblink .6s steps(1) infinite; }
+  @keyframes sc-timerblink { 50% { opacity: .35; } }
+  #sc-spacer { flex: 1 1 auto; }
+  .sc-iconbtn {
+    pointer-events: auto; width: 40px; height: 40px; min-width: 40px; border-radius: 12px;
+    border: 1px solid var(--sc-line); background: rgba(10,14,26,.6); color: var(--sc-ink);
+    font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .sc-iconbtn:active { transform: scale(.94); }
+  #sc-banner {
+    position: absolute; left: 50%; top: 58px; transform: translateX(-50%);
+    max-width: 92%; text-align: center; pointer-events: none;
+    background: rgba(12,16,30,.72); border: 1.5px solid var(--sc-indigo); border-radius: 14px;
+    padding: 9px 16px; backdrop-filter: blur(4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  #sc-banner .sc-banner-rule { font-size: 15px; font-weight: 850; letter-spacing: -.01em; }
+  #sc-banner .sc-banner-sub { font-size: 11.5px; color: var(--sc-muted); margin-top: 2px; font-weight: 600; }
+  #sc-banner .sc-banner-target { color: var(--sc-green); }
+  #sc-banner.sc-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+
+  /* teaching toast: the "why was that wrong" line, appears bottom-center briefly */
+  #sc-teach {
+    position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%) translateY(6px);
+    max-width: 90%; text-align: center; pointer-events: none; opacity: 0;
+    background: rgba(20,10,16,.86); border: 1.5px solid var(--sc-rose); border-radius: 12px;
+    color: var(--sc-ink); font-size: 13px; font-weight: 750; padding: 8px 14px;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6); box-shadow: 0 10px 26px rgba(0,0,0,.45);
+    transition: opacity .22s ease, transform .22s ease; z-index: 5;
+  }
+  #sc-teach.sc-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #sc-teach b { color: var(--sc-amber); }
+
+  /* Overlays: start / pause / gameover / error, all centered cards */
+  .sc-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(6,8,14,.7); backdrop-filter: blur(3px); text-align: center;
+  }
+  .sc-overlay[hidden] { display: none; }
+  .sc-card {
+    background: var(--sc-bg2); border: 1.5px solid var(--sc-line); border-radius: 20px;
+    padding: 22px 20px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 12px; align-items: center;
+  }
+  .sc-card h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+  .sc-card h1 .sc-accent { color: var(--sc-indigo); }
+  .sc-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--sc-muted); }
+  .sc-card .sc-big { font-size: 46px; font-weight: 900; color: var(--sc-amber); line-height: 1; }
+  .sc-card ul { margin: 4px 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--sc-muted); line-height: 1.6; text-align: left; }
+  .sc-card ul b { color: var(--sc-ink); }
+  .sc-primary {
+    min-height: 50px; padding: 0 26px; border-radius: 14px; border: 0; cursor: pointer;
+    background: var(--sc-indigo); color: #fff; font-size: 15px; font-weight: 850; width: 100%;
+  }
+  .sc-primary:active { transform: scale(.98); }
+  .sc-ghost {
+    min-height: 44px; padding: 0 20px; border-radius: 12px; cursor: pointer;
+    background: transparent; color: var(--sc-muted); border: 1px solid var(--sc-line);
+    font-size: 13px; font-weight: 700; width: 100%;
+  }
+  .sc-row { display: flex; gap: 10px; width: 100%; }
+  .sc-row > * { flex: 1 1 0; }
+  [dir="rtl"] #sc-hud { flex-direction: row-reverse; }
+</style>
+</head>
+<body>
+<div id="sc-root">
+  <div id="sc-wrap">
+    <canvas id="sc-canvas"></canvas>
+
+    <div id="sc-hud">
+      <span class="sc-pill sc-wave">Wave <span id="sc-wave-n">1</span></span>
+      <span class="sc-pill sc-score">Score <span id="sc-score-n">0</span></span>
+      <span class="sc-pill sc-lives" id="sc-lives-pill">&#9829; <span id="sc-lives-n">5</span></span>
+      <span class="sc-pill sc-combo" id="sc-combo-pill">x<span id="sc-combo-n">1</span></span>
+      <span class="sc-pill sc-timer" id="sc-timer-pill">&#9200; <span id="sc-timer-n">30</span></span>
+      <span id="sc-spacer"></span>
+      <button type="button" class="sc-iconbtn" id="sc-mute-btn" aria-label="Mute">&#128266;</button>
+      <button type="button" class="sc-iconbtn" id="sc-pause-btn" aria-label="Pause">&#10073;&#10073;</button>
+      <button type="button" class="sc-iconbtn" id="sc-fs-btn" aria-label="Fullscreen">&#9974;</button>
+      <button type="button" class="sc-iconbtn" id="sc-close-btn" aria-label="Close">&#10005;</button>
+    </div>
+
+    <div id="sc-banner" class="sc-hide" aria-live="polite">
+      <div class="sc-banner-rule" id="sc-banner-rule"></div>
+      <div class="sc-banner-sub" id="sc-banner-sub"></div>
+    </div>
+
+    <div id="sc-teach" aria-live="polite"></div>
+
+    <!-- START -->
+    <div class="sc-overlay" id="sc-start">
+      <div class="sc-card">
+        <h1>Shift the <span class="sc-accent">Curve</span></h1>
+        <p>A supply-and-demand diagram is on the board. A shock card flies in --
+           an event in the market. Before its fuse burns out, answer with the ONE
+           correct curve move. The named curve shifts and the equilibrium point
+           slides. Right answers combo up; wrong ones show the miss, teach it,
+           then play the correct shift. Cards speed up each wave. Bosses at 5, 10,
+           15 bring two-curve "which is certain?" shocks.</p>
+        <ul>
+          <li><b>Answer:</b> tap a pad, swipe toward it, or arrow keys</li>
+          <li><b>Pads:</b> Demand left/right, Supply left/right</li>
+          <li><b>Goal:</b> shift the RIGHT curve the RIGHT way</li>
+          <li><b>Watch:</b> input costs, income, tastes, tech, substitutes</li>
+        </ul>
+        <button type="button" class="sc-primary" id="sc-start-btn">Start</button>
+      </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="sc-overlay" id="sc-pause" hidden>
+      <div class="sc-card">
+        <h1>Paused</h1>
+        <p id="sc-pause-rule"></p>
+        <button type="button" class="sc-primary" id="sc-resume-btn">Resume</button>
+        <button type="button" class="sc-ghost" id="sc-quit-btn">Quit game</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="sc-overlay" id="sc-over" hidden>
+      <div class="sc-card">
+        <h1>Game Over</h1>
+        <div class="sc-big" id="sc-final-score">0</div>
+        <p id="sc-final-line"></p>
+        <div class="sc-row">
+          <button type="button" class="sc-ghost" id="sc-done-btn">Done</button>
+          <button type="button" class="sc-primary" id="sc-again-btn">Play again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR / EMPTY POOL -->
+    <div class="sc-overlay" id="sc-error" hidden>
+      <div class="sc-card">
+        <h1>Not ready</h1>
+        <p id="sc-error-msg">No game content available yet.</p>
+        <button type="button" class="sc-primary" id="sc-error-btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function (global) {
+  'use strict';
+
+  // ======================================================================
+  //  DEMO POOL  (standalone review only; host normally passes its own pool)
+  //  ~24 AP-microeconomics shocks across the 4 shift answers. category is the
+  //  CORRECT single-curve response. First-encounter AP determinants only; halal
+  //  + imaginary (generic goods, "a country"). EVERY classification is flagged
+  //  for Elena's econ review in sim/STC_ECON_REVIEW.md before ship.
+  //
+  //  ANSWER KEYS
+  //    D_right : demand shifts RIGHT  (increase in demand)
+  //    D_left  : demand shifts LEFT   (decrease in demand)
+  //    S_right : supply shifts RIGHT  (increase in supply)
+  //    S_left  : supply shifts LEFT   (decrease in supply)
+  //  For the market of the good named in the label (assume a normal good unless
+  //  the label says otherwise).
+  // ======================================================================
+  var DEMO_POOL = [
+    // --- DEMAND RIGHT (demand determinants that raise demand) ---
+    { label: 'Incomes rise (normal good)',    category: 'D_right' }, // normal good, income up
+    { label: 'The good becomes more popular', category: 'D_right' }, // tastes favor it
+    { label: 'A substitute gets pricier',     category: 'D_right' }, // buyers switch toward it
+    { label: 'A complement gets cheaper',     category: 'D_right' }, // pairs are bought together
+    { label: 'Buyers expect higher prices soon', category: 'D_right' }, // buy now, demand up now
+    { label: 'More buyers enter the market',  category: 'D_right' }, // number of buyers up
+
+    // --- DEMAND LEFT (demand determinants that lower demand) ---
+    { label: 'Consumer confidence falls',     category: 'D_left' },  // spending pulls back
+    { label: 'Incomes fall (normal good)',    category: 'D_left' },  // normal good, income down
+    { label: 'A substitute gets cheaper',     category: 'D_left' },  // buyers switch away
+    { label: 'A complement gets pricier',     category: 'D_left' },  // pair cost up, buy less
+    { label: 'The good goes out of style',    category: 'D_left' },  // tastes turn against it
+    { label: 'Buyers expect lower prices soon', category: 'D_left' }, // wait to buy, demand down now
+
+    // --- SUPPLY RIGHT (supply determinants that raise supply) ---
+    { label: 'New tech lowers production cost', category: 'S_right' }, // cheaper to make more
+    { label: 'The price of a key input falls', category: 'S_right' }, // input cost down
+    { label: 'A new subsidy to producers',    category: 'S_right' },  // per-unit cost down
+    { label: 'More firms enter the industry', category: 'S_right' },  // number of sellers up
+    { label: 'Ideal weather for the harvest', category: 'S_right' },  // good conditions, more output
+    { label: 'A per-unit production tax is repealed', category: 'S_right' }, // cost down
+
+    // --- SUPPLY LEFT (supply determinants that lower supply) ---
+    { label: 'Oil price spikes (a key input)', category: 'S_left' },  // input cost up
+    { label: 'A new tax on producers',        category: 'S_left' },   // per-unit cost up
+    { label: 'Wages for workers rise',        category: 'S_left' },   // input cost up
+    { label: 'A drought hurts the harvest',   category: 'S_left' },   // bad conditions, less output
+    { label: 'Some firms leave the industry', category: 'S_left' },   // number of sellers down
+    { label: 'Stricter rules raise cost to make it', category: 'S_left' } // regulation cost up
+  ];
+
+  // The 4 shift answers. `curve` = which line moves; `dir` = shift sign
+  // (+1 = right/increase, -1 = left/decrease). `pad` = the label on the answer
+  // capsule. `nice`/`one` used by the banner + teaching toast.
+  var ANSWERS = {
+    D_right: { curve: 'D', dir: +1, pad: 'DEMAND right', nice: 'DEMAND right',
+               phrase: 'DEMAND shifts RIGHT' },
+    D_left:  { curve: 'D', dir: -1, pad: 'DEMAND left',  nice: 'DEMAND left',
+               phrase: 'DEMAND shifts LEFT' },
+    S_right: { curve: 'S', dir: +1, pad: 'SUPPLY right', nice: 'SUPPLY right',
+               phrase: 'SUPPLY shifts RIGHT' },
+    S_left:  { curve: 'S', dir: -1, pad: 'SUPPLY left',  nice: 'SUPPLY left',
+               phrase: 'SUPPLY shifts LEFT' }
+  };
+  var ANSWER_KEYS = ['D_right', 'D_left', 'S_right', 'S_left'];
+
+  // Predicted equilibrium change per answer (for the P/Q annotation + boss
+  // "which is certain?" framing). Standard AP one-curve comparative statics:
+  //   D right -> P up,   Q up
+  //   D left  -> P down, Q down
+  //   S right -> P down, Q up
+  //   S left  -> P up,   Q down
+  var EQ_CHANGE = {
+    D_right: { p: +1, q: +1 },
+    D_left:  { p: -1, q: -1 },
+    S_right: { p: -1, q: +1 },
+    S_left:  { p: +1, q: -1 }
+  };
+
+  // ---------------------------------------------------------------- helpers
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function cssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+      v = v && v.trim();
+      return v || fallback;
+    } catch (e) { return fallback; }
+  }
+  // parse "#rrggbb" (or a browser-resolved rgb string) into {r,g,b} for sprite tinting
+  function toRGB(c) {
+    c = String(c || '').trim();
+    var m = c.match(/^#?([0-9a-f]{6})$/i);
+    if (m) { var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+    m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+    if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+    return { r: 200, g: 200, b: 200 };
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // Build a usable index from a pool: keep items whose category is a valid shift
+  // answer; bucket by answer. A pool is playable if it has items across at least
+  // two of the four answers (so a wave always has a non-trivial read).
+  function buildIndex(pool) {
+    var byAns = {};
+    for (var i = 0; i < pool.length; i++) {
+      var it = pool[i];
+      if (!it || !it.label || !it.category) continue;
+      var cat = String(it.category);
+      if (!ANSWERS[cat]) continue;              // ignore non-shift categories
+      var label = String(it.label).replace(/[_—–]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!label) continue;
+      (byAns[cat] || (byAns[cat] = [])).push({ label: label, category: cat, rowId: it.rowId, lo: it.lo });
+    }
+    var present = ANSWER_KEYS.filter(function (k) { return byAns[k] && byAns[k].length; });
+    return { byAns: byAns, present: present };
+  }
+
+  // =====================================================================
+  //  Tiny WebAudio synth  (no assets; all SFX generated on the fly)
+  // =====================================================================
+  function Sfx() { this.ctx = null; this.muted = false; }
+  Sfx.prototype._ac = function () {
+    if (this.ctx) return this.ctx;
+    try {
+      var AC = global.AudioContext || global.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+    } catch (e) { this.ctx = null; }
+    return this.ctx;
+  };
+  Sfx.prototype.resume = function () { var c = this._ac(); if (c && c.state === 'suspended') { try { c.resume(); } catch (e) {} } };
+  Sfx.prototype._blip = function (type, f0, f1, dur, gain) {
+    if (this.muted) return;
+    var c = this._ac(); if (!c) return;
+    try {
+      var t = c.currentTime;
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t);
+      if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  };
+  Sfx.prototype.tap     = function () { this._blip('sine',     360, 500, 0.05, 0.045); };
+  Sfx.prototype.right   = function () { this._blip('triangle', 520, 900, 0.12, 0.11); this._blip('square', 300, 120, 0.10, 0.05); };
+  Sfx.prototype.wrong   = function () { this._blip('sawtooth', 180, 70,  0.22, 0.13); };
+  Sfx.prototype.expire  = function () { this._blip('square',   150, 60,  0.18, 0.10); };
+  Sfx.prototype.wave    = function () { var s = this; this._blip('triangle', 440, 660, 0.10, 0.08); setTimeout(function () { s._blip('triangle', 660, 880, 0.14, 0.09); }, 90); };
+  Sfx.prototype.slide   = function () { this._blip('sine', 620, 760, 0.10, 0.05); };
+  Sfx.prototype.boss    = function () { this._blip('sawtooth', 90, 60, 0.5, 0.12); };
+
+  // =====================================================================
+  //  Prerendered sprites (offscreen canvases) so hot loops just blit
+  // =====================================================================
+  function makeParticleSprite(rgb, shape, px) {
+    var c = document.createElement('canvas');
+    c.width = px; c.height = px;
+    var x = c.getContext('2d');
+    x.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+    var h = px / 2;
+    if (shape === 'sq') {
+      x.fillRect(px * 0.18, px * 0.18, px * 0.64, px * 0.64);
+    } else {
+      x.beginPath(); x.moveTo(h, px * 0.12); x.lineTo(px * 0.9, px * 0.88); x.lineTo(px * 0.1, px * 0.88); x.closePath(); x.fill();
+    }
+    return c;
+  }
+  function makeStarSprite() {
+    var c = document.createElement('canvas'); c.width = 4; c.height = 4;
+    var x = c.getContext('2d');
+    var g = x.createRadialGradient(2, 2, 0, 2, 2, 2);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 4, 4);
+    return c;
+  }
+
+  // =====================================================================
+  //  The module
+  // =====================================================================
+  var SC = {};
+  var live = null; // single active instance guard
+
+  SC.open = function (pool, opts) {
+    opts = opts || {};
+    if (opts.enabled !== true) return null;            // flag gate, matches other modules
+    if (typeof document === 'undefined') return null;
+
+    var usePool = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
+    var idx = buildIndex(usePool);
+    if (idx.present.length < 2) {
+      showError('This game needs a few different market shocks (like a cost rise and an income rise). Study a little further and it will unlock.');
+      return null;
+    }
+    if (live) { try { live.destroy(); } catch (e) {} live = null; }
+    live = new Game(idx, opts);
+    return live;
+  };
+  // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
+  SC.start = SC.open;
+  SC.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+
+  // ---- error overlay used before a Game exists -------------------------
+  function showError(msg) {
+    var el = document.getElementById('sc-error');
+    var m = document.getElementById('sc-error-msg');
+    if (m) m.textContent = msg;
+    if (el) el.hidden = false;
+  }
+
+  // ---- tuning constants ------------------------------------------------
+  //  Calibrated per sim/STC_REPORT.md (Monte-Carlo human model: read 250ms/word
+  //  + decide 350ms 4-way + tap 250ms; fuse sized so a competent AP reader dies
+  //  ~wave 6-8, a 25% guesser dies fast). Pattern from sim/SI_REPORT.md:
+  //  escalation must climb so competent death lands in the target band; and
+  //  from CA_REPORT: a single wrong = full heart + long-streak combo kills
+  //  honest players -> 5 hearts, comboStart 3, wave grace + startInvuln.
+  var TUNE = {
+    fuseBase: 4.6,          // seconds a card floats before it EXPIRES, wave 1.
+                            //   sim-tuned (STC_REPORT grid search): a competent
+                            //   read+decide+tap (~1.8s for a 4-word shock) clears
+                            //   waves 1-5 with margin and the competent wall lands
+                            //   mean 6.98 / median 7 (dead-center of the 6-8 death
+                            //   band) as the fuse shrinks; a 25% guesser dies at
+                            //   wave ~1.9. base 5.2->4.6 moved the competent band
+                            //   down from an over-generous 9-10 into target.
+    fuseStep: 0.10,         // fuse SHORTENS ~10%/wave (mul = 1/(1+step)^(wave-1)).
+                            //   0.07->0.10 pairs with base 4.6 to hold the 6-8
+                            //   band (STC_REPORT best cell).
+    fuseSpeedCap: 2.0,      // fuse can shrink to at most 1/2.0 = 50% of base
+    fuseMin: 1.6,           // hard floor on fuse seconds (never impossible to read)
+    cardFallFrac: 0.30,     // the card settles at this fraction of play height
+    slideMs: 520,           // equilibrium slide + curve shift animation (ms)
+    springMs: 320,          // wrong-answer wrong-way nudge + spring-back (ms)
+    cardsPerWave: 6,        // shocks to clear a normal wave
+    bossCards: 8,           // denser boss wave
+    comboStart: 3,          // consecutive correct before multiplier kicks up (CA lesson)
+    comboMin: 1.5,          // first multiplier tier
+    comboMax: 3.0,          // multiplier ceiling
+    hearts: 5,              // learning game needs a mistake buffer (CA lesson)
+    wrongGrace: 1,          // first N wrong answers per wave TEACH (no heart) (CA lesson)
+    startInvuln: 1.2,       // seconds of no-expire grace after a wave banner (CA lesson)
+    bossEvery: 5,           // boss wave cadence
+    bossTime: 30,           // boss countdown seconds
+    bossTwoShiftFrom: 5,    // "which is certain?" two-curve shocks appear from wave 5
+    hitstopMs: 80,          // freeze on an answer
+    shakePx: 3,             // screenshake magnitude (brief: 3px)
+    shakeMs: 60             // brief: 60ms
+  };
+
+  // =====================================================================
+  //  Game instance
+  // =====================================================================
+  function Game(idx, opts) {
+    var self = this;
+    this.idx = idx;
+    this.opts = opts;
+    this.rtl = !!opts.rtl;
+    this.level = clamp((opts.level != null ? opts.level : 1) | 0, 1, 20) || 1;
+    this.reduced = false;
+    try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
+    this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+    this.closed = false;
+
+    // DOM
+    this.canvas = document.getElementById('sc-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.root = document.getElementById('sc-root');
+    if (this.rtl) document.documentElement.setAttribute('dir', 'rtl');
+
+    // theme colors (resolved once; standalone falls back to hex)
+    this.col = {
+      ink: cssVar('--sc-ink', '#eaf0ff'),
+      muted: cssVar('--sc-muted', '#9aa7c7'),
+      indigo: cssVar('--sc-indigo', '#6c5cff'),
+      green: cssVar('--sc-green', '#22c58b'),
+      rose: cssVar('--sc-rose', '#ff5470'),
+      amber: cssVar('--sc-amber', '#ffb020'),
+      line: cssVar('--sc-line', '#2a3355'),
+      demand: cssVar('--sc-demand', '#38bdf8'),
+      supply: cssVar('--sc-supply', '#ffb020')
+    };
+    this.rgb = {
+      green: toRGB(this.col.green), rose: toRGB(this.col.rose),
+      amber: toRGB(this.col.amber), indigo: toRGB(this.col.indigo),
+      demand: toRGB(this.col.demand), supply: toRGB(this.col.supply),
+      steel: { r: 176, g: 190, b: 220 }
+    };
+
+    // audio
+    this.sfx = new Sfx();
+
+    // prerendered sprites (built once)
+    this.sprites = {
+      pGreenSq: makeParticleSprite(this.rgb.green, 'sq', 10),
+      pGreenTri: makeParticleSprite(this.rgb.green, 'tri', 10),
+      pRoseSq: makeParticleSprite(this.rgb.rose, 'sq', 10),
+      pRoseTri: makeParticleSprite(this.rgb.rose, 'tri', 10),
+      pSteelSq: makeParticleSprite(this.rgb.steel, 'sq', 10),
+      pSteelTri: makeParticleSprite(this.rgb.steel, 'tri', 10),
+      pAmberSq: makeParticleSprite(this.rgb.amber, 'sq', 10),
+      pAmberTri: makeParticleSprite(this.rgb.amber, 'tri', 10),
+      star: makeStarSprite()
+    };
+
+    // state
+    this.state = 'start';   // start | playing | paused | over
+    this.score = 0;
+    this.lives = TUNE.hearts;
+    this.wave = 0;
+    this.seen = 0;          // shocks that appeared (accuracy summary)
+    this.correct = 0;       // shocks answered correctly
+    this.streak = 0;        // consecutive correct (drives combo)
+    this.combo = 1;         // current score multiplier
+    this.wrongGraceLeft = 0;// remaining "teach only" wrong answers this wave
+
+    this.card = null;       // the in-flight shock card, or null between cards
+    this.particles = [];
+    this.popups = [];       // floating score text
+    this.stars = [];        // parallax starfield (built on resize)
+    this.shake = 0;
+    this.hitstop = 0;
+    this.flash = 0;         // red damage flash 0..1
+    this.goodFlash = 0;
+    this.invuln = 0;        // start-of-wave no-expire grace (s)
+
+    // diagram shift animation: dShift/sShift are the CURRENT rendered shift
+    // offsets (fraction of plot width, +right/-left) for demand & supply; the
+    // *Anim fields drive a tween from a start to a target.
+    this.dShift = 0; this.sShift = 0;
+    this.anim = null;       // {curve,from,to,t,dur,spring,onDone}
+
+    // answer pads (rects computed on resize)
+    this.pads = [];         // [{key, x,y,w,h, reveal:0}] reveal>0 = flashing result
+    this.padFlash = {};     // key -> {kind:'right'|'wrong', t}
+
+    // boss wave
+    this.boss = false;
+    this.bossTimer = 0;
+
+    // card bookkeeping
+    this.cardQueue = 0;     // cards still to spawn this wave
+    this.cardsDone = 0;     // cards resolved this wave
+    this.gap = 0;           // seconds until next card spawns
+    this.rule = null;       // {axisLabel} cosmetic banner text
+
+    this.W = 0; this.H = 0; this.dpr = 1; this.t = 0;
+    this.last = 0; this._raf = 0; this.destroyed = false;
+    this._deck = shuffle(this._flatDeck());  // draw order over all pool items
+    this._deckI = 0;
+
+    this._bind();
+    this._resize();
+    this._showOverlay('sc-start');
+    this._loop(0);
+  }
+
+  // Flatten the bucketed pool back into a flat draw list (so we cycle all items
+  // fairly, not just re-drawing the same easy ones).
+  Game.prototype._flatDeck = function () {
+    var out = [], byAns = this.idx.byAns;
+    for (var k = 0; k < ANSWER_KEYS.length; k++) {
+      var arr = byAns[ANSWER_KEYS[k]];
+      if (arr) for (var i = 0; i < arr.length; i++) out.push(arr[i]);
+    }
+    return out.length ? out : [{ label: 'Incomes rise (normal good)', category: 'D_right' }];
+  };
+  Game.prototype._drawItem = function () {
+    if (this._deckI >= this._deck.length) { this._deck = shuffle(this._deck); this._deckI = 0; }
+    return this._deck[this._deckI++];
+  };
+
+  Game.prototype._byId = function (id) { return document.getElementById(id); };
+
+  Game.prototype._bind = function () {
+    var self = this;
+    this._handlers = [];
+    function on(el, ev, fn, opt) { if (!el) return; el.addEventListener(ev, fn, opt); self._handlers.push([el, ev, fn, opt]); }
+
+    // buttons
+    on(this._byId('sc-start-btn'), 'click', function () { self.sfx.resume(); self._begin(); });
+    on(this._byId('sc-again-btn'), 'click', function () { self.sfx.resume(); self._reset(); self._begin(); });
+    on(this._byId('sc-done-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('sc-error-btn'), 'click', function () { self._byId('sc-error').hidden = true; self.destroy(); if (self.onClose) { try { self.onClose(self._summary()); } catch (e) {} } });
+    on(this._byId('sc-pause-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('sc-resume-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('sc-quit-btn'), 'click', function () { self._gameOver(true); });
+    on(this._byId('sc-close-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('sc-fs-btn'), 'click', function () { self._toggleFullscreen(); });
+    on(this._byId('sc-mute-btn'), 'click', function () { self._toggleMute(); });
+
+    // keyboard: the 4 answers on arrow keys + WASD; Enter starts.
+    //   Up    = SUPPLY right    Down = SUPPLY left
+    //   Right = DEMAND right    Left = DEMAND left
+    // (Chosen so vertical keys = supply "columns", horizontal keys = demand; the
+    //  on-screen pads label themselves so the mapping is never a memory tax.)
+    this._onKey = function (e) {
+      if (self.state !== 'playing') {
+        if (e.key === 'Enter' && self.state === 'start') { self.sfx.resume(); self._begin(); }
+        return;
+      }
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'd' || k === 'D') { self._answer('D_right'); e.preventDefault(); }
+      else if (k === 'ArrowLeft' || k === 'a' || k === 'A') { self._answer('D_left'); e.preventDefault(); }
+      else if (k === 'ArrowUp' || k === 'w' || k === 'W') { self._answer('S_right'); e.preventDefault(); }
+      else if (k === 'ArrowDown' || k === 's' || k === 'S') { self._answer('S_left'); e.preventDefault(); }
+      else if (k === 'p' || k === 'P' || k === 'Escape') { self._togglePause(); }
+      else if (k === 'm' || k === 'M') { self._toggleMute(); }
+    };
+    on(document, 'keydown', this._onKey);
+
+    // pointer: tap a pad, OR swipe from the card toward a corner.
+    this._ptr = { down: false, x0: 0, y0: 0 };
+    this._onDown = function (e) {
+      if (self.state !== 'playing') return;
+      self.sfx.resume();
+      var pt = self._pt(e);
+      self._ptr.down = true; self._ptr.x0 = pt.x; self._ptr.y0 = pt.y;
+      // immediate pad tap
+      var key = self._padAt(pt.x, pt.y);
+      if (key) { self._answer(key); self._ptr.down = false; }
+      e.preventDefault();
+    };
+    this._onUp = function (e) {
+      if (!self._ptr.down) return;
+      self._ptr.down = false;
+      if (self.state !== 'playing' || !self.card || self.card.resolved) return;
+      var pt = self._pt(e);
+      var dx = pt.x - self._ptr.x0, dy = pt.y - self._ptr.y0;
+      if (Math.abs(dx) < 26 && Math.abs(dy) < 26) return;  // not a swipe
+      // swipe direction -> answer. Horizontal dominant = DEMAND; vertical = SUPPLY.
+      var key;
+      if (Math.abs(dx) >= Math.abs(dy)) key = dx > 0 ? 'D_right' : 'D_left';
+      else key = dy < 0 ? 'S_right' : 'S_left';
+      self._answer(key);
+      e.preventDefault();
+    };
+    on(this.canvas, 'pointerdown', this._onDown);
+    on(this.canvas, 'pointerup', this._onUp);
+    on(this.canvas, 'pointercancel', function () { self._ptr.down = false; });
+
+    this._onResize = function () { self._resize(); };
+    on(global, 'resize', this._onResize);
+    on(global, 'orientationchange', this._onResize);
+
+    // pause when tab hidden
+    this._onVis = function () { if (document.hidden && self.state === 'playing') self._togglePause(); };
+    on(document, 'visibilitychange', this._onVis);
+  };
+
+  // pointer -> canvas coords
+  Game.prototype._pt = function (e) {
+    var r = this.canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left), y: (e.clientY - r.top) };
+  };
+
+  Game.prototype._resize = function () {
+    var wrap = document.getElementById('sc-wrap');
+    var r = wrap.getBoundingClientRect();
+    this.dpr = clamp(global.devicePixelRatio || 1, 1, 2.5);
+    this.W = Math.round(r.width);
+    this.H = Math.round(r.height);
+    this.canvas.width = Math.round(this.W * this.dpr);
+    this.canvas.height = Math.round(this.H * this.dpr);
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this._buildStars();
+    this._layout();
+  };
+
+  // Compute the plot (diagram) rect + the 4 answer pads. The diagram sits in the
+  // middle band; the pads are a 2x2 grid pinned to the bottom of the play area.
+  Game.prototype._layout = function () {
+    var W = this.W, H = this.H;
+    var padH = clamp(H * 0.16, 92, 150);        // answer-pad zone height (bottom)
+    var top = clamp(H * 0.16, 96, 150);          // banner clearance at top
+    var plotBottom = H - padH - 14;
+    var m = clamp(W * 0.10, 40, 74);             // plot left/bottom margin (axes)
+    this.plot = {
+      x: m,
+      y: top,
+      w: W - m - clamp(W * 0.06, 24, 54),        // room on the right for arrow
+      h: (plotBottom - top),
+      ox: m,                                     // axis origin x
+      oy: plotBottom                             // axis origin y (Q axis baseline)
+    };
+    // 2x2 pad grid (Demand row on top of the zone, Supply row below)
+    var gx = clamp(W * 0.04, 12, 26), gap = 10;
+    var zoneY = H - padH - 4, zoneH = padH;
+    var colW = (W - gx * 2 - gap) / 2;
+    var rowH = (zoneH - gap) / 2;
+    // order visually: D left | D right  /  S left | S right
+    var defs = [
+      { key: 'D_left',  col: 0, row: 0 },
+      { key: 'D_right', col: 1, row: 0 },
+      { key: 'S_left',  col: 0, row: 1 },
+      { key: 'S_right', col: 1, row: 1 }
+    ];
+    this.pads = defs.map(function (d) {
+      return {
+        key: d.key,
+        x: gx + d.col * (colW + gap),
+        y: zoneY + d.row * (rowH + gap),
+        w: colW, h: rowH
+      };
+    });
+  };
+
+  Game.prototype._padAt = function (x, y) {
+    for (var i = 0; i < this.pads.length; i++) {
+      var p = this.pads[i];
+      if (x >= p.x && x <= p.x + p.w && y >= p.y && y <= p.y + p.h) return p.key;
+    }
+    return null;
+  };
+
+  // ---- parallax starfield (3 layers, drift slowly) ---------------------
+  Game.prototype._buildStars = function () {
+    this.stars = [];
+    if (this.reduced) return;
+    var layers = [
+      { n: 90, sp: 8,  a: 0.28, s: 1.4 },
+      { n: 44, sp: 16, a: 0.14, s: 2.1 },
+      { n: 22, sp: 28, a: 0.05, s: 3.0 }
+    ];
+    for (var L = 0; L < layers.length; L++) {
+      var cfg = layers[L];
+      for (var i = 0; i < cfg.n; i++) {
+        this.stars.push({ x: rand(0, this.W), y: rand(0, this.H), sp: cfg.sp, a: cfg.a, s: cfg.s });
+      }
+    }
+  };
+
+  // ---- lifecycle -------------------------------------------------------
+  Game.prototype._showOverlay = function (id) {
+    ['sc-start', 'sc-pause', 'sc-over', 'sc-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = (o !== id);
+    });
+  };
+  Game.prototype._hideOverlays = function () {
+    ['sc-start', 'sc-pause', 'sc-over', 'sc-error'].forEach(function (o) {
+      var el = document.getElementById(o); if (el) el.hidden = true;
+    });
+  };
+
+  Game.prototype._reset = function () {
+    this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
+    this.streak = 0; this.combo = 1; this.invuln = 0; this.boss = false; this.bossTimer = 0;
+    this.card = null; this.particles.length = 0; this.popups.length = 0;
+    this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0;
+    this.dShift = 0; this.sShift = 0; this.anim = null; this.padFlash = {};
+    this.wrongGraceLeft = 0; this.cardsDone = 0; this.cardQueue = 0; this.gap = 0;
+    this._deck = shuffle(this._flatDeck()); this._deckI = 0;
+  };
+
+  Game.prototype._begin = function () {
+    this._hideOverlays();
+    this.state = 'playing';
+    this._syncHud();
+    this._nextWave();
+  };
+
+  Game.prototype._togglePause = function () {
+    if (this.state === 'playing') {
+      this.state = 'paused';
+      var p = document.getElementById('sc-pause-rule');
+      if (p) p.textContent = 'Wave ' + this.wave + '. Read each shock; shift the right curve the right way.';
+      this._showOverlay('sc-pause');
+    } else if (this.state === 'paused') {
+      this.state = 'playing';
+      this._hideOverlays();
+      this.last = 0; // avoid a big dt jump
+    }
+  };
+
+  Game.prototype._toggleMute = function () {
+    this.sfx.muted = !this.sfx.muted;
+    var b = this._byId('sc-mute-btn');
+    if (b) { b.innerHTML = this.sfx.muted ? '&#128263;' : '&#128266;'; b.setAttribute('aria-label', this.sfx.muted ? 'Unmute' : 'Mute'); }
+  };
+
+  // ---- waves -----------------------------------------------------------
+  Game.prototype._nextWave = function () {
+    this.wave++;
+    this.boss = (this.wave % TUNE.bossEvery === 0);
+
+    // ESCALATION: fuse shortens ~7%/wave (bounded), so the read+decide+tap
+    // budget collapses and the competent wall lands ~wave 6-8.
+    var speedMul = Math.min(TUNE.fuseSpeedCap, Math.pow(1 + TUNE.fuseStep, this.wave - 1));
+    this.fuse = Math.max(TUNE.fuseMin, TUNE.fuseBase / speedMul);
+    if (this.boss) this.fuse = Math.max(TUNE.fuseMin, this.fuse * 0.94); // bosses a touch tighter
+
+    this.cardQueue = this.boss ? TUNE.bossCards : TUNE.cardsPerWave;
+    this.cardsDone = 0;
+    this.wrongGraceLeft = TUNE.wrongGrace;
+    this.invuln = TUNE.startInvuln;
+    this.gap = 0.5;             // brief runway before first card
+    this.card = null;
+    // reset the diagram to a clean equilibrium each wave
+    this._settleDiagram();
+
+    if (this.boss) { this.bossTimer = TUNE.bossTime; this.sfx.boss(); }
+
+    this._showBanner();
+    this._syncHud();
+    this.sfx.wave();
+  };
+
+  // ease the rendered curves back to the neutral (unshifted) equilibrium
+  Game.prototype._settleDiagram = function () {
+    this.anim = null; this.dShift = 0; this.sShift = 0;
+  };
+
+  Game.prototype._showBanner = function () {
+    var rEl = document.getElementById('sc-banner-rule');
+    var sEl = document.getElementById('sc-banner-sub');
+    var banner = document.getElementById('sc-banner');
+    if (rEl) {
+      var lead = this.boss ? 'BOSS WAVE ' + this.wave : 'WAVE ' + this.wave;
+      rEl.innerHTML = esc(lead) + ' &middot; <span class="sc-banner-target">Shift the curve</span>';
+    }
+    if (sEl) {
+      sEl.innerHTML = this.boss
+        ? 'Two-curve shocks: pick the ONE certain move &middot; beat the 30s clock'
+        : 'Read the shock, then move Demand or Supply the right way';
+    }
+    if (banner) {
+      banner.classList.remove('sc-hide');
+      clearTimeout(this._bannerT);
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('sc-hide'); }, this.boss ? 3200 : 2600);
+    }
+  };
+
+  // ---- card construction ----------------------------------------------
+  // Spawn the next shock card. On boss waves (>= bossTwoShiftFrom) some cards are
+  // TWO-shift "which is certain?" items: two shocks that move both curves, where
+  // only ONE of P/Q is certain; the answer stays the single most-certain curve
+  // move (the item is authored so its category is the certain-direction curve).
+  Game.prototype._spawnCard = function () {
+    var item = this._drawItem();
+    var ans = item.category;
+    // is this a boss two-shift? (cosmetic second line; the CORRECT answer is
+    // still item.category -- the certain single-curve move.)
+    var twoShift = null;
+    if (this.boss && this.wave >= TUNE.bossTwoShiftFrom && Math.random() < 0.5) {
+      twoShift = this._pairFor(item);
+    }
+    this.seen++;
+    this.card = {
+      item: item, ans: ans, twoShift: twoShift,
+      label: item.label,
+      y: -60,                         // enters from above
+      targetY: this.plot.y + this.plot.h * TUNE.cardFallFrac,
+      settled: false, fuse: this.fuse, resolved: false,
+      rowId: item.rowId, lo: item.lo || null,
+      w: 0, h: 0                       // measured at draw
+    };
+  };
+
+  // Choose a plausible SECOND shock (opposite-curve) for a two-shift boss card,
+  // whose effect leaves the card's own answer as the CERTAIN move. e.g. answer
+  // S_left (P up, Q down) + a D_right shock (P up, Q up) -> P is CERTAIN up, Q is
+  // ambiguous. We surface P's certainty in the teaching line.
+  Game.prototype._pairFor = function (item) {
+    var e = EQ_CHANGE[item.category];
+    // find a partner whose eq change agrees on exactly one of P/Q and disagrees
+    // on the other (so one variable is certain, the other ambiguous).
+    var candidates = ['D_right', 'D_left', 'S_right', 'S_left'].filter(function (k) {
+      if (k === item.category) return false;
+      var f = EQ_CHANGE[k];
+      var pSame = (f.p === e.p), qSame = (f.q === e.q);
+      return (pSame && !qSame) || (!pSame && qSame);
+    });
+    if (!candidates.length) return null;
+    var partnerKey = pick(candidates);
+    var pool = this.idx.byAns[partnerKey];
+    var partnerLabel = pool && pool.length ? pick(pool).label : ANSWERS[partnerKey].phrase;
+    var f = EQ_CHANGE[partnerKey];
+    var certain = (f.p === e.p) ? 'P' : 'Q';       // the variable both agree on
+    return { label: partnerLabel, certain: certain };
+  };
+
+  // ---- input: an answer was chosen ------------------------------------
+  Game.prototype._answer = function (key) {
+    if (this.state !== 'playing') return;
+    if (!this.card || this.card.resolved || !this.card.settled) return;
+    if (this.anim) return;                         // ignore taps mid-animation
+    var self = this;                               // captured by shift-anim callbacks
+    var card = this.card;
+    card.resolved = true;
+    this.sfx.tap();
+    var correct = (key === card.ans);
+
+    if (correct) {
+      this.streak++;
+      this._updateCombo();
+      var gain = Math.round(10 * this.combo);
+      this.score += gain;
+      this.correct++;
+      this.goodFlash = 0.5;
+      this._addShake();
+      this._flashPad(key, 'right');
+      this._popup(this.W * 0.5, card.targetY, '+' + gain + (this.combo > 1 ? ' x' + this.combo.toFixed(1) : ''), this.col.green);
+      this._hitstop();
+      this.sfx.right();
+      this._emit(card, 1);
+      // animate the CORRECT shift, then clear the card + advance
+      this._playShift(card.ans, false, function () { self._afterCard(); });
+    } else {
+      // WRONG. First wrongGrace/wave (or invuln) = TEACH (no heart); else heart.
+      this.streak = 0; this.combo = 1;
+      this._flashPad(key, 'wrong');
+      this._flashPad(card.ans, 'right');           // reveal the right pad too
+      var teachOnly = (this.wrongGraceLeft > 0 || this.invuln > 0);
+      if (this.wrongGraceLeft > 0) this.wrongGraceLeft--;
+      if (!teachOnly) {
+        this._loseLife(0.9);
+        this._popup(this.W * 0.5, card.targetY, 'WRONG', this.col.rose);
+      } else {
+        this._popup(this.W * 0.5, card.targetY, 'TEACH', this.col.amber);
+      }
+      this._teach(card, key);
+      this._addShake(true);
+      this._hitstop();
+      this.sfx.wrong();
+      this._emit(card, 0);
+      if (!teachOnly && this.lives <= 0) {
+        // still show the wrong-then-right nudge, then end
+        this._playShift(key, true, function () {
+          self._playShift(card.ans, false, function () { self._gameOver(false); });
+        });
+        return;
+      }
+      // wrong-way nudge + spring back, THEN the correct shift, THEN advance
+      this._playShift(key, true, function () {
+        self._playShift(card.ans, false, function () { self._afterCard(); });
+      });
+    }
+    this._syncHud();
+  };
+
+  // card resolved -> clear it, settle diagram, count toward wave, maybe next wave
+  Game.prototype._afterCard = function () {
+    this.card = null;
+    this.cardsDone++;
+    this._settleDiagram();
+    if (this.state !== 'playing') return;
+    if (this.cardsDone >= (this.boss ? TUNE.bossCards : TUNE.cardsPerWave)) {
+      this._nextWave();
+    } else {
+      this.gap = rand(0.35, 0.6);   // brief beat before the next card
+    }
+  };
+
+  // A card expired unanswered = a miss (heart, unless grace/invuln), then the
+  // correct shift plays so the learner still sees it.
+  Game.prototype._expireCard = function () {
+    var card = this.card;
+    if (!card || card.resolved) return;
+    card.resolved = true;
+    this.streak = 0; this.combo = 1;
+    this._flashPad(card.ans, 'right');
+    var teachOnly = (this.wrongGraceLeft > 0 || this.invuln > 0);
+    if (this.wrongGraceLeft > 0) this.wrongGraceLeft--;
+    if (!teachOnly) {
+      this._loseLife(0.85);
+      this._popup(this.W * 0.5, card.targetY, 'TOO SLOW', this.col.rose);
+    } else {
+      this._popup(this.W * 0.5, card.targetY, 'TEACH', this.col.amber);
+    }
+    this._teach(card, null);
+    this.sfx.expire();
+    this._addShake(true);
+    this._emit(card, 0);
+    var self = this;
+    if (!teachOnly && this.lives <= 0) {
+      this._playShift(card.ans, false, function () { self._gameOver(false); });
+      this._syncHud();
+      return;
+    }
+    this._playShift(card.ans, false, function () { self._afterCard(); });
+    this._syncHud();
+  };
+
+  // ---- diagram shift animation ----------------------------------------
+  // Move a curve to (or nudge, then spring back from) its shifted position.
+  //   key   = answer key ('D_right' etc.) -> which curve + direction
+  //   wrong = true -> nudge out then spring back to neutral (the "wrong" tease)
+  //   done  = callback when the tween completes.
+  Game.prototype._playShift = function (key, wrong, done) {
+    var a = ANSWERS[key];
+    var mag = 0.22;                               // shift magnitude (frac of plot w)
+    var to = a.dir * mag;
+    var isD = (a.curve === 'D');
+    var from = isD ? this.dShift : this.sShift;
+    this.anim = {
+      curve: a.curve, from: from, to: to,
+      t: 0, dur: (wrong ? TUNE.springMs : TUNE.slideMs) / 1000,
+      spring: !!wrong, onDone: done || null
+    };
+    if (this.reduced) {
+      // reduced-motion: jump to the end state (or straight back for a nudge)
+      if (isD) this.dShift = wrong ? 0 : to; else this.sShift = wrong ? 0 : to;
+      var cb = this.anim.onDone; this.anim = null; if (cb) cb();
+      return;
+    }
+    this.sfx.slide();
+  };
+
+  Game.prototype._stepAnim = function (dt) {
+    var an = this.anim; if (!an) return;
+    an.t += dt;
+    var p = clamp(an.t / an.dur, 0, 1);
+    var v;
+    if (an.spring) {
+      // out to `to` at p=0.5, back to `from` (neutral) at p=1  (a quick tease)
+      var s = Math.sin(p * Math.PI);              // 0 -> 1 -> 0
+      v = an.from + (an.to - an.from) * s;
+    } else {
+      var e = 1 - Math.pow(1 - p, 3);             // ease-out cubic
+      v = an.from + (an.to - an.from) * e;
+    }
+    if (an.curve === 'D') this.dShift = v; else this.sShift = v;
+    if (p >= 1) {
+      if (an.curve === 'D') this.dShift = an.spring ? an.from : an.to;
+      else this.sShift = an.spring ? an.from : an.to;
+      var cb = an.onDone; this.anim = null; if (cb) cb();
+    }
+  };
+
+  // ---- teaching toast --------------------------------------------------
+  // Built from the shock + (optionally) the wrong pad the player picked.
+  Game.prototype._teach = function (card, wrongKey) {
+    var el = document.getElementById('sc-teach');
+    if (!el) return;
+    var right = ANSWERS[card.ans];
+    var eq = EQ_CHANGE[card.ans];
+    var pqTxt = ' (P ' + (eq.p > 0 ? 'up' : 'down') + ', Q ' + (eq.q > 0 ? 'up' : 'down') + ')';
+    var html;
+    if (card.twoShift) {
+      // boss two-shift: teach the CERTAIN variable
+      html = '<b>' + esc(right.phrase) + '</b> is the certain move: ' +
+             esc(card.twoShift.certain) + ' is certain, the other is ambiguous.';
+    } else if (wrongKey && wrongKey !== card.ans) {
+      var wrong = ANSWERS[wrongKey];
+      html = 'That shock moves <b>' + esc(right.phrase) + '</b>' + esc(pqTxt) +
+             ', not ' + esc(wrong.nice) + '.';
+    } else {
+      html = 'That shock moves <b>' + esc(right.phrase) + '</b>' + esc(pqTxt) + '.';
+    }
+    el.innerHTML = html;
+    el.classList.add('sc-on');
+    clearTimeout(this._teachT);
+    this._teachT = setTimeout(function () { if (el) el.classList.remove('sc-on'); }, 2400);
+  };
+
+  // ---- combo / lives / emit -------------------------------------------
+  Game.prototype._updateCombo = function () {
+    if (this.streak < TUNE.comboStart) { this.combo = 1; return; }
+    var over = this.streak - TUNE.comboStart;
+    this.combo = clamp(TUNE.comboMin + over * 0.25, TUNE.comboMin, TUNE.comboMax);
+  };
+  Game.prototype._loseLife = function (flashAmt) {
+    this.lives--;
+    this.flash = flashAmt || 0.8;
+    this._addShake(true);
+    var pill = this._byId('sc-lives-pill');
+    if (pill) { pill.classList.remove('sc-pulse'); void pill.offsetWidth; pill.classList.add('sc-pulse'); }
+  };
+  Game.prototype._emit = function (card, score) {
+    if (!this.onEmit || card.rowId == null) return;
+    try { this.onEmit(card.rowId, card.lo || null, 'shiftcurve', score ? 1 : 0, 1); } catch (er) {}
+  };
+  Game.prototype._flashPad = function (key, kind) {
+    this.padFlash[key] = { kind: kind, t: 0.6 };
+    var burstColor = kind === 'right' ? this.rgb.green : this.rgb.rose;
+    for (var i = 0; i < this.pads.length; i++) {
+      if (this.pads[i].key === key) {
+        var p = this.pads[i];
+        this._burst(p.x + p.w / 2, p.y + p.h / 2, burstColor, kind === 'right' ? 12 : 8, kind === 'right' ? 'green' : 'rose');
+        break;
+      }
+    }
+  };
+
+  // ---- juice -----------------------------------------------------------
+  Game.prototype._addShake = function (big) {
+    if (this.reduced) return;
+    this.shake = TUNE.shakeMs / 1000 * (big ? 1.6 : 1);
+  };
+  Game.prototype._hitstop = function () {
+    if (this.reduced) return;
+    this.hitstop = TUNE.hitstopMs / 1000;
+  };
+  Game.prototype._burst = function (x, y, rgb, n, kind) {
+    if (this.reduced) n = Math.min(n, 6);
+    var sq = this.sprites['p' + cap(kind) + 'Sq'] || this.sprites.pSteelSq;
+    var tri = this.sprites['p' + cap(kind) + 'Tri'] || this.sprites.pSteelTri;
+    for (var i = 0; i < n; i++) {
+      var a = rand(0, 6.2832), sp = rand(60, 260);
+      this.particles.push({
+        x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
+        life: rand(0.28, 0.55), size: rand(6, 12),
+        rot: rand(0, 6.28), vr: rand(-9, 9),
+        spr: (Math.random() < 0.5) ? sq : tri
+      });
+    }
+  };
+  Game.prototype._popup = function (x, y, text, color) {
+    this.popups.push({ x: x, y: y, text: text, color: color, life: 0.95, vy: -50 });
+  };
+
+  // ---- update ----------------------------------------------------------
+  Game.prototype._update = function (dt) {
+    // hitstop freezes gameplay motion but not the loop
+    if (this.hitstop > 0) { this.hitstop -= dt; if (this.hitstop > 0) dt = 0; else dt = -this.hitstop; }
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
+    if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.2);
+    if (this.goodFlash > 0) this.goodFlash = Math.max(0, this.goodFlash - dt * 2.2);
+    if (this.invuln > 0) this.invuln = Math.max(0, this.invuln - dt);
+
+    // starfield drift
+    if (!this.reduced) {
+      for (var s = 0; s < this.stars.length; s++) {
+        var st = this.stars[s];
+        st.y += st.sp * dt;
+        if (st.y > this.H) { st.y = 0; st.x = rand(0, this.W); }
+      }
+    }
+
+    // particles + popups
+    for (var i = this.particles.length - 1; i >= 0; i--) {
+      var p = this.particles[i];
+      p.life -= dt; if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 520 * dt; p.rot += p.vr * dt;
+    }
+    for (var j = this.popups.length - 1; j >= 0; j--) {
+      var pu = this.popups[j];
+      pu.life -= dt; if (pu.life <= 0) { this.popups.splice(j, 1); continue; }
+      pu.y += pu.vy * dt; pu.vy *= 0.94;
+    }
+    // pad flash decay
+    for (var k in this.padFlash) { if (this.padFlash[k]) { this.padFlash[k].t -= dt; if (this.padFlash[k].t <= 0) delete this.padFlash[k]; } }
+
+    // shift animation
+    if (this.anim) { this._stepAnim(dt); return; }  // pause spawn/fuse while a shift plays
+
+    // boss countdown
+    if (this.boss && this.bossTimer > 0) {
+      this.bossTimer -= dt;
+      if (this.bossTimer <= 0) { this.bossTimer = 0; this._bossTimeout(); return; }
+    }
+
+    // card lifecycle
+    if (!this.card) {
+      if (this.cardQueue > 0) {
+        this.gap -= dt;
+        if (this.gap <= 0) { this.cardQueue--; this._spawnCard(); }
+      }
+      return;
+    }
+    var c = this.card;
+    if (!c.settled) {
+      // ease the card down to its resting Y
+      c.y += (c.targetY - c.y) * Math.min(1, dt * 9);
+      if (Math.abs(c.targetY - c.y) < 1.2) { c.y = c.targetY; c.settled = true; }
+      return;   // fuse does not burn until the card is readable
+    }
+    if (!c.resolved) {
+      if (this.invuln > 0) return;  // start-of-wave grace: first card cannot expire
+      c.fuse -= dt;
+      if (c.fuse <= 0) { this._expireCard(); }
+    }
+  };
+
+  Game.prototype._bossTimeout = function () {
+    // ran out the boss clock: costs a heart, then continue the wave.
+    this.streak = 0; this.combo = 1;
+    this._loseLife(0.9);
+    this._popup(this.W * 0.5, this.plot.y + this.plot.h * 0.5, 'CLOCK OUT', this.col.rose);
+    this.sfx.expire();
+    if (this.lives <= 0) { this._gameOver(false); return; }
+    // give a fresh boss clock for the remainder
+    this.bossTimer = TUNE.bossTime;
+    this._syncHud();
+  };
+
+  // ---- render ----------------------------------------------------------
+  Game.prototype._draw = function () {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    ctx.clearRect(0, 0, W, H);
+    this._drawStars();
+
+    ctx.save();
+    if (this.shake > 0 && !this.reduced) {
+      var m = TUNE.shakePx * (this.shake / (TUNE.shakeMs / 1000));
+      ctx.translate(rand(-m, m), rand(-m, m));
+    }
+
+    this._drawDiagram();
+    this._drawCard();
+    this._drawPads();
+
+    // particles
+    for (var i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
+    // popups
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (var j = 0; j < this.popups.length; j++) {
+      var pu = this.popups[j];
+      ctx.globalAlpha = clamp(pu.life, 0, 1);
+      ctx.font = '800 18px -apple-system, sans-serif';
+      ctx.fillStyle = pu.color;
+      ctx.fillText(pu.text, pu.x, pu.y);
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // full-screen flashes (over the shake transform)
+    if (this.flash > 0) {
+      ctx.fillStyle = 'rgba(' + this.rgb.rose.r + ',' + this.rgb.rose.g + ',' + this.rgb.rose.b + ',' + (this.flash * 0.30) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (this.goodFlash > 0) {
+      ctx.fillStyle = 'rgba(' + this.rgb.green.r + ',' + this.rgb.green.g + ',' + this.rgb.green.b + ',' + (this.goodFlash * 0.12) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+  };
+
+  Game.prototype._drawStars = function () {
+    if (!this.stars.length) return;
+    var ctx = this.ctx, spr = this.sprites.star;
+    for (var i = 0; i < this.stars.length; i++) {
+      var s = this.stars[i];
+      ctx.globalAlpha = s.a;
+      ctx.drawImage(spr, s.x, s.y, s.s * 2, s.s * 2);
+    }
+    ctx.globalAlpha = 1;
+  };
+
+  // The S&D diagram: axes, a downward demand line, an upward supply line, the
+  // equilibrium dot at their crossing, and the (animated) shifted ghost of the
+  // moving curve + the new equilibrium.
+  Game.prototype._drawDiagram = function () {
+    var ctx = this.ctx, pl = this.plot;
+    var ox = pl.ox, oy = pl.oy, pw = pl.w, ph = pl.h, py = pl.y;
+
+    // --- axes ---
+    ctx.strokeStyle = this.col.line; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ox, py);           ctx.lineTo(ox, oy);          // P axis (vertical)
+    ctx.lineTo(ox + pw, oy);                                   // Q axis (horizontal)
+    ctx.stroke();
+    // axis labels
+    ctx.fillStyle = this.col.muted; ctx.font = '700 12px -apple-system, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.save(); ctx.translate(ox - 16, py + 6); ctx.rotate(-Math.PI / 2); ctx.fillText('Price', -6, 0); ctx.restore();
+    ctx.textAlign = 'right'; ctx.fillText('Quantity', ox + pw, oy + 20);
+
+    // curve endpoints in plot-space. Neutral demand: high-left to low-right;
+    // supply: low-left to high-right. Shifts translate the line horizontally.
+    var dsh = this.dShift * pw, ssh = this.sShift * pw;
+    // demand line neutral anchors (x fractions along Q of the two ends)
+    // demand: at P high (top) Q small; at P low (bottom) Q large.
+    var dTopX = ox + pw * 0.10 + dsh, dTopY = py + ph * 0.06;
+    var dBotX = ox + pw * 0.72 + dsh, dBotY = oy - ph * 0.04;
+    // supply: at P low (bottom) Q small; at P high (top) Q large.
+    var sBotX = ox + pw * 0.14 + ssh, sBotY = oy - ph * 0.04;
+    var sTopX = ox + pw * 0.80 + ssh, sTopY = py + ph * 0.06;
+
+    // draw a curve (line + label)
+    function drawLine(ctx, x0, y0, x1, y1, color, w) {
+      ctx.strokeStyle = color; ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    }
+    // demand (cyan), supply (amber)
+    drawLine(ctx, dTopX, dTopY, dBotX, dBotY, this.col.demand, 3);
+    drawLine(ctx, sBotX, sBotY, sTopX, sTopY, this.col.supply, 3);
+    // curve name tags at the low-P ends
+    ctx.font = '800 13px -apple-system, sans-serif'; ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = this.col.demand; ctx.fillText('D', dBotX + 6, dBotY - 2);
+    ctx.fillStyle = this.col.supply; ctx.fillText('S', sTopX + 6, sTopY + 2);
+
+    // equilibrium = intersection of the two current lines
+    var eq = lineIntersect(dTopX, dTopY, dBotX, dBotY, sBotX, sBotY, sTopX, sTopY);
+    if (eq) {
+      // guide lines to the axes
+      ctx.strokeStyle = 'rgba(154,167,199,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(ox, eq.y); ctx.lineTo(eq.x, eq.y);       // to P axis
+      ctx.moveTo(eq.x, oy); ctx.lineTo(eq.x, eq.y);       // to Q axis
+      ctx.stroke(); ctx.setLineDash([]);
+      // the dot
+      ctx.fillStyle = this.col.ink;
+      ctx.beginPath(); ctx.arc(eq.x, eq.y, 5.5, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = this.col.indigo; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(eq.x, eq.y, 8.5, 0, 6.2832); ctx.stroke();
+      this._eqXY = eq;
+    }
+  };
+
+  // The shock card: a rounded plate with the shock text (+ a boss second line).
+  Game.prototype._drawCard = function () {
+    var c = this.card; if (!c) return;
+    var ctx = this.ctx, W = this.W;
+    ctx.font = '800 17px -apple-system, sans-serif';
+    var text = c.label;
+    var tw = ctx.measureText(text).width;
+    var subTxt = c.twoShift ? ('+ ' + c.twoShift.label) : null;
+    var sw = 0;
+    if (subTxt) { ctx.font = '700 13px -apple-system, sans-serif'; sw = ctx.measureText(subTxt).width; ctx.font = '800 17px -apple-system, sans-serif'; }
+    var w = Math.max(tw, sw) + 40, h = subTxt ? 62 : 44;
+    w = Math.min(w, W - 28);
+    var x = (W - w) / 2, y = c.y - h / 2;
+    c.w = w; c.h = h;
+
+    // fuse ring: a thin bar under the card shrinking with remaining fuse
+    ctx.save();
+    // plate
+    this._roundRect(x, y, w, h, 13);
+    ctx.fillStyle = 'rgba(14,18,32,0.94)'; ctx.fill();
+    ctx.lineWidth = 1.6; ctx.strokeStyle = this.col.indigo; ctx.stroke();
+    // text
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = this.col.ink; ctx.font = '800 17px -apple-system, sans-serif';
+    ctx.fillText(text, W / 2, subTxt ? y + 20 : c.y);
+    if (subTxt) {
+      ctx.fillStyle = this.col.muted; ctx.font = '700 13px -apple-system, sans-serif';
+      ctx.fillText(subTxt, W / 2, y + 44);
+    }
+    // fuse bar (only after settled + not resolved)
+    if (c.settled && !c.resolved) {
+      var frac = clamp(c.fuse / this.fuse, 0, 1);
+      var bw = w - 20, bx = x + 10, by = y + h + 7;
+      ctx.fillStyle = 'rgba(42,51,85,0.7)';
+      this._roundRect(bx, by, bw, 5, 2.5); ctx.fill();
+      var col = frac > 0.5 ? this.col.green : (frac > 0.25 ? this.col.amber : this.col.rose);
+      ctx.fillStyle = col;
+      this._roundRect(bx, by, bw * frac, 5, 2.5); ctx.fill();
+    }
+    ctx.restore();
+  };
+
+  // The four answer pads (2x2). SAME neutral capsule; NO pre-colour tell. A pad
+  // turns green/rose only via padFlash AFTER the player commits.
+  Game.prototype._drawPads = function () {
+    var ctx = this.ctx;
+    for (var i = 0; i < this.pads.length; i++) {
+      var p = this.pads[i], a = ANSWERS[p.key];
+      var fl = this.padFlash[p.key];
+      var bg = 'rgba(19,26,44,0.92)', bd = this.col.line, tint = this.col.ink;
+      if (fl) {
+        if (fl.kind === 'right') { bd = this.col.green; tint = this.col.green; bg = 'rgba(20,40,32,0.95)'; }
+        else { bd = this.col.rose; tint = this.col.rose; bg = 'rgba(40,20,26,0.95)'; }
+      }
+      ctx.save();
+      this._roundRect(p.x, p.y, p.w, p.h, 14);
+      ctx.fillStyle = bg; ctx.fill();
+      ctx.lineWidth = fl ? 2.2 : 1.4; ctx.strokeStyle = bd; ctx.stroke();
+      // label + a DRAWN directional arrow (pure geometry, no glyph -> ASCII-only
+      // visible text; never colour-coded to correctness)
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = tint; ctx.font = '800 15px -apple-system, sans-serif';
+      var cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+      ctx.fillText(a.pad, cx, cy - 9);
+      // second line: curve letter + a vector arrow (drawn, not a text glyph)
+      ctx.font = '700 12px -apple-system, sans-serif';
+      ctx.fillStyle = this.col.muted;
+      ctx.fillText(a.curve, cx - 12, cy + 12);
+      this._drawArrow(cx + 8, cy + 12, a.dir, this.col.muted);
+      ctx.restore();
+    }
+  };
+
+  Game.prototype._drawParticle = function (p) {
+    var ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = clamp(p.life * 2.2, 0, 1);
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.drawImage(p.spr, -p.size / 2, -p.size / 2, p.size, p.size);
+    ctx.restore();
+  };
+
+  // a small vector arrow centered at (cx,cy); dir>0 points right, dir<0 left.
+  Game.prototype._drawArrow = function (cx, cy, dir, color) {
+    var ctx = this.ctx, s = dir >= 0 ? 1 : -1, len = 9, head = 4;
+    ctx.save();
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - s * len / 2, cy); ctx.lineTo(cx + s * len / 2, cy);   // shaft
+    ctx.stroke();
+    // head (a filled triangle at the tip)
+    var tx = cx + s * len / 2;
+    ctx.beginPath();
+    ctx.moveTo(tx, cy); ctx.lineTo(tx - s * head, cy - head * 0.7); ctx.lineTo(tx - s * head, cy + head * 0.7);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  };
+
+  Game.prototype._roundRect = function (x, y, w, h, r) {
+    var ctx = this.ctx;
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+
+  Game.prototype._syncHud = function () {
+    var b;
+    if ((b = this._byId('sc-wave-n'))) b.textContent = this.wave;
+    if ((b = this._byId('sc-score-n'))) b.textContent = this.score;
+    if ((b = this._byId('sc-lives-n'))) b.textContent = this.lives;
+    var cp = this._byId('sc-combo-pill'), cn = this._byId('sc-combo-n');
+    if (cp && cn) {
+      if (this.combo > 1) { cp.classList.add('sc-on'); cn.textContent = this.combo.toFixed(1); }
+      else cp.classList.remove('sc-on');
+    }
+    var tp = this._byId('sc-timer-pill'), tn = this._byId('sc-timer-n');
+    if (tp && tn) {
+      if (this.boss && this.state === 'playing') {
+        tp.classList.add('sc-on');
+        var secs = Math.ceil(this.bossTimer);
+        tn.textContent = secs;
+        if (secs <= 8) tp.classList.add('sc-low'); else tp.classList.remove('sc-low');
+      } else { tp.classList.remove('sc-on'); tp.classList.remove('sc-low'); }
+    }
+  };
+
+  Game.prototype._gameOver = function (quit) {
+    if (this.state === 'over') return;
+    this.state = 'over';
+    var fs = document.getElementById('sc-final-score'); if (fs) fs.textContent = this.score;
+    var fl = document.getElementById('sc-final-line');
+    if (fl) {
+      var acc = this.seen ? Math.round((this.correct / this.seen) * 100) : 0;
+      fl.textContent = quit
+        ? 'You reached wave ' + this.wave + '. Score ' + this.score + '.'
+        : 'Wave ' + this.wave + '. You shifted ' + this.correct + ' of ' + this.seen + ' correctly (' + acc + '%).';
+    }
+    this._showOverlay('sc-over');
+  };
+
+  Game.prototype._summary = function () {
+    return {
+      subject: this.opts.subject || null,
+      chapterLabel: this.opts.chapterLabel || null,
+      seen: this.seen,
+      correct: this.correct,
+      score: this.score,
+      wave: this.wave,
+      tool: 'shiftcurve'
+    };
+  };
+
+  Game.prototype._finishAndClose = function () {
+    var sum = this._summary();
+    this.destroy();
+    if (this.onClose) { try { this.onClose(sum); } catch (e) {} }
+  };
+
+  Game.prototype._loop = function (t) {
+    if (this.destroyed) return;
+    var self = this;
+    this._raf = requestAnimationFrame(function (tt) { self._loop(tt); });
+    if (!this.last) this.last = t;
+    var dt = (t - this.last) / 1000;
+    this.last = t;
+    dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
+    this.t += dt;
+    if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
+    this._draw();
+  };
+
+  Game.prototype._toggleFullscreen = function () {
+    var el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); // Safari desktop
+        else {
+          try { showToastLike('Add to Home Screen for fullscreen on iPhone/iPad.'); } catch (e) {}
+        }
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    } catch (e) {
+      try { showToastLike('Fullscreen not available here.'); } catch (er) {}
+    }
+    var self = this; setTimeout(function () { self._resize(); }, 120);
+  };
+
+  Game.prototype.destroy = function () {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.state = 'over';
+    if (this._raf) cancelAnimationFrame(this._raf);
+    clearTimeout(this._bannerT);
+    clearTimeout(this._teachT);
+    if (this._handlers) {
+      for (var i = 0; i < this._handlers.length; i++) {
+        var h = this._handlers[i];
+        try { h[0].removeEventListener(h[1], h[2], h[3]); } catch (e) {}
+      }
+      this._handlers.length = 0;
+    }
+    try { if (this.sfx && this.sfx.ctx && this.sfx.ctx.close) this.sfx.ctx.close(); } catch (e) {}
+    try { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); } catch (e) {}
+    var te = document.getElementById('sc-teach'); if (te) te.classList.remove('sc-on');
+    this._hideOverlays();
+    if (live === this) live = null;
+  };
+
+  // ---- geometry helper: intersection of two line segments (as lines) ----
+  function lineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+    var d = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (Math.abs(d) < 1e-6) return null;
+    var t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / d;
+    return { x: x1 + t * (x2 - x1), y: y1 + t * (y2 - y1) };
+  }
+
+  // small helper: a toast-ish fallback that does not depend on host
+  function showToastLike(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(12,16,30,.92);color:#eaf0ff;padding:10px 16px;border-radius:12px;font:600 13px -apple-system,sans-serif;z-index:200000;border:1px solid #2a3355;max-width:80%;text-align:center';
+    document.body.appendChild(t);
+    setTimeout(function () { try { document.body.removeChild(t); } catch (e) {} }, 3200);
+  }
+
+  global.SHIFT_THE_CURVE = SC;
+
+  // ---- standalone auto-boot: if opened directly (no host), start on Start btn.
+  // The host will call SHIFT_THE_CURVE.open(pool, opts) itself and this no-ops.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoBoot);
+  } else { autoBoot(); }
+  function autoBoot() {
+    setTimeout(function () {
+      if (!live && global.SHIFT_THE_CURVE && !global.__SC_HOST_DRIVEN__) {
+        global.SHIFT_THE_CURVE.open(null, {
+          enabled: true,
+          subject: 'Economics',
+          chapterLabel: 'Demo pool',
+          rtl: (document.documentElement.getAttribute('dir') === 'rtl'),
+          onEmit: function () {},
+          onClose: function (s) { try { showToastLike('Session score ' + (s && s.score) + '. Reopen to play again.'); } catch (e) {} }
+        });
+      }
+    }, 30);
+  }
+
+})(typeof window !== 'undefined' ? window : this);
+</script>
+</body>
+</html>
