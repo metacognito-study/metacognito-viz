@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Retrieval Racer</title>
+<!--
+============================================================================
+  RETRIEVAL RACER  -  answer-powered side-scrolling racer  (2026-07-04)
+============================================================================
+  REVIEW NOTE
+  -----------
+  ENGINE / LICENSE
+    Hand-rolled vanilla Canvas2D game loop, ZERO external dependencies for the
+    SOLO game. No CDN, no engine -> the solo race runs fully OFFLINE from this
+    single file. All sound is synthesised at runtime with WebAudio -> no audio
+    assets. Everything below is original code; no third-party license attaches.
+
+    Firebase (compat) is loaded from the gstatic CDN ONLY when a class MULTIPLAYER
+    session is started (RR_MP flag), reusing the host page's config + RT wrapper
+    pattern from ../core/Index.core.html and ../core/whiteboard.module.js. When
+    RR_MP is false (the default), no network code runs and no SDK is fetched.
+
+  SAME PUBLIC CONTRACT AS SALT INVADERS / CONCEPT ASTEROIDS  (drop-in)
+    The host calls, exactly like cgOpenGamePicker_ calls mod.open(pool, {...}):
+
+        window.RETRIEVAL_RACER.open(pool, {
+          enabled: true,                 // REQUIRED flag gate; open() no-ops otherwise
+          subject: 'Chemistry',          // cosmetic
+          chapterLabel: 'Up to chapter 12',
+          rtl: false,                    // mirrors HUD/layout for Arabic
+          onEmit:  cgEmitMicrotaskSignal_,   // onEmit(rowId, lo, 'racer', 0|1, itemCount)
+          onClose: function (summary) { ... } // summary = {subject,chapterLabel,seen,
+                                              //   correct,score,wave,tool:'racer'}
+          // --- multiplayer (all optional; ignored unless RR_MP is true) ---
+          mp: false,                     // request a class race (host UI); needs RR_MP
+          classKey: 'main',              // RTDB class namespace (host passes classKey())
+          displayName: 'Sara'            // shown on the racer's car in a class race
+        });
+
+    pool is an array of { label, category, rowId?, lo? } items ALREADY capped to
+    the student's furthest chapter by the host's furthestChapter() filter (#95).
+    This module never reads a global bank and never filters by chapter itself.
+    window.RETRIEVAL_RACER.start is an alias for .open per the P1 brief.
+    onEmit signature: onEmit(rowId, lo, 'racer', 0|1, n) -- n = items in the turn
+    (always 1 here; one question answered = one retrieval signal).
+
+  MECHANIC  (the retrieval act IS the driving act)
+    A sleek geometric hovercar races a side-scrolling parallax track. The game
+    asks POOL-DERIVED questions; each is one of four axis-based forms:
+      - Two-tap Y/N     ("Is NH3 a BASE?  YES / NO")
+      - Category pick   ("NaCl is a ...?  [SALT] [ACID] [BASE]")  (up to 4 axes)
+      - Type-in         (~1 in 7; "Type the category of CO2: ____")  keyboard OR
+                         an on-screen chip keyboard of the axis' category words.
+    CORRECT  -> boost: a burst of speed + a flame trail; combo builds.
+    WRONG    -> stall: the car briefly slows + a teaching toast with real chem
+                subscripts ("NH3 is a BASE -- not an ACID").  Never a life lost:
+                a race is forgiving; the cost is TIME + falling behind the pack.
+    RACE  = 20 questions to the finish line. Scored on TIME + ACCURACY.
+    3+ correct streak -> TURBO (bigger boost, brighter trail, a turbo flash).
+
+  SOLO  (default)
+    3 AI pace-cars run the same 20-length track with light RUBBER-BANDING: they
+    speed up if far behind you and ease off if far ahead, so a fair race stays
+    winnable for a competent reader and still rewards accuracy+speed. Difficulty
+    tuned toward the same 6-8 "wave-of-death"-equivalent fairness band the sim
+    reports set for the other two games (here: a competent reader wins or places,
+    a guesser trails). Pace-cars never block input; they are the opponent, not a
+    hazard.
+
+  MULTIPLAYER  (flag RR_MP = false unless solid -- OFF by default)
+    Council rule (PRD_ARCADE_GAMES.md): deterministic track from a shared seed,
+    positions synced as a QUESTION-INDEX only (NO physics sync), scores batched
+    per 500ms, host-authoritative start/finish, 5-digit code join via
+    /whiteboards/<classKey>/codes (kind:'game'). /gameRooms/<id> holds
+    {seed, status, hostUid, startAt, racers/$uid:{name,qi,score,done}}.
+    Each client renders every racer's car from its QUESTION INDEX mapped onto the
+    deterministic track -- so tiny payloads, no jitter. The host owns status
+    transitions (lobby -> racing -> done). This wiring is SCAFFOLDED here behind
+    RR_MP and returns a clear "coming soon" if opened with mp:true while RR_MP is
+    false, so nothing half-live ships. Solo is the verified P1 deliverable.
+
+  ARCADE KIT (matches Salt Invaders v2 / Concept Asteroids standards)
+    3-layer parallax (far ridge / mid dunes / near rail), sleek geometric
+    hovercars (gradient hull + glow + hover bob + thruster flame), prerendered
+    particle sprites, screenshake ON STALL ONLY (3px/60ms), WebAudio synth
+    engine-hum + boost + stall + finish + mute, fullscreen + iOS fallback,
+    reduced-motion, RTL (track + HUD mirror), ASCII-only visible text, halal
+    (abstract craft, no violence), single-file offline, 60fps entity budget for
+    old iPads.
+
+  DEMO POOL
+    The exact 28-item DEMO_POOL copied VERBATIM from salt_invaders.html (it is
+    chemistry-QA'd). Used ONLY when the host passes no pool. DO NOT EDIT.
+
+  ASCII-only visible text. No em-dashes / underscores in labels. Halal-safe:
+  abstract hovercars on a geometric track, no violence theming.
+============================================================================
+-->
+<style>
+  :root {
+    /* Host page injects these vars; standalone review falls back to the hex. */
+    --rr-bg1: var(--surface-2, #0d1220);
+    --rr-bg2: var(--surface, #131a2c);
+    --rr-ink: var(--ink, #eaf0ff);
+    --rr-muted: var(--muted, #9aa7c7);
+    --rr-indigo: var(--indigo, #6c5cff);
+    --rr-green: var(--green, #22c58b);
+    --rr-rose: var(--rose, #ff5470);
+    --rr-amber: var(--amber, #ffb020);
+    --rr-line: var(--line, #2a3355);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #06070d; color: var(--rr-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #rr-root { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #rr-wrap { position: relative; width: 100%; height: 100%; max-width: 900px;
+    display: flex; align-items: center; justify-content: center; }
+  #rr-canvas { display: block; width: 100%; height: 100%; touch-action: none;
+    background: radial-gradient(120% 90% at 50% 0%, var(--rr-bg2), var(--rr-bg1) 70%, #06070d);
+    image-rendering: optimizeSpeed; }
+
+  /* Top HUD */
+  #rr-hud { position: absolute; top: 0; left: 0; right: 0; padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; pointer-events: none;
+    font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  #rr-hud .rr-pill { background: rgba(10,14,26,.55); border: 1px solid var(--rr-line);
+    border-radius: 999px; padding: 5px 11px; display: inline-flex; gap: 6px; align-items: center;
+    backdrop-filter: blur(3px); transition: transform .12s ease; }
+  #rr-hud .rr-lap { color: var(--rr-indigo); }
+  #rr-hud .rr-score { color: var(--rr-amber); }
+  #rr-hud .rr-pos { color: var(--rr-green); }
+  #rr-hud .rr-turbo { color: var(--rr-amber); opacity: 0; transform: scale(.85);
+    transition: opacity .18s ease, transform .18s ease; }
+  #rr-hud .rr-turbo.rr-on { opacity: 1; transform: scale(1); animation: rr-turbopulse .5s ease infinite; }
+  @keyframes rr-turbopulse { 50% { transform: scale(1.08); } }
+  #rr-spacer { flex: 1 1 auto; }
+  .rr-iconbtn { pointer-events: auto; width: 40px; height: 40px; min-width: 40px; border-radius: 12px;
+    border: 1px solid var(--rr-line); background: rgba(10,14,26,.6); color: var(--rr-ink);
+    font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px); }
+  .rr-iconbtn:active { transform: scale(.94); }
+
+  /* Question panel (DOM for crisp text + easy a11y + tappable answer buttons) */
+  #rr-quiz { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    width: calc(100% - 24px); max-width: 560px; pointer-events: none; z-index: 6; }
+  #rr-quiz.rr-hide { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  #rr-quiz { transition: opacity .2s ease, transform .2s ease; }
+  #rr-qcard { background: rgba(12,16,30,.86); border: 1.5px solid var(--rr-line); border-radius: 16px;
+    padding: 12px 14px 13px; backdrop-filter: blur(5px); box-shadow: 0 14px 40px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 10px; }
+  #rr-qtext { font-size: 16px; font-weight: 800; line-height: 1.35; text-align: center; letter-spacing: -.01em; }
+  #rr-qtext .rr-q-formula { color: var(--rr-amber); }
+  #rr-qans { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .rr-ans { pointer-events: auto; flex: 1 1 auto; min-width: 92px; min-height: 48px; padding: 0 14px;
+    border-radius: 12px; border: 1.5px solid var(--rr-line); background: rgba(20,26,44,.9);
+    color: var(--rr-ink); font-size: 15px; font-weight: 850; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; letter-spacing: .01em; }
+  .rr-ans:active { transform: scale(.97); }
+  .rr-ans.rr-yes { border-color: rgba(34,197,139,.7); }
+  .rr-ans.rr-no  { border-color: rgba(255,84,112,.7); }
+  .rr-ans.rr-right { background: var(--rr-green); color: #05130d; border-color: var(--rr-green); }
+  .rr-ans.rr-wrong { background: var(--rr-rose); color: #1a0409; border-color: var(--rr-rose); }
+  .rr-ans.rr-was   { outline: 2px dashed var(--rr-green); outline-offset: 2px; }  /* the correct one, after a wrong pick */
+  .rr-ans[disabled] { cursor: default; }
+  /* type-in row */
+  #rr-qtype { display: none; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; pointer-events: auto; }
+  #rr-qtype.rr-on { display: flex; }
+  #rr-qinput { width: 160px; max-width: 60%; min-height: 48px; padding: 0 12px; border-radius: 12px;
+    border: 1.5px solid var(--rr-line); background: rgba(20,26,44,.9); color: var(--rr-ink);
+    font: 850 15px -apple-system, "Segoe UI", sans-serif; text-align: center; }
+  #rr-qgo { pointer-events: auto; min-height: 48px; padding: 0 18px; border-radius: 12px; border: 0;
+    background: var(--rr-indigo); color: #fff; font-size: 15px; font-weight: 850; cursor: pointer; }
+  #rr-qgo:active { transform: scale(.97); }
+  .rr-chip { pointer-events: auto; min-height: 40px; padding: 0 12px; border-radius: 10px;
+    border: 1px solid var(--rr-line); background: rgba(20,26,44,.9); color: var(--rr-muted);
+    font-size: 13px; font-weight: 800; cursor: pointer; }
+  .rr-chip:active { transform: scale(.96); }
+  #rr-qchips { display: none; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  #rr-qchips.rr-on { display: flex; }
+
+  /* teaching toast on a stall */
+  #rr-teach { position: absolute; left: 50%; top: 96px; transform: translateX(-50%) translateY(-6px);
+    max-width: 90%; text-align: center; pointer-events: none; opacity: 0;
+    background: rgba(20,10,16,.9); border: 1.5px solid var(--rr-rose); border-radius: 12px;
+    color: var(--rr-ink); font-size: 13px; font-weight: 750; padding: 8px 14px;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6); box-shadow: 0 10px 26px rgba(0,0,0,.45);
+    transition: opacity .22s ease, transform .22s ease; z-index: 7; }
+  #rr-teach.rr-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #rr-teach b { color: var(--rr-amber); }
+
+  /* Overlays */
+  .rr-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(6,8,14,.7); backdrop-filter: blur(3px); text-align: center; z-index: 10; }
+  .rr-overlay[hidden] { display: none; }
+  .rr-card { background: var(--rr-bg2); border: 1.5px solid var(--rr-line); border-radius: 20px;
+    padding: 22px 20px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .rr-card h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+  .rr-card h1 .rr-accent { color: var(--rr-indigo); }
+  .rr-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--rr-muted); }
+  .rr-card .rr-big { font-size: 46px; font-weight: 900; color: var(--rr-amber); line-height: 1; }
+  .rr-card .rr-place { font-size: 17px; font-weight: 850; }
+  .rr-card ul { margin: 4px 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--rr-muted); line-height: 1.6; text-align: left; }
+  .rr-card ul b { color: var(--rr-ink); }
+  .rr-primary { min-height: 50px; padding: 0 26px; border-radius: 14px; border: 0; cursor: pointer;
+    background: var(--rr-indigo); color: #fff; font-size: 15px; font-weight: 850; width: 100%; }
+  .rr-primary:active { transform: scale(.98); }
+  .rr-ghost { min-height: 44px; padding: 0 20px; border-radius: 12px; cursor: pointer;
+    background: transparent; color: var(--rr-muted); border: 1px solid var(--rr-line);
+    font-size: 13px; font-weight: 700; width: 100%; }
+  .rr-row { display: flex; gap: 10px; width: 100%; }
+  .rr-row > * { flex: 1 1 0; }
+  [dir="rtl"] #rr-hud { flex-direction: row-reverse; }
+</style>
+</head>
+<body>
+<div id="rr-root">
+  <div id="rr-wrap">
+    <canvas id="rr-canvas"></canvas>
+
+    <div id="rr-hud">
+      <span class="rr-pill rr-lap">Q <span id="rr-lap-n">0</span>/<span id="rr-lap-t">20</span></span>
+      <span class="rr-pill rr-score">Score <span id="rr-score-n">0</span></span>
+      <span class="rr-pill rr-pos" id="rr-pos-pill">P<span id="rr-pos-n">1</span></span>
+      <span class="rr-pill rr-turbo" id="rr-turbo-pill">&#128293; TURBO</span>
+      <span id="rr-spacer"></span>
+      <button type="button" class="rr-iconbtn" id="rr-mute-btn" aria-label="Mute">&#128266;</button>
+      <button type="button" class="rr-iconbtn" id="rr-pause-btn" aria-label="Pause">&#10073;&#10073;</button>
+      <button type="button" class="rr-iconbtn" id="rr-fs-btn" aria-label="Fullscreen">&#9974;</button>
+      <button type="button" class="rr-iconbtn" id="rr-close-btn" aria-label="Close">&#10005;</button>
+    </div>
+
+    <div id="rr-teach" aria-live="polite"></div>
+
+    <!-- QUESTION PANEL -->
+    <div id="rr-quiz" class="rr-hide" aria-live="polite">
+      <div id="rr-qcard">
+        <div id="rr-qtext"></div>
+        <div id="rr-qans"></div>
+        <div id="rr-qtype">
+          <input id="rr-qinput" type="text" autocomplete="off" autocapitalize="off"
+                 autocorrect="off" spellcheck="false" inputmode="text"
+                 aria-label="Type your answer">
+          <button type="button" id="rr-qgo">Go</button>
+        </div>
+        <div id="rr-qchips"></div>
+      </div>
+    </div>
+
+    <!-- START -->
+    <div class="rr-overlay" id="rr-start">
+      <div class="rr-card">
+        <h1>Retrieval <span class="rr-accent">Racer</span></h1>
+        <p>Your hovercar runs on right answers. Read each question, tap fast, be
+           correct: a right answer BOOSTS you forward; a wrong one STALLS you and
+           shows you why. First across 20 questions wins. Chain 3 right for TURBO.</p>
+        <ul>
+          <li><b>Answer:</b> tap YES / NO or a category, or type it in</li>
+          <li><b>Boost:</b> every correct answer speeds you up</li>
+          <li><b>Turbo:</b> 3+ in a row for a big speed burst</li>
+          <li><b>Race:</b> three pace-cars are chasing you to the line</li>
+        </ul>
+        <button type="button" class="rr-primary" id="rr-start-btn">Start race</button>
+      </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="rr-overlay" id="rr-pause" hidden>
+      <div class="rr-card">
+        <h1>Paused</h1>
+        <p id="rr-pause-sub">Take a breath. The pack waits.</p>
+        <button type="button" class="rr-primary" id="rr-resume-btn">Resume</button>
+        <button type="button" class="rr-ghost" id="rr-quit-btn">Quit race</button>
+      </div>
+    </div>
+
+    <!-- FINISH -->
+    <div class="rr-overlay" id="rr-over" hidden>
+      <div class="rr-card">
+        <h1 id="rr-over-title">Finish</h1>
+        <div class="rr-place" id="rr-place-line"></div>
+        <div class="rr-big" id="rr-final-score">0</div>
+        <p id="rr-final-line"></p>
+        <div class="rr-row">
+          <button type="button" class="rr-ghost" id="rr-done-btn">Done</button>
+          <button type="button" class="rr-primary" id="rr-again-btn">Race again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR / EMPTY POOL -->
+    <div class="rr-overlay" id="rr-error" hidden>
+      <div class="rr-card">
+        <h1>Not ready</h1>
+        <p id="rr-error-msg">No game content available yet.</p>
+        <button type="button" class="rr-primary" id="rr-error-btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function (global) {
+  'use strict';
+
+  // ======================================================================
+  //  MULTIPLAYER FLAG  -- OFF unless the class-race wiring is verified solid.
+  //  While false: solo runs offline; any mp:true request returns "coming soon".
+  //  The MP scaffold below is complete but gated so nothing half-live ships.
+  // ======================================================================
+  var RR_MP = false;
+
+  // ======================================================================
+  //  DEMO POOL  (verbatim from salt_invaders.html -- chemistry-QA'd. DO NOT EDIT.)
+  // ======================================================================
+  var DEMO_POOL = [
+    // --- salt vs acid vs base ---
+    { label: 'NaCl',    category: 'salt' },   // table salt: neutral ionic salt
+    { label: 'KNO3',    category: 'salt' },   // potassium nitrate: a salt
+    { label: 'CaCO3',   category: 'salt' },   // calcium carbonate: a salt
+    { label: 'Na2SO4',  category: 'salt' },   // sodium sulfate: a salt
+    { label: 'HCl',     category: 'acid' },   // hydrochloric acid
+    { label: 'H2SO4',   category: 'acid' },   // sulfuric acid
+    { label: 'HNO3',    category: 'acid' },   // nitric acid
+    { label: 'NaOH',    category: 'base' },   // sodium hydroxide: strong base
+    { label: 'KOH',     category: 'base' },   // potassium hydroxide: base
+    { label: 'NH3',     category: 'base' },   // ammonia: weak base
+    // --- ionic vs covalent (bonding) ---
+    { label: 'NaCl',    category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'MgO',     category: 'ionic' },     // metal + nonmetal = ionic
+    { label: 'KBr',     category: 'ionic' },     // ionic
+    { label: 'CO2',     category: 'covalent' },  // two nonmetals = covalent
+    { label: 'H2O',     category: 'covalent' },  // covalent (molecular)
+    { label: 'CH4',     category: 'covalent' },  // covalent
+    // --- element vs compound ---
+    { label: 'O2',      category: 'element' },   // one kind of atom = element
+    { label: 'Fe',      category: 'element' },   // iron: element
+    { label: 'He',      category: 'element' },   // helium: element
+    { label: 'H2O',     category: 'compound' },  // 2 elements bonded = compound
+    { label: 'CO2',     category: 'compound' },  // compound
+    { label: 'NaCl',    category: 'compound' },  // compound
+    // --- endothermic vs exothermic (first-encounter energy sign) ---
+    { label: 'Combustion',    category: 'exothermic' },  // releases heat
+    { label: 'Freezing',      category: 'exothermic' },  // releases heat
+    { label: 'Neutralize',    category: 'exothermic' },  // acid+base releases heat
+    { label: 'Melting ice',   category: 'endothermic' }, // absorbs heat
+    { label: 'Photosynth',    category: 'endothermic' }, // absorbs light energy
+    { label: 'Evaporate',     category: 'endothermic' }  // absorbs heat
+  ];
+
+  // Rule axes (identical to Salt Invaders / Concept Asteroids). Each wave picks
+  // an axis; a question targets one item and asks which category it belongs to.
+  // `one` = the singular class noun used in a question / a teaching toast.
+  var AXES = [
+    { id: 'saltab',  cats: ['salt', 'acid', 'base'],
+      nice: { salt: 'SALTS', acid: 'ACIDS', base: 'BASES' },
+      one:  { salt: 'SALT', acid: 'ACID', base: 'BASE' } },
+    { id: 'bond',    cats: ['ionic', 'covalent'],
+      nice: { ionic: 'IONIC', covalent: 'COVALENT' },
+      one:  { ionic: 'IONIC compound', covalent: 'COVALENT compound' } },
+    { id: 'ec',      cats: ['element', 'compound'],
+      nice: { element: 'ELEMENTS', compound: 'COMPOUNDS' },
+      one:  { element: 'ELEMENT', compound: 'COMPOUND' } },
+    { id: 'energy',  cats: ['endothermic', 'exothermic'],
+      nice: { endothermic: 'ENDOTHERMIC', exothermic: 'EXOTHERMIC' },
+      one:  { endothermic: 'ENDOTHERMIC change', exothermic: 'EXOTHERMIC change' } }
+  ];
+
+  // ---------------------------------------------------------------- helpers
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function cssVar(name, fallback) {
+    try { var v = getComputedStyle(document.documentElement).getPropertyValue(name); v = v && v.trim(); return v || fallback; }
+    catch (e) { return fallback; }
+  }
+  function toRGB(c) {
+    c = String(c || '').trim();
+    var m = c.match(/^#?([0-9a-f]{6})$/i);
+    if (m) { var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+    m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+    if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+    return { r: 200, g: 200, b: 200 };
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  // Deterministic PRNG (mulberry32) for a shared-seed track in class races.
+  function mulberry32(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // =====================================================================
+  //  Chemical-formula subscript rendering  (shared with the other two games)
+  //  Source stays ASCII ("H2O"); digits are STYLED as subscripts at render
+  //  time -- never unicode-substituted. Consumers: the DOM question/answer
+  //  text + the teaching toast. Only formula-looking tokens get subscripted;
+  //  plain words ("Melting ice","Photosynth","SALTS") are left untouched.
+  // =====================================================================
+  var FORMULA_RE = /^(?=[^0-9]*[A-Z])(?=.*[0-9])[A-Za-z0-9().+\-]+$/;
+  function looksLikeFormula(tok) { return typeof tok === 'string' && tok.length <= 16 && FORMULA_RE.test(tok); }
+  function formulaRuns(tok) {
+    var runs = [], i = 0, n = tok.length;
+    while (i < n) {
+      var ch = tok[i];
+      if (ch >= '0' && ch <= '9') {
+        var j = i; while (j < n && tok[j] >= '0' && tok[j] <= '9') j++;
+        var prev = i > 0 ? tok[i - 1] : '';
+        var sub = (i > 0) && ((prev >= 'A' && prev <= 'Z') || (prev >= 'a' && prev <= 'z') || prev === ')');
+        runs.push({ t: tok.slice(i, j), sub: sub });
+        i = j;
+      } else {
+        var k = i; while (k < n && !(tok[k] >= '0' && tok[k] <= '9')) k++;
+        runs.push({ t: tok.slice(i, k), sub: false });
+        i = k;
+      }
+    }
+    return runs;
+  }
+  // subscript-aware HTML; only formula-shaped tokens get <sub>-wrapped digits.
+  // Optionally wraps each formula token in a span with class `cls` (for coloring).
+  function formulaHTML(str, cls) {
+    var out = [];
+    var parts = String(str == null ? '' : str).split(/(\s+)/);
+    for (var p = 0; p < parts.length; p++) {
+      var seg = parts[p];
+      if (/^\s+$/.test(seg) || !looksLikeFormula(seg)) { out.push(esc(seg)); continue; }
+      var runs = formulaRuns(seg), buf = '';
+      for (var r = 0; r < runs.length; r++) buf += runs[r].sub ? '<sub>' + esc(runs[r].t) + '</sub>' : esc(runs[r].t);
+      out.push(cls ? '<span class="' + cls + '">' + buf + '</span>' : buf);
+    }
+    return out.join('');
+  }
+
+  // Keep only pool items whose category belongs to an axis; index by category.
+  function buildAxisIndex(pool) {
+    var byCat = {};
+    for (var i = 0; i < pool.length; i++) {
+      var it = pool[i];
+      if (!it || !it.label || !it.category) continue;
+      var cat = String(it.category).toLowerCase();
+      var label = String(it.label).replace(/[_—–]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!label) continue;
+      (byCat[cat] || (byCat[cat] = [])).push({ label: label, category: cat, rowId: it.rowId, lo: it.lo });
+    }
+    var usableAxes = [];
+    for (var a = 0; a < AXES.length; a++) {
+      var ax = AXES[a];
+      var present = ax.cats.filter(function (c) { return byCat[c] && byCat[c].length; });
+      if (present.length >= 2) usableAxes.push({ axis: ax, present: present });
+    }
+    return { byCat: byCat, usableAxes: usableAxes };
+  }
+
+  // =====================================================================
+  //  Tiny WebAudio synth  (no assets; all SFX generated on the fly)
+  // =====================================================================
+  function Sfx() { this.ctx = null; this.muted = false; this._hum = null; }
+  Sfx.prototype._ac = function () {
+    if (this.ctx) return this.ctx;
+    try { var AC = global.AudioContext || global.webkitAudioContext; if (!AC) return null; this.ctx = new AC(); }
+    catch (e) { this.ctx = null; }
+    return this.ctx;
+  };
+  Sfx.prototype.resume = function () { var c = this._ac(); if (c && c.state === 'suspended') { try { c.resume(); } catch (e) {} } };
+  Sfx.prototype._blip = function (type, f0, f1, dur, gain) {
+    if (this.muted) return;
+    var c = this._ac(); if (!c) return;
+    try {
+      var t = c.currentTime, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t);
+      if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  };
+  // continuous engine hum whose pitch tracks current speed 0..1
+  Sfx.prototype.humStart = function () {
+    if (this.muted) return;
+    var c = this._ac(); if (!c || this._hum) return;
+    try {
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = 'sawtooth'; o.frequency.value = 70;
+      g.gain.value = 0.02;
+      o.connect(g); g.connect(c.destination); o.start();
+      this._hum = { o: o, g: g };
+    } catch (e) {}
+  };
+  Sfx.prototype.humSpeed = function (k) {
+    if (!this._hum) return;
+    var c = this.ctx; if (!c) return;
+    try {
+      this._hum.o.frequency.setTargetAtTime(60 + clamp(k, 0, 1.4) * 120, c.currentTime, 0.08);
+      this._hum.g.gain.setTargetAtTime(this.muted ? 0 : 0.018 + clamp(k, 0, 1) * 0.02, c.currentTime, 0.1);
+    } catch (e) {}
+  };
+  Sfx.prototype.humStop = function () {
+    if (!this._hum) return;
+    try { this._hum.o.stop(); } catch (e) {}
+    this._hum = null;
+  };
+  Sfx.prototype.boost   = function () { var s = this; this._blip('triangle', 380, 780, 0.14, 0.09); setTimeout(function () { s._blip('sine', 620, 940, 0.12, 0.06); }, 60); };
+  Sfx.prototype.turbo   = function () { var s = this; [0, 55, 110].forEach(function (d, i) { setTimeout(function () { s._blip('triangle', 520 + i * 200, 780 + i * 220, 0.12, 0.09); }, d); }); };
+  Sfx.prototype.stall   = function () { this._blip('sawtooth', 220, 70, 0.28, 0.13); };
+  Sfx.prototype.finish  = function () { var s = this; [0, 90, 180, 300].forEach(function (d, i) { setTimeout(function () { s._blip('square', 520 + i * 120, 520 + i * 120, 0.12, 0.08); }, d); }); };
+  Sfx.prototype.count   = function (k) { this._blip('sine', k >= 3 ? 880 : 520, k >= 3 ? 880 : 520, 0.12, 0.08); };
+
+  // =====================================================================
+  //  Prerendered sprites (offscreen canvases) so hot loops just blit
+  // =====================================================================
+  function makeParticleSprite(rgb, shape, px) {
+    var c = document.createElement('canvas'); c.width = px; c.height = px;
+    var x = c.getContext('2d');
+    x.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+    var h = px / 2;
+    if (shape === 'sq') { x.fillRect(px * 0.18, px * 0.18, px * 0.64, px * 0.64); }
+    else { x.beginPath(); x.moveTo(h, px * 0.12); x.lineTo(px * 0.9, px * 0.88); x.lineTo(px * 0.1, px * 0.88); x.closePath(); x.fill(); }
+    return c;
+  }
+  function makeStarSprite() {
+    var c = document.createElement('canvas'); c.width = 4; c.height = 4;
+    var x = c.getContext('2d');
+    var g = x.createRadialGradient(2, 2, 0, 2, 2, 2);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 4, 4);
+    return c;
+  }
+
+  // =====================================================================
+  //  Tuning constants
+  //  Distances are in "track units": the finish line is at TRACK_LEN units.
+  //  Answering all 20 correctly quickly should land the player at or ahead of
+  //  the pack; a guesser (50% on Y/N) should trail. Pace-cars rubber-band so a
+  //  fair race stays winnable for a competent reader (same 6-8 fairness band the
+  //  sim reports set for the other two games -> here: place or win by reading).
+  // =====================================================================
+  var TUNE = {
+    raceQs: 20,             // questions to the finish line (race is bound to this)
+    trackLen: 20,           // track units to the finish; maps 1:1 to raceQs answered
+    progEase: 3.2,          // how fast a car's dist eases toward its answered-progress target
+    boostLead: 0.9,         // max track units a boost surge may lead the progress target
+    boostGain: 0.90,        // boost impulse added per correct answer (surge feel)
+    boostGainTurbo: 1.5,    // when in turbo (3+ streak): bigger impulse
+    stallSecs: 0.9,         // seconds the stall visual lingers after a wrong answer
+    stallSpeed: 0.18,       // (legacy feel constant; stall now shown via shake + toast)
+    speedDecay: 2.4,        // how fast a boost impulse bleeds off (per sec)
+    turboStreak: 3,         // correct-in-a-row for turbo
+    typeInEvery: 7,         // ~1 question in 7 is a type-in (rest are tap answers)
+    // scoring: time + accuracy. correct base + speed bonus for a fast answer; a
+    // wrong answer scores nothing but is never fatal.
+    correctBase: 60,
+    speedBonusMax: 40,      // full bonus if answered under fastAnswer secs, tapering to 0 at slowAnswer
+    fastAnswer: 1.6, slowAnswer: 6.0,
+    turboBonus: 15,         // extra per correct while in turbo
+    finishBonusP1: 120, finishBonusP2: 60, finishBonusP3: 25,
+    // AI pace-cars (solo). Each has a base competence; rubber-banding nudges them
+    // toward the player so nobody runs away with it. Three distinct rivals.
+    ai: [
+      { name: 'Vega',  skill: 0.86, react: [1.3, 2.6] },   // strong rival
+      { name: 'Orin',  skill: 0.70, react: [1.8, 3.6] },   // mid rival
+      { name: 'Sable', skill: 0.55, react: [2.6, 5.0] }    // easy rival
+    ],
+    rubberBand: 0.55,       // 0..1 strength of pace-car catch-up/ease-off
+    hitstopMs: 0,           // (racer has no hitstop; stall handles the "cost")
+    shakePx: 3, shakeMs: 60 // screenshake ON STALL ONLY
+  };
+
+  // =====================================================================
+  //  The module
+  // =====================================================================
+  var RR = {};
+  var live = null;
+
+  RR.open = function (pool, opts) {
+    opts = opts || {};
+    if (opts.enabled !== true) return null;               // flag gate, matches other modules
+    if (typeof document === 'undefined') return null;
+    var usePool = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
+    var idx = buildAxisIndex(usePool);
+    if (!idx.usableAxes.length) {
+      showError('This game needs at least two categories from a topic (like salts and acids). Study a little further and it will unlock.');
+      return null;
+    }
+    // Multiplayer gate: requested but not yet enabled -> honest message, no half-live.
+    if (opts.mp === true && !RR_MP) {
+      showError('Class races are coming soon. You can race the pace-cars solo right now.');
+      // fall through to a solo game so the student still plays.
+      opts = Object.assign({}, opts, { mp: false });
+    }
+    if (live) { try { live.destroy(); } catch (e) {} live = null; }
+    live = new Game(idx, opts);
+    return live;
+  };
+  RR.start = RR.open;
+  RR.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+
+  function showError(msg) {
+    var el = document.getElementById('rr-error');
+    var m = document.getElementById('rr-error-msg');
+    if (m) m.textContent = msg;
+    if (el) el.hidden = false;
+  }
+
+  // =====================================================================
+  //  Game instance
+  // =====================================================================
+  function Game(idx, opts) {
+    var self = this;
+    this.idx = idx; this.opts = opts;
+    this.rtl = !!opts.rtl;
+    this.reduced = false;
+    try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
+    this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+
+    this.canvas = document.getElementById('rr-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    if (this.rtl) document.documentElement.setAttribute('dir', 'rtl');
+
+    this.col = {
+      ink: cssVar('--rr-ink', '#eaf0ff'), muted: cssVar('--rr-muted', '#9aa7c7'),
+      indigo: cssVar('--rr-indigo', '#6c5cff'), green: cssVar('--rr-green', '#22c58b'),
+      rose: cssVar('--rr-rose', '#ff5470'), amber: cssVar('--rr-amber', '#ffb020'),
+      line: cssVar('--rr-line', '#2a3355')
+    };
+    this.rgb = {
+      green: toRGB(this.col.green), rose: toRGB(this.col.rose),
+      amber: toRGB(this.col.amber), indigo: toRGB(this.col.indigo),
+      steel: { r: 176, g: 190, b: 220 }
+    };
+
+    this.sfx = new Sfx();
+    this.sprites = {
+      pGreenSq: makeParticleSprite(this.rgb.green, 'sq', 10), pGreenTri: makeParticleSprite(this.rgb.green, 'tri', 10),
+      pRoseSq: makeParticleSprite(this.rgb.rose, 'sq', 10),   pRoseTri: makeParticleSprite(this.rgb.rose, 'tri', 10),
+      pAmberSq: makeParticleSprite(this.rgb.amber, 'sq', 10), pAmberTri: makeParticleSprite(this.rgb.amber, 'tri', 10),
+      pIndigoSq: makeParticleSprite(this.rgb.indigo, 'sq', 10), pIndigoTri: makeParticleSprite(this.rgb.indigo, 'tri', 10),
+      star: makeStarSprite()
+    };
+
+    // seed for the (deterministic) scenery + question order.
+    this.seed = (opts.seed != null) ? (opts.seed >>> 0) : ((Math.random() * 4294967296) >>> 0);
+    this.rng = mulberry32(this.seed);
+
+    this.state = 'start';      // start | countdown | playing | paused | over
+    this.score = 0;
+    this.qIndex = 0;           // questions asked so far (0..raceQs)
+    this.seen = 0; this.correct = 0;
+    this.streak = 0; this.turbo = false;
+    this.cur = null;           // current question object
+    this.qStartT = 0;          // performance time the question appeared
+    this.answered = false;     // guard against double-answer
+    this.finishPlace = 0;
+
+    // player car (prog = questions answered; dist eases to prog's target)
+    this.player = { prog: 0, dist: 0, speed: 0, boost: 0, stall: 0, trail: [], bob: rand(0, 6.28), name: opts.displayName || 'You' };
+
+    // AI pace-cars (solo)
+    this.ais = [];
+    for (var a = 0; a < TUNE.ai.length; a++) {
+      var cfg = TUNE.ai[a];
+      this.ais.push({ cfg: cfg, prog: 0, dist: 0, speed: 0, boost: 0, trail: [],
+                      nextT: rand(cfg.react[0], cfg.react[1]), bob: rand(0, 6.28), name: cfg.name });
+    }
+
+    // scenery: 3 parallax layers of geometric silhouettes, seeded so the track
+    // is the SAME every run of a given seed (deterministic -- MP-ready).
+    this.layers = null;
+    this.stars = [];
+    this.parY = 0;             // parallax scroll accumulator (world units)
+
+    this.shake = 0;
+    this.countdown = 0;
+
+    // multiplayer net handle (null in solo)
+    this.net = null;
+
+    this.W = 0; this.H = 0; this.dpr = 1; this.t = 0; this.last = 0;
+
+    this._bind(); this._resize();
+    this._buildScenery();
+    this._showOverlay('rr-start'); this._syncHud();
+    this._raf = requestAnimationFrame(function (t) { self._loop(t); });
+  }
+
+  Game.prototype._byId = function (id) { return document.getElementById(id); };
+
+  Game.prototype._bind = function () {
+    var self = this;
+    this._handlers = [];
+    function on(el, ev, fn, opt) { if (!el) return; el.addEventListener(ev, fn, opt); self._handlers.push([el, ev, fn, opt]); }
+
+    on(this._byId('rr-start-btn'), 'click', function () { self.sfx.resume(); self._begin(); });
+    on(this._byId('rr-again-btn'), 'click', function () { self.sfx.resume(); self._reset(); self._begin(); });
+    on(this._byId('rr-done-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('rr-error-btn'), 'click', function () { self._byId('rr-error').hidden = true; self.destroy(); if (self.onClose) { try { self.onClose(self._summary()); } catch (e) {} } });
+    on(this._byId('rr-pause-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('rr-resume-btn'), 'click', function () { self._togglePause(); });
+    on(this._byId('rr-quit-btn'), 'click', function () { self._finish(true); });
+    on(this._byId('rr-close-btn'), 'click', function () { self._finishAndClose(); });
+    on(this._byId('rr-fs-btn'), 'click', function () { self._toggleFullscreen(); });
+    on(this._byId('rr-mute-btn'), 'click', function () { self._toggleMute(); });
+
+    // type-in answer
+    on(this._byId('rr-qgo'), 'click', function () { self._submitTypeIn(); });
+    var inp = this._byId('rr-qinput');
+    on(inp, 'keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); self._submitTypeIn(); } });
+
+    // keyboard shortcuts during play: number keys pick an answer; Y/N for yes/no; P pause; M mute
+    this._onKey = function (e) {
+      if (self.state === 'start' && e.key === 'Enter') { self.sfx.resume(); self._begin(); return; }
+      if (self.state !== 'playing') return;
+      // don't hijack typing in the type-in box
+      if (document.activeElement === inp) return;
+      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { self._togglePause(); return; }
+      if (e.key === 'm' || e.key === 'M') { self._toggleMute(); return; }
+      if (!self.cur || self.answered || self.cur.type === 'type') return;
+      var k = e.key;
+      if (self.cur.type === 'yn') {
+        if (k === 'y' || k === 'Y' || k === '1') { self._answer(0); e.preventDefault(); }
+        else if (k === 'n' || k === 'N' || k === '2') { self._answer(1); e.preventDefault(); }
+      } else if (/^[1-9]$/.test(k)) {
+        var i = (+k) - 1;
+        if (i < self.cur.options.length) { self._answer(i); e.preventDefault(); }
+      }
+    };
+    on(document, 'keydown', this._onKey);
+
+    this._onResize = function () { self._resize(); };
+    on(global, 'resize', this._onResize);
+    on(global, 'orientationchange', this._onResize);
+    this._onVis = function () { if (document.hidden && self.state === 'playing') self._togglePause(); };
+    on(document, 'visibilitychange', this._onVis);
+  };
+
+  Game.prototype._resize = function () {
+    var wrap = document.getElementById('rr-wrap');
+    var r = wrap.getBoundingClientRect();
+    this.dpr = clamp(global.devicePixelRatio || 1, 1, 2.5);
+    this.W = Math.round(r.width); this.H = Math.round(r.height);
+    this.canvas.width = Math.round(this.W * this.dpr);
+    this.canvas.height = Math.round(this.H * this.dpr);
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this._buildStars();
+  };
+
+  // ---- scenery (deterministic from seed) -------------------------------
+  Game.prototype._buildStars = function () {
+    this.stars = [];
+    if (this.reduced) return;
+    var rng = mulberry32(this.seed ^ 0x9e3779b9);
+    var n = Math.round((this.W * this.H) / 14000);
+    for (var i = 0; i < n; i++) this.stars.push({ x: rng() * this.W, y: rng() * this.H * 0.6, a: 0.12 + rng() * 0.4, s: 1 + rng() * 1.6 });
+  };
+  // 3 parallax layers of jagged silhouette ridgelines, seeded. Each layer is a
+  // repeating set of "peaks" scrolled at a different rate for depth.
+  Game.prototype._buildScenery = function () {
+    var rng = mulberry32(this.seed);
+    function ridge(count) {
+      var pts = [];
+      for (var i = 0; i < count; i++) pts.push({ h: 0.3 + rng() * 0.7, w: 0.5 + rng() * 1.0 });
+      return pts;
+    }
+    this.layers = [
+      { peaks: ridge(14), sp: 0.10, base: 0.62, col: 'rgba(40,50,84,0.55)', span: 2.4 },   // far ridge
+      { peaks: ridge(12), sp: 0.24, base: 0.74, col: 'rgba(54,66,110,0.6)',  span: 1.9 },   // mid dunes
+      { peaks: ridge(10), sp: 0.55, base: 0.88, col: 'rgba(74,88,140,0.7)',  span: 1.4 }    // near rail
+    ];
+  };
+
+  // ---- lifecycle -------------------------------------------------------
+  Game.prototype._showOverlay = function (id) {
+    ['rr-start', 'rr-pause', 'rr-over', 'rr-error'].forEach(function (o) { var el = document.getElementById(o); if (el) el.hidden = (o !== id); });
+  };
+  Game.prototype._hideOverlays = function () {
+    ['rr-start', 'rr-pause', 'rr-over', 'rr-error'].forEach(function (o) { var el = document.getElementById(o); if (el) el.hidden = true; });
+  };
+
+  Game.prototype._reset = function () {
+    this.score = 0; this.qIndex = 0; this.seen = 0; this.correct = 0;
+    this.streak = 0; this.turbo = false; this.cur = null; this.answered = false; this.finishPlace = 0;
+    this.player.prog = 0; this.player.dist = 0; this.player.speed = 0; this.player.boost = 0; this.player.stall = 0; this.player.trail = [];
+    for (var a = 0; a < this.ais.length; a++) {
+      var ai = this.ais[a];
+      ai.prog = 0; ai.dist = 0; ai.speed = 0; ai.boost = 0; ai.trail = [];
+      ai.nextT = rand(ai.cfg.react[0], ai.cfg.react[1]);
+    }
+    // fresh question order for a re-race
+    this.seed = (Math.random() * 4294967296) >>> 0; this.rng = mulberry32(this.seed);
+    this._buildScenery();
+    this.shake = 0; this.parY = 0;
+  };
+
+  Game.prototype._begin = function () {
+    this._hideOverlays();
+    this.sfx.humStart();
+    this._startCountdown();
+  };
+
+  Game.prototype._startCountdown = function () {
+    var self = this;
+    this.state = 'countdown';
+    this.countdown = 3;
+    this._syncHud();
+    this.sfx.count(3);
+    this._cdT = setInterval(function () {
+      self.countdown--;
+      if (self.countdown > 0) { self.sfx.count(self.countdown); }
+      else {
+        clearInterval(self._cdT); self._cdT = null;
+        self.state = 'playing';
+        self.last = 0;
+        self._nextQuestion();
+      }
+    }, 700);
+  };
+
+  Game.prototype._togglePause = function () {
+    if (this.state === 'playing') {
+      this.state = 'paused';
+      this._showOverlay('rr-pause');
+    } else if (this.state === 'paused') {
+      this.state = 'playing'; this._hideOverlays(); this.last = 0;
+    }
+  };
+
+  Game.prototype._toggleMute = function () {
+    this.sfx.muted = !this.sfx.muted;
+    var b = this._byId('rr-mute-btn');
+    if (b) { b.innerHTML = this.sfx.muted ? '&#128263;' : '&#128266;'; b.setAttribute('aria-label', this.sfx.muted ? 'Unmute' : 'Mute'); }
+    if (this.sfx.muted) this.sfx.humStop(); else if (this.state === 'playing') this.sfx.humStart();
+  };
+
+  // ---- question generation --------------------------------------------
+  // Build one question from a randomly chosen usable axis + a target item on it.
+  // Forms: 'yn' (is X a CAT?), 'pick' (which category is X?), 'type' (type it).
+  Game.prototype._makeQuestion = function () {
+    var choice = pick(this.idx.usableAxes);
+    var axis = choice.axis;
+    var present = choice.present;
+    var trueCat = pick(present);
+    var item = pick(this.idx.byCat[trueCat]);
+
+    // decide the form. ~1 in typeInEvery is a type-in (only when the axis has a
+    // short, typeable category word). Otherwise alternate yn / pick.
+    var form;
+    var wantType = (this.qIndex + 1) % TUNE.typeInEvery === 0;
+    if (wantType) form = 'type';
+    else form = (this.rng() < 0.5) ? 'yn' : 'pick';
+
+    var q = { axis: axis, item: item, trueCat: trueCat, type: form,
+              rowId: item.rowId, lo: item.lo, label: item.label };
+
+    if (form === 'yn') {
+      // Ask "Is <item> a/an <someCat>?" -- someCat is trueCat half the time.
+      var askCat = (this.rng() < 0.5) ? trueCat : pick(present.filter(function (c) { return c !== trueCat; }));
+      var isYes = (askCat === trueCat);
+      q.askCat = askCat;
+      q.options = ['YES', 'NO'];
+      q.correctIdx = isYes ? 0 : 1;
+      q.promptHTML = 'Is ' + formulaHTML(item.label, 'rr-q-formula') + ' ' + article(axis.one[askCat]) +
+                     ' <b>' + esc(axis.one[askCat]) + '</b>?';
+    } else if (form === 'pick') {
+      // "<item> is a ...?" pick the category among the axis' present cats.
+      var opts = shuffle(present.slice());
+      q.options = opts.map(function (c) { return axis.nice[c]; });
+      q.optionCats = opts;
+      q.correctIdx = opts.indexOf(trueCat);
+      q.promptHTML = formulaHTML(item.label, 'rr-q-formula') + ' is a ...?';
+    } else {
+      // type-in: "Type the category of <item>" -- accepts the singular or plural
+      // class word (case-insensitive). A chip keyboard of the axis words assists.
+      q.options = present.slice();               // chip labels use nice[]
+      q.accept = {};
+      q.accept[norm(axis.one[trueCat])] = 1;
+      q.accept[norm(axis.nice[trueCat])] = 1;
+      q.accept[norm(trueCat)] = 1;
+      q.promptHTML = 'Type the group of ' + formulaHTML(item.label, 'rr-q-formula') + ':';
+    }
+    return q;
+  };
+
+  function article(word) { return /^[AEIOU]/i.test(String(word || '')) ? 'an' : 'a'; }
+  function norm(s) { return String(s == null ? '' : s).toLowerCase().replace(/[^a-z]/g, ''); }
+
+  Game.prototype._nextQuestion = function () {
+    if (this.qIndex >= TUNE.raceQs) { return; }   // race distance driven by dist, not this
+    this.cur = this._makeQuestion();
+    this.answered = false;
+    this.qStartT = performance.now();
+    this._renderQuestion();
+  };
+
+  Game.prototype._renderQuestion = function () {
+    var q = this.cur;
+    var quiz = this._byId('rr-quiz');
+    var qtext = this._byId('rr-qtext');
+    var qans = this._byId('rr-qans');
+    var qtype = this._byId('rr-qtype');
+    var qchips = this._byId('rr-qchips');
+    var qinput = this._byId('rr-qinput');
+    var self = this;
+    if (!quiz) return;
+
+    qtext.innerHTML = q.promptHTML;
+    qans.innerHTML = '';
+    qchips.innerHTML = '';
+    qtype.classList.remove('rr-on');
+    qchips.classList.remove('rr-on');
+    qinput.value = '';
+
+    if (q.type === 'type') {
+      qtype.classList.add('rr-on');
+      qchips.classList.add('rr-on');
+      // chip keyboard of the axis category words (nice), so touch users don't type
+      for (var c = 0; c < q.options.length; c++) {
+        (function (catId) {
+          var chip = document.createElement('button');
+          chip.type = 'button'; chip.className = 'rr-chip';
+          chip.innerHTML = formulaHTML(q.axis.nice[catId]);
+          chip.onclick = function () { qinput.value = q.axis.nice[catId]; self._submitTypeIn(); };
+          qchips.appendChild(chip);
+        })(q.options[c]);
+      }
+      // focus the input so a hardware keyboard works immediately (mobile stays chip-driven)
+      setTimeout(function () { try { qinput.focus(); } catch (e) {} }, 30);
+    } else {
+      for (var i = 0; i < q.options.length; i++) {
+        (function (idx) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'rr-ans' + (q.type === 'yn' ? (idx === 0 ? ' rr-yes' : ' rr-no') : '');
+          b.innerHTML = formulaHTML(q.options[idx]);
+          b.onclick = function () { self._answer(idx); };
+          qans.appendChild(b);
+        })(i);
+      }
+    }
+    quiz.classList.remove('rr-hide');
+  };
+
+  Game.prototype._submitTypeIn = function () {
+    if (!this.cur || this.cur.type !== 'type' || this.answered) return;
+    var qinput = this._byId('rr-qinput');
+    var val = norm(qinput.value);
+    if (!val) return;
+    var ok = !!this.cur.accept[val];
+    this._resolveAnswer(ok, -1);
+  };
+
+  // Tap / key answer for yn + pick forms.
+  Game.prototype._answer = function (idx) {
+    if (!this.cur || this.answered || this.cur.type === 'type') return;
+    var ok = (idx === this.cur.correctIdx);
+    this._resolveAnswer(ok, idx);
+  };
+
+  // ---- the CORE educational branch: right = boost, wrong = stall + teach --
+  Game.prototype._resolveAnswer = function (ok, pickedIdx) {
+    this.answered = true;
+    var q = this.cur;
+    this.seen++;
+    this.qIndex++;
+    // every answered question advances the car one step toward the 20-question
+    // finish (prog). A correct answer ADDS a boost surge on top (feel); a wrong
+    // answer advances the same step but with no boost + a stall, so a guesser
+    // still finishes but slower and behind the accurate pack.
+    this.player.prog = this.qIndex;
+
+    // reflect the pick on the buttons briefly (right/wrong colouring)
+    this._markAnswerButtons(ok, pickedIdx);
+
+    var answerT = (performance.now() - this.qStartT) / 1000;
+
+    if (ok) {
+      this.correct++;
+      this.streak++;
+      var wasTurbo = this.turbo;
+      this.turbo = this.streak >= TUNE.turboStreak;
+      // boost impulse (bigger in turbo)
+      var gain = this.turbo ? TUNE.boostGainTurbo : TUNE.boostGain;
+      this.player.boost += gain;
+      // score = base + speed bonus (faster answer = more) + turbo bonus
+      var frac = clamp((TUNE.slowAnswer - answerT) / (TUNE.slowAnswer - TUNE.fastAnswer), 0, 1);
+      var gained = TUNE.correctBase + Math.round(TUNE.speedBonusMax * frac) + (this.turbo ? TUNE.turboBonus : 0);
+      this.score += gained;
+      this._popup(this.player, '+' + gained, this.col.green);
+      this._burstAt(this.player, this.rgb.green, this.turbo ? 16 : 10, this.turbo ? 'amber' : 'green');
+      if (this.turbo && !wasTurbo) { this.sfx.turbo(); this._flashTurbo(true); }
+      else this.sfx.boost();
+      this._emit(q, 1);
+    } else {
+      this.streak = 0; this.turbo = false; this._flashTurbo(false);
+      this.player.stall = TUNE.stallSecs;
+      this._addShake();                 // shake ON STALL ONLY (spec)
+      this._teach(q, pickedIdx);
+      this._burstAt(this.player, this.rgb.rose, 12, 'rose');
+      this._popup(this.player, 'STALL', this.col.rose);
+      this.sfx.stall();
+      this._emit(q, 0);
+    }
+    this._syncHud();
+
+    // hide the panel, then load the next question (or finish) after a short beat
+    var self = this;
+    var quiz = this._byId('rr-quiz');
+    clearTimeout(this._qGapT);
+    this._qGapT = setTimeout(function () {
+      if (quiz) quiz.classList.add('rr-hide');
+      if (self.qIndex >= TUNE.raceQs) {
+        // all 20 answered: no more prompts. The car eases to its full-progress
+        // target (the finish line); _update's finish check fires when it arrives.
+        self.cur = null;
+      } else {
+        setTimeout(function () { if (self.state === 'playing') self._nextQuestion(); }, 260);
+      }
+    }, ok ? 420 : 900);   // linger a touch longer on a wrong answer to read the toast
+  };
+
+  Game.prototype._markAnswerButtons = function (ok, pickedIdx) {
+    if (this.cur.type === 'type') return;
+    var qans = this._byId('rr-qans');
+    if (!qans) return;
+    var kids = qans.children;
+    for (var i = 0; i < kids.length; i++) {
+      var b = kids[i];
+      b.setAttribute('disabled', 'disabled');
+      if (i === this.cur.correctIdx) b.classList.add(ok && i === pickedIdx ? 'rr-right' : 'rr-was');
+      if (!ok && i === pickedIdx) b.classList.add('rr-wrong');
+    }
+  };
+
+  // teaching toast: "<item> is a <trueClass> -- not a <pickedClass>" (subscripts)
+  Game.prototype._teach = function (q, pickedIdx) {
+    var el = this._byId('rr-teach');
+    if (!el) return;
+    var trueOne = q.axis.one[q.trueCat];
+    var head = formulaHTML(q.item.label) + ' is ' + article(trueOne) + ' <b>' + esc(trueOne) + '</b>';
+    var tail = '';
+    if (q.type === 'yn') {
+      // they said yes/no wrongly; state the truth
+      tail = '';
+    } else if (q.type === 'pick' && pickedIdx >= 0 && q.optionCats && q.optionCats[pickedIdx] !== q.trueCat) {
+      var pickedOne = q.axis.one[q.optionCats[pickedIdx]];
+      tail = ' -- not ' + article(pickedOne) + ' ' + esc(pickedOne);
+    }
+    el.innerHTML = head + tail;
+    el.classList.add('rr-on');
+    clearTimeout(this._teachT);
+    this._teachT = setTimeout(function () { if (el) el.classList.remove('rr-on'); }, 2000);
+  };
+
+  Game.prototype._flashTurbo = function (on) {
+    var pill = this._byId('rr-turbo-pill');
+    if (pill) { if (on) pill.classList.add('rr-on'); else pill.classList.remove('rr-on'); }
+  };
+
+  Game.prototype._emit = function (q, score) {
+    if (!this.onEmit || q.rowId == null) return;
+    try { this.onEmit(q.rowId, q.lo || null, 'racer', score ? 1 : 0, 1); } catch (er) {}
+  };
+
+  // ---- update ----------------------------------------------------------
+  Game.prototype._update = function (dt) {
+    var i;
+    this.player.bob += dt * 5;
+    this.parY += dt;
+
+    // --- player car physics ---
+    // PROGRESS-DRIVEN, not time-driven: the finish (trackLen) maps to answering
+    // all raceQs. Each car has a `prog` = questions cleared; its TARGET distance
+    // is (prog/raceQs)*trackLen. `dist` eases toward that target so the car glides
+    // forward on each answer instead of teleporting. A tiny idle drift + the boost
+    // impulse ride on top for the arcade feel, but they cannot reach the line on
+    // their own -- only answering all raceQs does. This binds the race to 20 Qs.
+    var p = this.player;
+    if (p.stall > 0) p.stall = Math.max(0, p.stall - dt);
+    var pTarget = this._targetDist(p.prog);
+    var ease = clamp(dt * TUNE.progEase, 0, 1);
+    var prevDist = p.dist;
+    p.dist += (pTarget - p.dist) * ease;
+    p.dist += p.boost * 1.6 * dt;                 // boost surge (on top of the ease)
+    p.dist = Math.min(p.dist, pTarget + TUNE.boostLead);  // boost can lead the target only so far
+    p.boost = Math.max(0, p.boost - p.boost * TUNE.speedDecay * dt);
+    p.speed = (p.dist - prevDist) / Math.max(dt, 0.0001);   // for hum + trail heat
+    if (this.reduced) p.trail = [];
+    else { p.trail.push({ dist: p.dist, t: 0, hot: p.boost > 0.15 }); if (p.trail.length > 22) p.trail.shift(); }
+    for (i = 0; i < p.trail.length; i++) p.trail[i].t += dt;
+
+    // engine hum tracks player speed (normalized)
+    this.sfx.humSpeed(clamp(p.speed / 2.4, 0, 1.2));
+
+    // --- AI pace-cars (solo) with rubber-banding ---
+    // Each AI "answers" on a timer; a correct answer advances its prog by 1 (like
+    // the player). Rubber-banding nudges its answer CADENCE toward the player's
+    // progress so nobody runs away: an AI far behind answers a touch faster, one
+    // far ahead a touch slower. Distance eases to (prog/raceQs)*trackLen, same map.
+    for (var a = 0; a < this.ais.length; a++) {
+      var ai = this.ais[a];
+      ai.bob += dt * 5;
+      ai.nextT -= dt;
+      if (ai.nextT <= 0 && ai.prog < TUNE.raceQs) {
+        var lead = p.prog - ai.prog;   // + => AI behind player (in questions)
+        var band = 1 - clamp(lead, -TUNE.raceQs, TUNE.raceQs) / TUNE.raceQs * TUNE.rubberBand; // behind => shorter wait
+        var span = rand(ai.cfg.react[0], ai.cfg.react[1]) * clamp(band, 0.4, 1.6);
+        ai.nextT = span;
+        var correct = this.rng() < ai.cfg.skill;
+        if (correct) { ai.prog++; ai.boost += TUNE.boostGain; }
+        // a wrong AI answer just costs it the cadence (no progress), mirroring a stall.
+      }
+      var aTarget = this._targetDist(ai.prog);
+      var aprev = ai.dist;
+      ai.dist += (aTarget - ai.dist) * ease;
+      ai.dist += ai.boost * 1.6 * dt;
+      ai.dist = Math.min(ai.dist, aTarget + TUNE.boostLead);
+      ai.boost = Math.max(0, ai.boost - ai.boost * TUNE.speedDecay * dt);
+      ai.speed = (ai.dist - aprev) / Math.max(dt, 0.0001);
+      if (!this.reduced) { ai.trail.push({ dist: ai.dist, t: 0, hot: ai.boost > 0.15 }); if (ai.trail.length > 16) ai.trail.shift(); for (i = 0; i < ai.trail.length; i++) ai.trail[i].t += dt; }
+    }
+
+    // shake decay
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
+
+    // particles / popups
+    for (i = this.particles.length - 1; i >= 0; i--) {
+      var pt = this.particles[i]; pt.life -= dt;
+      if (pt.life <= 0) { this.particles.splice(i, 1); continue; }
+      pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vy += 120 * dt; pt.rot += pt.vr * dt;
+    }
+    for (i = this.popups.length - 1; i >= 0; i--) {
+      var pp = this.popups[i]; pp.life -= dt; pp.y += pp.vy * dt;
+      if (pp.life <= 0) this.popups.splice(i, 1);
+    }
+
+    this._syncPos();
+
+    // finish check: the player crosses the line ONLY after all raceQs are
+    // answered AND the car has eased essentially to the finish (so the last
+    // boost glide completes visually). Bound to 20 questions, per spec.
+    if (this.state === 'playing' && p.prog >= TUNE.raceQs && p.dist >= TUNE.trackLen - 0.05) {
+      p.dist = TUNE.trackLen;
+      this._finish(false);
+    }
+  };
+
+  // map a car's answered-question count to its target distance on the track.
+  Game.prototype._targetDist = function (prog) {
+    return clamp(prog, 0, TUNE.raceQs) / TUNE.raceQs * TUNE.trackLen;
+  };
+
+  // compute race position (1..N) by distance
+  Game.prototype._syncPos = function () {
+    var ahead = 0, p = this.player;
+    for (var a = 0; a < this.ais.length; a++) if (this.ais[a].dist > p.dist) ahead++;
+    this.pos = ahead + 1;
+  };
+
+  // particles / popups arrays live on the instance (init lazily to keep ctor tidy)
+  Game.prototype.particles = null;
+  Game.prototype.popups = null;
+
+  // ---- juice -----------------------------------------------------------
+  Game.prototype._addShake = function () { if (this.reduced) return; this.shake = TUNE.shakeMs / 1000; };
+  Game.prototype._carScreen = function (car, laneY) {
+    // map a car's track distance to an on-screen x. The camera follows the
+    // player: player sits at ~34% width, cars ahead/behind offset by delta.
+    var p = this.player;
+    var pxPerUnit = this.W / 7;   // ~7 track-units visible
+    var baseX = this.W * (this.rtl ? 0.66 : 0.34);
+    var x = baseX + (car.dist - p.dist) * pxPerUnit * (this.rtl ? -1 : 1);
+    return { x: x, y: laneY };
+  };
+  Game.prototype._burstAt = function (car, rgb, n, kind) {
+    if (!this.particles) return;
+    if (this.reduced) n = Math.min(n, 5);
+    var lane = this._laneY(0);
+    var s = this._carScreen(car, lane);
+    var sq = this.sprites['p' + cap(kind) + 'Sq'] || this.sprites.pAmberSq;
+    var tri = this.sprites['p' + cap(kind) + 'Tri'] || this.sprites.pAmberTri;
+    for (var i = 0; i < n; i++) {
+      var ang = rand(Math.PI * 0.5, Math.PI * 1.5); // spray backward-ish
+      var sp = rand(70, 240);
+      this.particles.push({ x: s.x, y: s.y, vx: Math.cos(ang) * sp * (this.rtl ? -1 : 1), vy: Math.sin(ang) * sp - 30,
+        life: rand(0.3, 0.6), size: rand(6, 12), rot: rand(0, 6.28), vr: rand(-9, 9),
+        spr: (Math.random() < 0.5) ? sq : tri });
+    }
+  };
+  Game.prototype._popup = function (car, text, color) {
+    if (!this.popups) return;
+    var s = this._carScreen(car, this._laneY(0));
+    this.popups.push({ x: s.x, y: s.y - 26, text: text, color: color, life: 0.95, vy: -50 });
+  };
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // lane y for a given lane index: player = lane 0 (front/lowest); AI cars sit
+  // in lanes above, spread across the mid-lower band of the screen.
+  Game.prototype._laneY = function (laneIdx) {
+    var top = this.H * 0.52, bottom = this.H * 0.82;
+    var lanes = 1 + this.ais.length;
+    var step = (bottom - top) / Math.max(1, lanes - 1);
+    return bottom - laneIdx * step;   // lane 0 lowest (nearest camera)
+  };
+
+  // ---- render ----------------------------------------------------------
+  Game.prototype._draw = function () {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    if (!this.particles) { this.particles = []; this.popups = []; }
+    ctx.clearRect(0, 0, W, H);
+
+    this._drawSky();
+    this._drawScenery();
+    this._drawTrack();
+
+    ctx.save();
+    if (this.shake > 0 && !this.reduced) {
+      var m = TUNE.shakePx * (this.shake / (TUNE.shakeMs / 1000));
+      ctx.translate(rand(-m, m), rand(-m, m));
+    }
+
+    // draw AI cars first (in their lanes), then the player on top (lane 0)
+    // sort AI cars into lanes 1..N; assign a stable lane per AI by index.
+    for (var a = 0; a < this.ais.length; a++) {
+      var ai = this.ais[a];
+      var s = this._carScreen(ai, this._laneY(a + 1));
+      this._drawTrail(ai, this._laneY(a + 1), this.rgb.steel, 0.5);
+      this._drawCar(s.x, s.y, this._aiColor(a), ai.bob, false, ai.name);
+    }
+    var ps = this._carScreen(this.player, this._laneY(0));
+    this._drawTrail(this.player, this._laneY(0), this.turbo ? this.rgb.amber : this.rgb.indigo, this.turbo ? 1 : 0.8);
+    this._drawCar(ps.x, ps.y, this.col.indigo, this.player.bob, this.turbo, this.player.name);
+
+    // particles
+    for (var i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
+
+    // popups
+    ctx.textAlign = 'center'; ctx.font = '900 16px -apple-system, sans-serif';
+    for (i = 0; i < this.popups.length; i++) {
+      var pp = this.popups[i], k = clamp(pp.life / 0.95, 0, 1);
+      ctx.globalAlpha = k; ctx.fillStyle = pp.color;
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = this.reduced ? 0 : 3;
+      ctx.fillText(pp.text, pp.x, pp.y); ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // countdown big number over everything
+    if (this.state === 'countdown') this._drawCountdown();
+  };
+
+  Game.prototype._drawSky = function () {
+    var ctx = this.ctx;
+    if (this.stars.length && !this.reduced) {
+      var spr = this.sprites.star;
+      for (var i = 0; i < this.stars.length; i++) { var st = this.stars[i]; ctx.globalAlpha = st.a; ctx.drawImage(spr, st.x - st.s, st.y - st.s, st.s * 2, st.s * 2); }
+      ctx.globalAlpha = 1;
+    }
+  };
+
+  // repeating jagged silhouette ridgelines, scrolled per-layer for parallax
+  Game.prototype._drawScenery = function () {
+    if (!this.layers) return;
+    var ctx = this.ctx, W = this.W, H = this.H;
+    var dist = this.player ? this.player.dist : 0;
+    for (var L = 0; L < this.layers.length; L++) {
+      var lay = this.layers[L];
+      var scroll = (dist * lay.sp + this.parY * lay.sp * 0.15);   // ties to travel + time
+      var baseY = H * lay.base;
+      ctx.fillStyle = lay.col;
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      var peaks = lay.peaks, n = peaks.length;
+      var unitW = W / lay.span;                 // width of one peak span on screen
+      // start a bit left of screen so scrolling never shows a gap
+      var startI = Math.floor(scroll);
+      var frac = scroll - startI;
+      var x = -frac * unitW;
+      var pi = ((startI % n) + n) % n;
+      ctx.lineTo(x, baseY);
+      while (x < W + unitW) {
+        var pk = peaks[pi];
+        var peakY = baseY - pk.h * H * 0.16;
+        ctx.lineTo(x + unitW * 0.5 * pk.w, peakY);
+        ctx.lineTo(x + unitW * pk.w, baseY);
+        x += unitW * pk.w;
+        pi = (pi + 1) % n;
+      }
+      ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+    }
+  };
+
+  // the racing track: a perspective road band with dashed lane markers that
+  // scroll toward the camera (speed lines), giving the sense of motion.
+  Game.prototype._drawTrack = function () {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    var top = this.H * 0.5, bottom = this.H;
+    // road gradient
+    var g = ctx.createLinearGradient(0, top, 0, bottom);
+    g.addColorStop(0, 'rgba(24,30,52,0.9)');
+    g.addColorStop(1, 'rgba(14,18,34,0.96)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, top, W, bottom - top);
+    // side rails (glowing lines)
+    ctx.strokeStyle = 'rgba(108,92,255,0.35)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, top + 1); ctx.lineTo(W, top + 1); ctx.stroke();
+    // scrolling dashed center lines -> motion. offset by player distance.
+    if (!this.reduced) {
+      var dash = 34, gap = 26, period = dash + gap;
+      var off = ((this.player ? this.player.dist : 0) * 220) % period;
+      ctx.strokeStyle = 'rgba(154,167,199,0.3)'; ctx.lineWidth = 3;
+      ctx.setLineDash([dash, gap]); ctx.lineDashOffset = this.rtl ? off : -off;
+      var midY = (top + bottom) / 2;
+      ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+      ctx.lineDashOffset = this.rtl ? off * 1.4 : -off * 1.4;
+      ctx.strokeStyle = 'rgba(154,167,199,0.16)';
+      ctx.beginPath(); ctx.moveTo(0, top + (bottom - top) * 0.78); ctx.lineTo(W, top + (bottom - top) * 0.78); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // finish-line indicator: a checkered band appears near the player's edge as
+    // they approach the line, so the finish is READABLE.
+    var p = this.player;
+    if (p && (TUNE.trackLen - p.dist) < 6.5) {
+      var pxPerUnit = this.W / 7;
+      var baseX = this.W * (this.rtl ? 0.66 : 0.34);
+      var fx = baseX + (TUNE.trackLen - p.dist) * pxPerUnit * (this.rtl ? -1 : 1);
+      this._drawFinishBand(fx, top, bottom);
+    }
+  };
+
+  Game.prototype._drawFinishBand = function (fx, top, bottom) {
+    var ctx = this.ctx;
+    if (fx < -20 || fx > this.W + 20) return;
+    var bw = 16, rows = 10;
+    var rh = (bottom - top) / rows;
+    for (var r = 0; r < rows; r++) {
+      ctx.fillStyle = (r % 2 === 0) ? 'rgba(234,240,255,0.85)' : 'rgba(20,26,44,0.85)';
+      ctx.fillRect(fx - bw / 2, top + r * rh, bw / 2, rh);
+      ctx.fillStyle = (r % 2 === 0) ? 'rgba(20,26,44,0.85)' : 'rgba(234,240,255,0.85)';
+      ctx.fillRect(fx, top + r * rh, bw / 2, rh);
+    }
+    ctx.strokeStyle = 'rgba(255,176,32,0.7)'; ctx.lineWidth = 2;
+    ctx.strokeRect(fx - bw / 2, top, bw, bottom - top);
+  };
+
+  // a car's boost trail as a fading flame ribbon behind it
+  Game.prototype._drawTrail = function (car, laneY, rgb, intensity) {
+    if (this.reduced || !car.trail || !car.trail.length) return;
+    var ctx = this.ctx;
+    var s = this._carScreen(car, laneY);
+    var dir = this.rtl ? 1 : -1;   // trail streams behind (opposite travel)
+    for (var i = 0; i < car.trail.length; i++) {
+      var tr = car.trail[i];
+      var age = i / car.trail.length;   // 0 oldest .. 1 newest
+      var back = (car.trail.length - i) * 6;
+      var x = s.x + dir * back;
+      var alpha = age * 0.5 * intensity * (tr.hot ? 1 : 0.6);
+      if (alpha < 0.02) continue;
+      var rad = 3 + age * 8 * intensity;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+      ctx.beginPath(); ctx.arc(x, laneY + 2, rad, 0, 6.2832); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  };
+
+  // sleek geometric hovercar: gradient wedge hull, canopy, hover glow, thruster.
+  Game.prototype._drawCar = function (x, y, hullCol, bob, turbo, name) {
+    var ctx = this.ctx;
+    if (x < -60 || x > this.W + 60) return;   // off camera; skip
+    var yy = y + Math.sin(bob) * 3;
+    var dir = this.rtl ? -1 : 1;   // facing +x normally, -x in RTL
+    var w = 46, h = 18;
+
+    ctx.save();
+    ctx.translate(x, yy);
+    ctx.scale(dir, 1);
+
+    // hover glow underneath
+    if (!this.reduced) {
+      var gg = ctx.createRadialGradient(0, h * 0.7, 2, 0, h * 0.7, w * 0.7);
+      gg.addColorStop(0, 'rgba(108,92,255,0.35)'); gg.addColorStop(1, 'rgba(108,92,255,0)');
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.ellipse(0, h * 0.75, w * 0.6, 6, 0, 0, 6.2832); ctx.fill();
+    }
+
+    // thruster flame at the rear (left side)
+    if (!this.reduced) {
+      var fl = 8 + Math.random() * (turbo ? 14 : 6);
+      var fg = ctx.createLinearGradient(-w * 0.5, 0, -w * 0.5 - fl, 0);
+      fg.addColorStop(0, turbo ? 'rgba(255,176,32,0.95)' : 'rgba(108,92,255,0.9)');
+      fg.addColorStop(0.5, 'rgba(255,84,112,0.7)'); fg.addColorStop(1, 'rgba(255,84,112,0)');
+      ctx.fillStyle = fg;
+      ctx.beginPath(); ctx.moveTo(-w * 0.5 + 2, -4); ctx.lineTo(-w * 0.5 + 2, 4); ctx.lineTo(-w * 0.5 - fl, 0); ctx.closePath(); ctx.fill();
+    }
+
+    // wedge hull (arrowhead pointing forward, sleek)
+    var hg = ctx.createLinearGradient(0, -h, 0, h);
+    var hc = toRGB(hullCol);
+    hg.addColorStop(0, 'rgba(' + Math.min(255, hc.r + 60) + ',' + Math.min(255, hc.g + 60) + ',' + Math.min(255, hc.b + 60) + ',1)');
+    hg.addColorStop(0.5, hullCol);
+    hg.addColorStop(1, 'rgba(' + Math.round(hc.r * 0.6) + ',' + Math.round(hc.g * 0.6) + ',' + Math.round(hc.b * 0.6) + ',1)');
+    ctx.fillStyle = hg;
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.2;
+    if (!this.reduced) { ctx.shadowColor = hullCol; ctx.shadowBlur = turbo ? 8 : 4; }
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5, 0);           // nose
+    ctx.lineTo(w * 0.16, -h * 0.62);
+    ctx.lineTo(-w * 0.34, -h * 0.5);
+    ctx.lineTo(-w * 0.5, 0);          // tail
+    ctx.lineTo(-w * 0.34, h * 0.5);
+    ctx.lineTo(w * 0.16, h * 0.62);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+    // canopy
+    ctx.fillStyle = 'rgba(234,240,255,0.85)';
+    ctx.beginPath(); ctx.ellipse(w * 0.06, -1, w * 0.16, h * 0.32, 0, 0, 6.2832); ctx.fill();
+    // fin
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath(); ctx.moveTo(-w * 0.34, -h * 0.5); ctx.lineTo(-w * 0.2, -h * 1.0); ctx.lineTo(-w * 0.1, -h * 0.4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    // name tag (upright, not mirrored)
+    if (name) {
+      ctx.save();
+      ctx.globalAlpha = 0.8; ctx.textAlign = 'center';
+      ctx.font = '700 10px -apple-system, sans-serif';
+      ctx.fillStyle = this.col.muted;
+      ctx.fillText(name, x, yy - h * 1.2);
+      ctx.restore();
+    }
+  };
+
+  Game.prototype._aiColor = function (a) {
+    var arr = [this.col.rose, this.col.green, this.col.amber];
+    return arr[a % arr.length];
+  };
+
+  Game.prototype._drawParticle = function (p) {
+    var ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = clamp(p.life * 2.4, 0, 1);
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.drawImage(p.spr, -p.size / 2, -p.size / 2, p.size, p.size);
+    ctx.restore();
+  };
+
+  Game.prototype._drawCountdown = function () {
+    var ctx = this.ctx, W = this.W, H = this.H;
+    var n = this.countdown;
+    var label = n > 0 ? String(n) : 'GO';
+    ctx.save();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '900 84px -apple-system, sans-serif';
+    ctx.fillStyle = n > 0 ? this.col.ink : this.col.green;
+    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 12;
+    ctx.fillText(label, W / 2, H * 0.4);
+    ctx.restore();
+  };
+
+  // ---- HUD -------------------------------------------------------------
+  Game.prototype._syncHud = function () {
+    var s = document.getElementById('rr-score-n'); if (s) s.textContent = this.score;
+    var qn = document.getElementById('rr-lap-n'); if (qn) qn.textContent = Math.min(this.qIndex, TUNE.raceQs);
+    var qt = document.getElementById('rr-lap-t'); if (qt) qt.textContent = TUNE.raceQs;
+    var pn = document.getElementById('rr-pos-n'); if (pn) pn.textContent = this.pos || 1;
+    this._flashTurbo(this.turbo);
+  };
+
+  // ---- finish / close --------------------------------------------------
+  Game.prototype._finish = function (quit) {
+    if (this.state === 'over') return;
+    this.state = 'over';
+    this.sfx.humStop();
+    if (!quit) this.sfx.finish();
+    // final placing by distance
+    this._syncPos();
+    this.finishPlace = this.pos || 1;
+
+    var title = this._byId('rr-over-title');
+    var placeLine = this._byId('rr-place-line');
+    var big = this._byId('rr-final-score');
+    var line = this._byId('rr-final-line');
+
+    if (!quit) {
+      // finish bonus by place
+      var bonus = this.finishPlace === 1 ? TUNE.finishBonusP1 : (this.finishPlace === 2 ? TUNE.finishBonusP2 : (this.finishPlace === 3 ? TUNE.finishBonusP3 : 0));
+      this.score += bonus;
+      var ord = ['1st', '2nd', '3rd', '4th'][clamp(this.finishPlace - 1, 0, 3)];
+      if (title) title.textContent = this.finishPlace === 1 ? 'You win!' : 'Finish';
+      if (placeLine) placeLine.textContent = ord + ' place' + (bonus ? '  (+' + bonus + ' bonus)' : '');
+    } else {
+      if (title) title.textContent = 'Race ended';
+      if (placeLine) placeLine.textContent = '';
+    }
+    if (big) big.textContent = this.score;
+    if (line) {
+      var acc = this.seen ? Math.round((this.correct / this.seen) * 100) : 0;
+      line.textContent = 'You answered ' + this.correct + ' of ' + this.seen + ' right (' + acc + '%).';
+    }
+    // hide the quiz panel
+    var quiz = this._byId('rr-quiz'); if (quiz) quiz.classList.add('rr-hide');
+    this._showOverlay('rr-over');
+  };
+
+  Game.prototype._summary = function () {
+    return { subject: this.opts.subject || null, chapterLabel: this.opts.chapterLabel || null,
+      seen: this.seen, correct: this.correct, score: this.score, wave: this.finishPlace || 0, tool: 'racer' };
+  };
+
+  Game.prototype._finishAndClose = function () {
+    var sum = this._summary();
+    this.destroy();
+    if (this.onClose) { try { this.onClose(sum); } catch (e) {} }
+  };
+
+  Game.prototype._loop = function (t) {
+    if (this.destroyed) return;
+    var self = this;
+    this._raf = requestAnimationFrame(function (tt) { self._loop(tt); });
+    if (!this.particles) { this.particles = []; this.popups = []; }
+    if (!this.last) this.last = t;
+    var dt = (t - this.last) / 1000; this.last = t;
+    dt = clamp(dt, 0, 0.05);
+    this.t += dt;
+    if (this.state === 'playing') this._update(dt);
+    this._draw();
+    if (this.state === 'playing') this._syncHud();
+  };
+
+  Game.prototype._toggleFullscreen = function () {
+    var el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else { try { showToastLike('Add to Home Screen for fullscreen on iPhone/iPad.'); } catch (e) {} }
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    } catch (e) { try { showToastLike('Fullscreen not available here.'); } catch (er) {} }
+    var self = this; setTimeout(function () { self._resize(); }, 120);
+  };
+
+  Game.prototype.destroy = function () {
+    if (this.destroyed) return;
+    this.destroyed = true; this.state = 'over';
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._cdT) { clearInterval(this._cdT); this._cdT = null; }
+    clearTimeout(this._teachT); clearTimeout(this._qGapT);
+    if (this.net && this.net.teardown) { try { this.net.teardown(); } catch (e) {} }
+    if (this._handlers) {
+      for (var i = 0; i < this._handlers.length; i++) { var h = this._handlers[i]; try { h[0].removeEventListener(h[1], h[2], h[3]); } catch (e) {} }
+      this._handlers.length = 0;
+    }
+    try { this.sfx.humStop(); if (this.sfx && this.sfx.ctx && this.sfx.ctx.close) this.sfx.ctx.close(); } catch (e) {}
+    try { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); } catch (e) {}
+    var te = document.getElementById('rr-teach'); if (te) te.classList.remove('rr-on');
+    var quiz = document.getElementById('rr-quiz'); if (quiz) quiz.classList.add('rr-hide');
+    this._hideOverlays();
+    if (live === this) live = null;
+  };
+
+  // =====================================================================
+  //  MULTIPLAYER SCAFFOLD  (gated by RR_MP; OFF by default)
+  //  Council rules baked in but not wired to the running Game loop yet:
+  //    - deterministic track from a shared seed (mulberry32 above already seeds
+  //      scenery + question order, so every client renders the SAME track).
+  //    - positions synced as QUESTION-INDEX only (qi), never physics. Each client
+  //      renders a remote racer's car at the track distance implied by their qi.
+  //    - scores batched per 500ms per client.
+  //    - host-authoritative status (lobby -> racing -> done) + startAt timestamp.
+  //    - 5-digit code join via /whiteboards/<classKey>/codes (kind:'game').
+  //  This object documents + stubs the wiring so the P2 lane can finish it without
+  //  reverse-engineering. It performs NO network I/O while RR_MP is false.
+  // =====================================================================
+  var MP = {
+    enabled: function () { return RR_MP === true; },
+    // Firebase config mirrors ../core/Index.core.html FIREBASE_CONFIG (al-mokh).
+    CONFIG: { apiKey: 'AIzaSyC4uHZZwwn8DWumWT89aL9emLlUdilPtHw', authDomain: 'al-mokh.firebaseapp.com',
+              databaseURL: 'https://al-mokh-default-rtdb.firebaseio.com', projectId: 'al-mokh',
+              appId: '1:331930554141:web:11bea244e049b19a719bf4' },
+    CDN: 'https://www.gstatic.com/firebasejs/10.12.2/',
+    SCORE_BATCH_MS: 500,      // council rule: batch score writes per 500ms
+    JOIN_TTL_MS: 2 * 3600000, // codes live ~2h, matching the whiteboard registry
+
+    // load the compat SDK on demand (mirrors RT.init loadScript chain). Only ever
+    // called when RR_MP is true AND a class race is actually requested.
+    _load: function () {
+      var CDN = this.CDN;
+      function loadScript(src) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = src; s.async = false; s.onload = res; s.onerror = function () { rej(new Error('load fail ' + src)); }; document.head.appendChild(s); }); }
+      return loadScript(CDN + 'firebase-app-compat.js')
+        .then(function () { return Promise.all([loadScript(CDN + 'firebase-auth-compat.js'), loadScript(CDN + 'firebase-database-compat.js')]); });
+    },
+    // make a 5-digit code + register it under /whiteboards/<classKey>/codes/<code>
+    // as { bid:'game:<roomId>', kind:'game', ts }. Join reads it back like
+    // cgJoinByCode_ but branches on kind==='game' to open a race instead of a board.
+    makeCode: function () { return String(10000 + Math.floor(Math.random() * 90000)); },
+    // roomPath: /gameRooms/<roomId> = { seed, status:'lobby'|'racing'|'done',
+    //   hostUid, startAt, racers/$uid:{ name, qi, score, done } }.
+    roomPath: function (roomId) { return '/gameRooms/' + roomId; },
+    // A remote racer's rendered distance is derived ONLY from their qi:
+    //   dist = (qi / raceQs) * trackLen   (deterministic, no physics sync).
+    distFromQi: function (qi) { return (clamp(qi, 0, TUNE.raceQs) / TUNE.raceQs) * TUNE.trackLen; }
+  };
+  RR._mp = MP;   // exposed for the P2 lane / tests; unused while RR_MP is false.
+
+  // =====================================================================
+  //  small helpers
+  // =====================================================================
+  function showToastLike(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(12,16,30,.92);color:#eaf0ff;padding:10px 16px;border-radius:12px;font:600 13px -apple-system,sans-serif;z-index:200000;border:1px solid #2a3355;max-width:80%;text-align:center';
+    document.body.appendChild(t);
+    setTimeout(function () { try { document.body.removeChild(t); } catch (e) {} }, 3200);
+  }
+
+  global.RETRIEVAL_RACER = RR;
+
+  // ---- standalone auto-boot (no host): open the demo pool solo ----------
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', autoBoot); } else { autoBoot(); }
+  function autoBoot() {
+    setTimeout(function () {
+      if (!live && global.RETRIEVAL_RACER && !global.__RR_HOST_DRIVEN__) {
+        global.RETRIEVAL_RACER.open(null, {
+          enabled: true, subject: 'Chemistry', chapterLabel: 'Demo pool',
+          rtl: (document.documentElement.getAttribute('dir') === 'rtl'),
+          onEmit: function () {},
+          onClose: function (s) { try { showToastLike('Race score ' + (s && s.score) + '. Reopen to race again.'); } catch (e) {} }
+        });
+      }
+    }, 30);
+  }
+
+})(typeof window !== 'undefined' ? window : this);
+</script>
+</body>
+</html>
