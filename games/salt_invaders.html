@@ -608,9 +608,14 @@
 
   // ---- tuning constants (owner-playtest spec) --------------------------
   var TUNE = {
-    baseSpeed: 30,          // px/sec fall speed, wave 1
-    speedStep: 0.08,        // +8% per wave
-    speedCapMul: 2.0,       // cap at 200%
+    baseSpeed: 185,         // px/sec fall speed, wave 1  (sim-tuned 2026-07-04:
+                            //   was 30 -> a competent reader survived all 20
+                            //   waves at 100% because a ~1s read had a 12-27s
+                            //   fall budget. sim/SI_REPORT.md; 185 lands the
+                            //   competent wave-of-death at ~wave 7 with a 4x
+                            //   read margin on wave 1 tapering to ~1.7x by w8.)
+    speedStep: 0.14,        // +14% per wave (was 0.08 -> curve was too flat)
+    speedCapMul: 2.4,       // cap at 240% (was 2.0; plateau ~wave 8)
     baseCount: 7,           // items in wave 1
     countStep: 3,           // +3 spawned per wave (density up)
     maxOnScreen: 20,        // hard cap of live entities on screen
@@ -625,6 +630,16 @@
     scannerChance: 0.05,    // ~5% of spawns are the scanner powerup
     scannerReveal: 3.0,     // seconds the scanner reveals categories
     nearMissPx: 26,         // bullet passing this close to a SPARED item = near miss bonus
+    // Accuracy gate on the near-miss bonus (sim-tuned 2026-07-04). Without it,
+    // the +3 graze bonus SUBSIDIZES spray-firing: a player who fires at every
+    // capsule collects near-miss points off the spared items they should have
+    // read. The sim measured this subsidy at ~41 pts/session and it stretched a
+    // spray-firer's run from wave ~1.2 to ~1.8. The bonus only pays when the
+    // player has DEMONSTRATED reading -- recent shot accuracy >= this threshold
+    // -- so a spray-firer (whose wrong shots tank accuracy) is denied it, while
+    // an accurate reader who grazes a decoy still gets rewarded. See SI_REPORT.md.
+    nearMissMinAcc: 0.6,    // require >=60% recent accuracy for the graze bonus
+    nearMissWindow: 6,      // rolling window of recent scored shots for accuracy
     hitstopMs: 80,          // freeze on a destruction
     shakePx: 3,             // screenshake magnitude (spec: 3px)
     shakeMs: 60
@@ -692,6 +707,8 @@
     this.rule = null;
     this.streak = 0;        // consecutive correct hits (drives combo)
     this.combo = 1;         // current score multiplier
+    this.shotLog = [];      // rolling 1/0 of recent SCORED shots (correct/wrong)
+                            // -> feeds the near-miss accuracy gate
 
     this.entities = [];     // descending labelled items
     this.bullets = [];
@@ -846,7 +863,7 @@
 
   Game.prototype._reset = function () {
     this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
-    this.streak = 0; this.combo = 1; this.reveal = 0; this.boss = false; this.bossTimer = 0;
+    this.streak = 0; this.combo = 1; this.shotLog = []; this.reveal = 0; this.boss = false; this.bossTimer = 0;
     this.entities.length = 0; this.bullets.length = 0; this.particles.length = 0; this.popups.length = 0;
     this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0; this.shooter.x = 0.5;
   };
@@ -1158,11 +1175,32 @@
     return { w: w, fontPx: chosen };
   };
 
+  // ---- shot-accuracy log (feeds the near-miss gate) --------------------
+  // record a SCORED shot outcome (1 = correct target, 0 = wrong/spared hit),
+  // keeping only the last nearMissWindow entries.
+  Game.prototype._logShot = function (ok) {
+    this.shotLog.push(ok ? 1 : 0);
+    if (this.shotLog.length > TUNE.nearMissWindow) this.shotLog.shift();
+  };
+  // recent accuracy over the rolling window; treated as "reading" until there
+  // is enough evidence (fewer than 3 scored shots -> assume the player is
+  // reading, so an early honest graze still pays).
+  Game.prototype._recentAcc = function () {
+    var n = this.shotLog.length;
+    if (n < 3) return 1;
+    var s = 0; for (var i = 0; i < n; i++) s += this.shotLog[i];
+    return s / n;
+  };
+
   // ---- near-miss bonus -------------------------------------------------
   Game.prototype._checkNearMiss = function (b) {
     var keys = b.nearFlag ? Object.keys(b.nearFlag) : [];
-    // count as a near miss only if the bullet grazed a SPARED item and hit nothing
-    if (keys.length) {
+    // count as a near miss only if the bullet grazed a SPARED item and hit
+    // nothing AND the player has demonstrated reading (recent accuracy gate).
+    // The gate stops the bonus from subsidizing spray-firing: a player who
+    // fires at everything tanks their accuracy and is denied the +3, while an
+    // accurate reader who legitimately grazes a spared capsule still earns it.
+    if (keys.length && this._recentAcc() >= TUNE.nearMissMinAcc) {
       this.score += 3;
       this._popup(b.x, 78, 'near miss +3', this.col.amber);
     }
@@ -1186,6 +1224,7 @@
     if (e.isTarget) {
       // correct: destroy + points * combo + green burst (color revealed NOW)
       this.streak++;
+      this._logShot(1);
       this._updateCombo();
       var gain = Math.round(10 * this.combo);
       this.score += gain;
@@ -1200,6 +1239,7 @@
     } else {
       // wrong: this was a "spare" item -> lose a life + red flash + TEACH
       this.streak = 0; this.combo = 1;
+      this._logShot(0);
       this._loseLife(0.9);
       this._burst(e.x, e.y, this.rgb.rose, 14, 'rose');
       this._popup(e.x, e.y, 'WRONG', this.col.rose);
