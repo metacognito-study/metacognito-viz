@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_728_e2 partial Lewis completion | chem row 728 ex2 (K728 CH3OH) | sigma skeleton ONLY: H3C-O-H connectivity; NO lone pairs (adding them completes the structure) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="245" y1="175" x2="300" y2="175" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="360" y1="175" x2="415" y2="175" stroke="var(--ink,#18213a)" stroke-width="3.5"/>
+<line x1="475" y1="175" x2="530" y2="175" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="330" y1="105" x2="330" y2="145" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="330" y1="205" x2="330" y2="262" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="330" y="191" font-size="46" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >C</text>
+<text x="445" y="191" font-size="46" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >O</text>
+<text x="215" y="188" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="330" y="93" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="330" y="298" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+<text x="560" y="188" font-size="38" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="600" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H</text>
+</svg>

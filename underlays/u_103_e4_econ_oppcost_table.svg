@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_103_e4 two-good opportunity-cost table | econ row 103 (cue col M) | generic Good X / Good Y rows, cost cells EMPTY (filling the reciprocal pair is the exercise) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="120" y="70" width="560" height="240" rx="10" fill="var(--surface,#ffffff)" stroke="var(--muted,#606b84)" stroke-width="2"/>
+<rect x="120" y="70" width="560" height="56" rx="10" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="120" y="114" width="560" height="12" fill="var(--indigo-soft,#eef0ff)"/>
+<line x1="120" y1="126" x2="680" y2="126" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="120" y1="218" x2="680" y2="218" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="330" y1="70" x2="330" y2="310" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<text x="225" y="105" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >to gain 1 unit of…</text>
+<text x="505" y="105" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >…you give up</text>
+<text x="225" y="180" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Good X</text>
+<text x="225" y="272" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Good Y</text>
+<text x="400" y="350" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >two goods, two rows — fill each cost cell</text>
+</svg>

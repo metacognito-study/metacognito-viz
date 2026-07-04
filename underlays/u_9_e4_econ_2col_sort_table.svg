@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_9_e4 2-column sorting table | econ rows 9/10/27/43/58/60 (cue col M) | headers = dashed blank boxes so ONE asset serves need/want, goods/services, and every other 2-way sort; rows empty -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="180" y="60" width="440" height="340" rx="10" fill="var(--surface,#ffffff)" stroke="var(--muted,#606b84)" stroke-width="2"/>
+<rect x="180" y="60" width="440" height="56" rx="10" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="180" y="104" width="440" height="12" fill="var(--indigo-soft,#eef0ff)"/>
+<line x1="180" y1="116" x2="620" y2="116" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="187" x2="620" y2="187" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="258" x2="620" y2="258" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="180" y1="329" x2="620" y2="329" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="400" y1="60" x2="400" y2="400" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<rect x="230" y="72" width="120" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="290" y="94" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<rect x="450" y="72" width="120" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="510" y="94" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+</svg>

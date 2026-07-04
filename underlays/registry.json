@@ -512,6 +512,468 @@
      "exIdx": 4
     }
    ]
+  },
+  {
+   "sheet": "chem",
+   "row": 635,
+   "exIdx": 1,
+   "asset": "u_635_e1_pes_spectrum_label.svg",
+   "mode": "both",
+   "what": "PES spectrum with 3 unlabeled peaks (heights 2:2:3, decreasing-binding-energy layout); dashed '?' boxes at both axis-label positions and above each peak",
+   "answer_leak_check": "PASS: no subshell labels, no binding-energy numbers, no axis text ('label each peak with its subshell... label the axes' IS the task); left=high-BE ordering is convention the student must apply, not printed",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 633,
+   "exIdx": 1,
+   "asset": "u_633_e1_pes_spectrum_numeric.svg",
+   "mode": "example-image",
+   "what": "PES spectrum with peaks at 2.48/0.63/0.18 MJ/mol (verbatim cell data), heights 2:2:3 readable off a 1-2-3 y-scale; axes labeled binding energy (MJ/mol) / number of electrons",
+   "answer_leak_check": "PASS: no 1s/2s/2p labels on peaks, no electron-count callouts (reading heights off the scale IS the task); BE values + axis labels are given in cell text",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 728,
+   "exIdx": 2,
+   "asset": "u_728_e2_ch3oh_skeleton.svg",
+   "mode": "pad-underlay",
+   "what": "CH3OH sigma skeleton: H3C-O-H connectivity as single lines, atom letters only",
+   "answer_leak_check": "PASS: no lone pairs on O (adding the 2 lone pairs completes the Lewis structure); all bonds single as in the answer, so connectivity given = formula given",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 728,
+   "exIdx": 3,
+   "asset": "u_728_e3_ch3cooh_skeleton.svg",
+   "mode": "pad-underlay",
+   "what": "CH3COOH sigma skeleton: CH3-C with one O up and one O-H right, ALL bonds single lines, atom letters only",
+   "answer_leak_check": "PASS: no C=O double bond (both C-O identical single lines, so which O takes the pi bond is not telegraphed beyond the H placement the formula itself gives); zero lone pairs drawn",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 728,
+   "exIdx": 4,
+   "asset": "u_728_e4_ethanol_skeleton.svg",
+   "mode": "pad-underlay",
+   "what": "Ethanol (CH3CH2OH) sigma skeleton: C-C-O-H chain + 5 C-H, single lines, atom letters only",
+   "answer_leak_check": "PASS: no lone pairs on O; electron bookkeeping from the cell text stays in the cell, not on the figure",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 728,
+   "exIdx": 5,
+   "asset": "u_728_e5_acetone_skeleton.svg",
+   "mode": "pad-underlay",
+   "what": "Acetone (CH3COCH3) sigma skeleton: C-C-C chain, central C-O single line up, 6 C-H, atom letters only",
+   "answer_leak_check": "PASS: C-O drawn single (adding the pi bond is the exercise); no lone pairs on O; methyl H count is formula-given",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 335,
+   "exIdx": 1,
+   "asset": "u_335_e1_nh3_workback_4nh3.svg",
+   "mode": "both",
+   "what": "Before/After panels: After drawn with 4 NH3 and 0 leftover reactants (verbatim cell state); Before empty dashed (student works backwards to 2 N2 + 6 H2)",
+   "answer_leak_check": "PASS: Before panel empty; initial N2/H2 counts (the answer) appear nowhere; After contents verbatim the given state",
+   "serves": []
+  },
+  {
+   "sheet": "econ",
+   "row": 79,
+   "exIdx": 4,
+   "asset": "u_79_e4_econ_5sector_flow_skeleton.svg",
+   "mode": "both",
+   "what": "Five-sector circular-flow skeleton: u_74 core (Households/Firms/Product market/Factor market, paired connector lines) + Government/Financial sector/Foreign sector centre boxes with bare dashed connector stubs",
+   "answer_leak_check": "PASS: no arrowheads, no flow labels, no leakage/injection markings (savings/taxes/imports vs borrowing/G-spending/exports = the M80/M81 exercises), no colour coding; sector names are given in the cues",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 80,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 81,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 143,
+   "exIdx": 4,
+   "asset": "u_143_e4_econ_sd_unmarked.svg",
+   "mode": "both",
+   "what": "P-Q axes with demand (indigo, D) and supply (amber, S) both drawn and named; intersection deliberately unmarked",
+   "answer_leak_check": "PASS: no equilibrium dot, no Pe/Qe labels, no dashed drop lines (labeling the intersection / adding price lines and surplus-shortage marks IS the exercise family)",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 145,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 146,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 147,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 236,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 152,
+   "exIdx": 1,
+   "asset": "u_152_e1_distillation_label.svg",
+   "mode": "both",
+   "what": "Distillation apparatus: heated round-bottom flask with liquid, thermometer in vapour path, sloped condenser with water jacket, conical collection flask with liquid; 5 dashed '?' boxes with leader lines (flask, heat source, thermometer, condenser, collection flask)",
+   "answer_leak_check": "PASS: no equipment names (row 154 name-the-5-pieces stays intact), no distillate/residue text, no boiling points, no which-component-first hint",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 153,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 154,
+     "exIdx": 1
+    },
+    {
+     "sheet": "chem",
+     "row": 155,
+     "exIdx": 1
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 157,
+   "exIdx": 1,
+   "asset": "u_157_e1_particle_5panel.svg",
+   "mode": "example-image",
+   "what": "5-option particle-classification substrate: (A) identical spheres far apart, (B) hetero-colour bonded pairs far apart, (C) same-colour pairs + lone spheres mixed, (D) alternating big/small lattice, (E) before->after rearrangement mini-panels; legend only says each colour = a different element",
+   "answer_leak_check": "PASS: no state names, no element/compound/mixture verdicts, no physical/chemical labels; panel letters (A)-(E) match the cell text; spacing/arrangement encodes the GIVEN states only",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1405,
+   "exIdx": 2,
+   "asset": "u_1405_e2_titration_axes_blank.svg",
+   "mode": "pad-underlay",
+   "what": "Blank pH-vs-volume-of-titrant axes: pH ticks 0/7/14 with dashed neutral gridline at 7 only",
+   "answer_leak_check": "PASS: no curves, no equivalence or half-equivalence marks, no buffer-region shading; initial-pH and steepness differences (the Ka-comparison answers) not hinted",
+   "serves": [
+    {
+     "sheet": "chem",
+     "row": 1406,
+     "exIdx": 2
+    }
+   ]
+  },
+  {
+   "sheet": "chem",
+   "row": 1529,
+   "exIdx": 1,
+   "asset": "u_1529_e1_heating_curve_axes.svg",
+   "mode": "pad-underlay",
+   "what": "Bare heating-curve axes with dashed '?' boxes at both axis-label slots (cell asks the student to label heat-added / temperature)",
+   "answer_leak_check": "PASS: no plateaus drawn, no temperature ticks (0/100 marks would leak plateau heights), no segment count hinted",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1139,
+   "exIdx": 1,
+   "asset": "u_1139_e1_equilib_pressure_axes.svg",
+   "mode": "both",
+   "what": "Pressure-time axes with given starting dots P(N2)0=0.50, P(H2)0=1.50, P(NH3)0=0 atm (verbatim cell) on a 0-2.00 atm scale; species dots colour-keyed and named",
+   "answer_leak_check": "PASS: no curves, no equilibrium-value guides, no total-pressure direction hint (4mol->2mol reasoning is the question)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1086,
+   "exIdx": 1,
+   "asset": "u_1086_e1_conc_time_axes.svg",
+   "mode": "pad-underlay",
+   "what": "Blank [A]-vs-time axes, labels given verbatim from the cell hook",
+   "answer_leak_check": "PASS: no curves; which curve drops faster (the answer) not hinted",
+   "serves": []
+  },
+  {
+   "sheet": "econ",
+   "row": 229,
+   "exIdx": 4,
+   "asset": "u_229_e4_econ_laffer_axes.svg",
+   "mode": "both",
+   "what": "Blank Laffer axes: tax rate (0%-100% anchors) vs tax revenue, labels given in cue",
+   "answer_leak_check": "PASS: no curve, no peak marker, no rising/falling-portion labels, no Point A (drawing the inverted-U and placing A are the exercises)",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 230,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 231,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 197,
+   "exIdx": 4,
+   "asset": "u_197_e4_econ_step_demand_grid.svg",
+   "mode": "both",
+   "what": "Gridded axes for the step-demand exercise: quantity ticks 1-6, price ticks 0.10-0.60 (all values verbatim from the cue), full light gridlines",
+   "answer_leak_check": "PASS: no steps/staircase drawn, no willingness-to-pay pairing of heights to quantities (the mapping IS the exercise; tick values alone are cue-given)",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 212,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 70,
+   "exIdx": 4,
+   "asset": "u_70_e4_econ_goods_matrix_2x2.svg",
+   "mode": "both",
+   "what": "2x2 goods-classification matrix with cue-given captions (Rival/Non-rival columns, Excludable/Non-excludable rows); all four cells empty",
+   "answer_leak_check": "PASS: no goods placed, no category names (private/public/club/common) printed - placing national defense, sandwich, park, toll road, pizza IS the exercise",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 71,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 9,
+   "exIdx": 4,
+   "asset": "u_9_e4_econ_2col_sort_table.svg",
+   "mode": "pad-underlay",
+   "what": "Blank 2-column sorting table: dashed '?' header boxes + 4 empty rows (family asset for every 2-way sort cue)",
+   "answer_leak_check": "PASS: headers blank (writing need/want, goods/services etc. is part of each exercise); no items pre-placed",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 10,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 27,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 43,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 58,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 60,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 14,
+   "exIdx": 4,
+   "asset": "u_14_e4_econ_4col_matrix.svg",
+   "mode": "pad-underlay",
+   "what": "Blank 4-column resource-classification matrix: dashed '?' header boxes + 3 empty rows; also the pad for the M12/M13 four-box production-input cues (same blank 4-category scaffold)",
+   "answer_leak_check": "PASS: headers blank (land/labor/capital/entrepreneurship are the answer categories); river/teacher/factory/founder not pre-placed",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 12,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 13,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 124,
+   "exIdx": 4,
+   "asset": "u_124_e4_econ_table_to_graph.svg",
+   "mode": "pad-underlay",
+   "what": "Table-to-graph conversion scaffold: empty 4-column demand table (P / Qd A / Qd B / Market headers, structure cue-given) -> arrow -> blank mini P-Q axes",
+   "answer_leak_check": "PASS: no quantities, no summed market column values, no demand curve (horizontal summation is the exercise)",
+   "serves": []
+  },
+  {
+   "sheet": "econ",
+   "row": 103,
+   "exIdx": 4,
+   "asset": "u_103_e4_econ_oppcost_table.svg",
+   "mode": "pad-underlay",
+   "what": "Two-good opportunity-cost table skeleton: generic Good X / Good Y rows, 'to gain 1 unit / you give up' columns, cost cells empty",
+   "answer_leak_check": "PASS: no cost values, no reciprocal (1/x) relationship shown - demonstrating it is the exercise; goods kept generic",
+   "serves": []
+  },
+  {
+   "sheet": "econ",
+   "row": 239,
+   "exIdx": 4,
+   "asset": "u_239_e4_econ_world_price_import.svg",
+   "mode": "both",
+   "what": "Import-side world-price underlay: S+D named, dashed P_w line below equilibrium (P_w label only); family asset for the import/tariff/quota cluster; multi-panel cues (243/245/258) use it as the import panel and pair with u_241 for the export panel",
+   "answer_leak_check": "PASS: no Qs/Qd droplines, no import bracket, no equilibrium marks, no P_w+T tariff line, no surplus shading - every one of those is a cue exercise; P_w-below-equilibrium is the given import premise",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 240,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 242,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 243,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 245,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 248,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 249,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 250,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 252,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 253,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 254,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 255,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 256,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 257,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 259,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 262,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 264,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 241,
+   "exIdx": 4,
+   "asset": "u_241_e4_econ_world_price_export.svg",
+   "mode": "both",
+   "what": "Export-side world-price underlay: S+D named, dashed P_w line above equilibrium (P_w label only); export panel partner of u_239 for multi-panel cues",
+   "answer_leak_check": "PASS: no Qs/Qd droplines, no export bracket, no producer/consumer-surplus shading (shading and bracketing are the cue exercises); P_w-above-equilibrium is the given export premise",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 246,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 247,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 86,
+   "exIdx": 4,
+   "asset": "u_86_e4_econ_ppc_schedule_scaffold.svg",
+   "mode": "pad-underlay",
+   "what": "Athletic Country PPC scaffold: empty Point/Bats/Rackets schedule table (rows A-F, letters cue-given) + axes labeled bats (x) / rackets (y)",
+   "answer_leak_check": "PASS: no output values (full A-F schedule is not in the Sheet, so none were fabricated - X86 only reveals B and C), no curve, no plotted points; students bring the schedule from the lesson material",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 88,
+     "exIdx": 4
+    }
+   ]
   }
  ]
 }

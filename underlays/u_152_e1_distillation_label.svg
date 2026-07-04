@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 510" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_152_e1 distillation apparatus | chem row 152 ex1 (+153/154/155 reuse) | flask+thermometer+condenser+collection flask+heat, 5 blank ? boxes; NO equipment names, NO distillate/residue text, NO bp numbers -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="150" y="470" width="120" height="14" rx="4" fill="var(--muted,#606b84)"/>
+<rect x="172" y="445" width="16" height="25" fill="var(--muted,#606b84)"/>
+<path d="M180,442 Q171,430 180,418 Q189,430 180,442" fill="var(--amber,#f5b526)"/>
+<circle cx="180" cy="360" r="55" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<ellipse cx="180" cy="382" rx="44" ry="22" fill="var(--indigo-soft,#eef0ff)"/>
+<line x1="165" y1="312" x2="165" y2="205" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="195" y1="312" x2="195" y2="240" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="195" y1="219" x2="195" y2="205" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="165" y1="205" x2="176" y2="205" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="184" y1="205" x2="195" y2="205" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="176" y="148" width="8" height="110" rx="3" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<circle cx="180" cy="262" r="6" fill="var(--rose,#e8548c)"/>
+<line x1="196" y1="221" x2="569" y2="389" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="195" y1="238" x2="563" y2="403" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<rect x="280" y="292" width="200" height="40" rx="12" transform="rotate(24.2 380 312)" fill="var(--indigo-soft,#eef0ff)" fill-opacity="0.55" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M552,400 L552,420 L502,486 Q500,490 506,490 L634,490 Q640,490 638,486 L588,420 L588,400" fill="none" stroke="var(--ink,#18213a)" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="519,466 621,466 628,484 512,484" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="30" y="395" width="110" height="30" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="85" y="416" font-size="17" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="140" y1="410" x2="157" y2="408" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="24" y="448" width="110" height="30" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="79" y="469" font-size="17" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="134" y1="463" x2="172" y2="455" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="60" y="90" width="130" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="125" y="112" font-size="17" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="190" y1="106" x2="180" y2="148" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="600" y="150" width="130" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="665" y="172" font-size="17" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="600" y1="166" x2="420" y2="310" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="640" y="420" width="130" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="705" y="442" font-size="17" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<line x1="640" y1="436" x2="618" y2="452" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="3 4"/>
+</svg>

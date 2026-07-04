@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_79_e4 five-sector circular-flow SKELETON | econ rows 79-81 (cue col M) | u_74 core + Government/Financial/Foreign centre boxes; connector stubs bare: NO arrowheads, NO flow labels, NO leakage/injection marks, NO colour coding -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="60" y="220" width="170" height="90" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="145" y="271" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Households</text>
+<rect x="570" y="220" width="170" height="90" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="655" y="271" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Firms</text>
+<rect x="300" y="50" width="200" height="70" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="400" y="91" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Product market</text>
+<rect x="300" y="400" width="200" height="70" rx="14" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<text x="400" y="441" font-size="17" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Factor market</text>
+<path d="M120,220 L120,68 L300,68" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M170,220 L170,100 L300,100" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M680,220 L680,68 L500,68" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M630,220 L630,100 L500,100" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M120,310 L120,462 L300,462" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M170,310 L170,430 L300,430" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M680,310 L680,462 L500,462" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<path d="M630,310 L630,430 L500,430" fill="none" stroke="var(--muted,#606b84)" stroke-width="3"/>
+<rect x="315" y="150" width="170" height="56" rx="12" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="2.5"/>
+<text x="400" y="184" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Government</text>
+<rect x="315" y="232" width="170" height="56" rx="12" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="2.5"/>
+<text x="400" y="266" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Financial sector</text>
+<rect x="315" y="314" width="170" height="56" rx="12" fill="var(--surface-2,#f7f9fc)" stroke="var(--ink,#18213a)" stroke-width="2.5"/>
+<text x="400" y="348" font-size="16" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Foreign sector</text>
+<line x1="240" y1="178" x2="315" y2="178" stroke="var(--muted,#606b84)" stroke-width="3" stroke-dasharray="7 6"/>
+<line x1="485" y1="178" x2="560" y2="178" stroke="var(--muted,#606b84)" stroke-width="3" stroke-dasharray="7 6"/>
+<line x1="240" y1="260" x2="315" y2="260" stroke="var(--muted,#606b84)" stroke-width="3" stroke-dasharray="7 6"/>
+<line x1="485" y1="260" x2="560" y2="260" stroke="var(--muted,#606b84)" stroke-width="3" stroke-dasharray="7 6"/>
+<line x1="240" y1="342" x2="315" y2="342" stroke="var(--muted,#606b84)" stroke-width="3" stroke-dasharray="7 6"/>
+<line x1="485" y1="342" x2="560" y2="342" stroke="var(--muted,#606b84)" stroke-width="3" stroke-dasharray="7 6"/>
+</svg>

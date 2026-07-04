@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1529_e1 heating-curve axes | chem row 1529 ex1 | bare axes + ? boxes at both label slots (cell asks student to LABEL the axes); NO plateaus, NO temperature ticks (0/100 marks would leak plateau heights) -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<rect x="548" y="440" width="130" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="613" y="462" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+<rect x="30" y="52" width="150" height="32" rx="6" fill="var(--surface-2,#f7f9fc)" fill-opacity="0.9" stroke="var(--muted,#606b84)" stroke-dasharray="6 5" stroke-width="1.8"/><text x="105" y="74" font-size="18" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >?</text>
+</svg>

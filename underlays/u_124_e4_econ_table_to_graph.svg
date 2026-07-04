@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_124_e4 table-to-graph conversion scaffold | econ row 124 (cue col M) | empty 4-col demand table (headers cue-given) -> arrow -> blank mini P-Q axes; NO numbers, NO curve -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<rect x="40" y="80" width="380" height="280" rx="10" fill="var(--surface,#ffffff)" stroke="var(--muted,#606b84)" stroke-width="2"/>
+<rect x="40" y="80" width="380" height="50" rx="10" fill="var(--indigo-soft,#eef0ff)"/>
+<rect x="40" y="118" width="380" height="12" fill="var(--indigo-soft,#eef0ff)"/>
+<line x1="40" y1="130" x2="420" y2="130" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="40" y1="188" x2="420" y2="188" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="40" y1="246" x2="420" y2="246" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="40" y1="304" x2="420" y2="304" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="135" y1="80" x2="135" y2="360" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="230" y1="80" x2="230" y2="360" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<line x1="325" y1="80" x2="325" y2="360" stroke="var(--line,#e5eaf2)" stroke-width="1.5"/>
+<text x="87" y="111" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >P</text>
+<text x="182" y="111" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Qd (A)</text>
+<text x="277" y="111" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Qd (B)</text>
+<text x="372" y="111" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Market</text>
+<line x1="445" y1="220" x2="495" y2="220" stroke="var(--muted,#606b84)" stroke-width="3" marker-end="url(#ax)"/>
+<line x1="545" y1="370" x2="770" y2="370" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="545" y1="370" x2="545" y2="110" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<text x="745" y="400" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Q</text>
+<text x="520" y="125" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >P</text>
+</svg>

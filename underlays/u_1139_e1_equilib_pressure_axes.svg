@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1139_e1 pressure-time approach axes | chem row 1139 ex1 | given P0 dots only (0.50 N2 / 1.50 H2 / 0 NH3, verbatim cell); NO curves, NO equilibrium guides, NO total-P direction hint -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<line x1="134" y1="350" x2="140" y2="350" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<line x1="140" y1="350" x2="690" y2="350" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<text x="126" y="355" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0.50</text>
+<line x1="134" y1="280" x2="140" y2="280" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<line x1="140" y1="280" x2="690" y2="280" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<text x="126" y="285" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1.00</text>
+<line x1="134" y1="210" x2="140" y2="210" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<line x1="140" y1="210" x2="690" y2="210" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<text x="126" y="215" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1.50</text>
+<line x1="134" y1="140" x2="140" y2="140" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<line x1="140" y1="140" x2="690" y2="140" stroke="var(--line,#e5eaf2)" stroke-width="1"/>
+<text x="126" y="145" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >2.00</text>
+<circle cx="145" cy="350" r="6" fill="var(--indigo,#5545e8)"/>
+<text x="178" y="356" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >N₂</text>
+<circle cx="145" cy="210" r="6" fill="var(--amber,#f5b526)"/>
+<text x="178" y="216" font-size="14" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >H₂</text>
+<circle cx="145" cy="420" r="6" fill="var(--rose,#e8548c)"/>
+<text x="182" y="404" font-size="14" fill="var(--rose,#e8548c)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >NH₃</text>
+<text x="640" y="468" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >time</text>
+<text x="60" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 60 260)">partial pressure (atm)</text>
+</svg>
