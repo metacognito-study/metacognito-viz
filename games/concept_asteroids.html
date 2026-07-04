@@ -501,8 +501,8 @@
     baseCount: 5,           // labelled asteroids in wave 1
     countStep: 2,           // +2 per wave
     maxOnScreen: 14,        // hard entity cap (spec: ~14 for 60fps old iPads)
-    comboStart: 5, comboMin: 1.5, comboMax: 3.0,
-    hearts: 3,
+    comboStart: 3, comboMin: 1.5, comboMax: 3.0,   // combo engages at 3 (was 5; never reached before death per sim/CA_REPORT.md)
+    hearts: 5,              // was 3; a learning game needs a mistake buffer (sim: wave-of-death 2 -> 5-6)
     bossEvery: 5, bossTime: 30,
     hitstopMs: 80, shakePx: 3, shakeMs: 60,
     // ship physics (hand-tuned)
@@ -513,7 +513,12 @@
     maxShipSpeed: 320,
     bulletSpeed: 460, bulletLife: 1.1, fireCd: 0.22,
     rockBig: 30, rockMid: 20, rockSmall: 12,   // asteroid radii by size tier
-    fragScore: 4            // points per plain-fragment shot
+    fragScore: 1,           // was 4; fragments are a minor cleanup bonus, not a farm (sim: fragfarm ratio 1.49 -> 1.34)
+    // --- fairness/forgiveness tuning (added 2026-07-04 from headless sim; see sim/CA_REPORT.md) ---
+    startInvuln: 1.6,       // sec of ship invulnerability at each wave start (read the banner un-rammed)
+    wrongGrace: 2,          // first N wrong shots per wave TEACH without a life cost (true to "kept forgiving")
+    escapeCost: 5,          // score lost when a TARGET drifts off unshot (kills the coward/ignore strategy)
+    spawnSpread: 1.1        // rock heading jitter off dead-center, radians (was 0.6; classic-Asteroids wander, fewer converge on spawn)
   };
 
   // =====================================================================
@@ -550,7 +555,8 @@
       pGreenSq: makeParticleSprite(this.rgb.green, 'sq', 10), pGreenTri: makeParticleSprite(this.rgb.green, 'tri', 10),
       pRoseSq: makeParticleSprite(this.rgb.rose, 'sq', 10),   pRoseTri: makeParticleSprite(this.rgb.rose, 'tri', 10),
       pSteelSq: makeParticleSprite(this.rgb.steel, 'sq', 10), pSteelTri: makeParticleSprite(this.rgb.steel, 'tri', 10),
-      pAmberSq: makeParticleSprite(this.rgb.amber, 'sq', 10), star: makeStarSprite()
+      pAmberSq: makeParticleSprite(this.rgb.amber, 'sq', 10), pAmberTri: makeParticleSprite(this.rgb.amber, 'tri', 10),
+      star: makeStarSprite()
     };
 
     this.state = 'start';
@@ -565,7 +571,7 @@
     this.stars = [];
     this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0;
 
-    this.boss = false; this.bossTimer = 0;
+    this.boss = false; this.bossTimer = 0; this.wrongGraceLeft = TUNE.wrongGrace;
     this.spawnQueue = null; this.spawnTimer = 0; this.spawnGap = 0.8;
 
     // ship
@@ -695,7 +701,7 @@
 
   Game.prototype._reset = function () {
     this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
-    this.streak = 0; this.combo = 1; this.boss = false; this.bossTimer = 0;
+    this.streak = 0; this.combo = 1; this.boss = false; this.bossTimer = 0; this.wrongGraceLeft = TUNE.wrongGrace;
     this.rocks.length = 0; this.bullets.length = 0; this.particles.length = 0; this.popups.length = 0;
     this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0;
     this.ship.x = this.W / 2; this.ship.y = this.H / 2; this.ship.vx = 0; this.ship.vy = 0;
@@ -750,6 +756,11 @@
     this.spawnQueue = shuffle(queue);
 
     if (this.boss) { this.bossTimer = TUNE.bossTime; this.sfx.boss(); }
+
+    // fresh forgiveness budget + a brief spawn-in grace so the player can read
+    // the new rule banner without being rammed at the wave transition.
+    this.wrongGraceLeft = TUNE.wrongGrace;
+    if (TUNE.startInvuln > 0) this.ship.invuln = Math.max(this.ship.invuln, TUNE.startInvuln);
 
     this._showBanner(); this._syncHud(); this.sfx.wave();
   };
@@ -813,7 +824,7 @@
     else { x = rand(0, this.W); y = this.H + m; }
     // drift roughly toward the interior with some spread
     var toCx = (this.W / 2 - x), toCy = (this.H / 2 - y);
-    var base = Math.atan2(toCy, toCx) + rand(-0.6, 0.6);
+    var base = Math.atan2(toCy, toCx) + rand(-TUNE.spawnSpread, TUNE.spawnSpread);
     var sp = this.waveSpeed * rand(0.85, 1.15);
     this.rocks.push({
       label: item.label, category: item.category, rowId: item.rowId, lo: item.lo,
@@ -1049,14 +1060,23 @@
       }
       this._hitstop(); this.sfx.hit(); this._emit(e, 1);
     } else {
-      // wrong: a spare rock -> lose a life + red flash + TEACH
+      // wrong: a spare rock -> combo breaks + TEACH always. The FIRST wrongGrace
+      // misses per wave teach WITHOUT costing a life (the game is meant to be
+      // "kept forgiving; the pressure is the boss clock"); further misses cost a
+      // heart. This is the single biggest survivability lever (see sim/CA_REPORT.md).
       this.streak = 0; this.combo = 1;
-      this._loseLife(0.9);
-      this._burst(e.x, e.y, this.rgb.rose, 14, 'rose');
-      this._popup(e.x, e.y, 'WRONG', this.col.rose);
       this._teach(e);
       this._hitstop(); this.sfx.wrong(); this._emit(e, 0);
-      if (this.lives <= 0) { this._gameOver(false); return; }
+      if (this.wrongGraceLeft > 0) {
+        this.wrongGraceLeft--;
+        this._burst(e.x, e.y, this.rgb.amber, 12, 'amber');
+        this._popup(e.x, e.y, 'TEACH', this.col.amber);
+      } else {
+        this._loseLife(0.9);
+        this._burst(e.x, e.y, this.rgb.rose, 14, 'rose');
+        this._popup(e.x, e.y, 'WRONG', this.col.rose);
+        if (this.lives <= 0) { this._gameOver(false); return; }
+      }
     }
     this._syncHud();
   };
@@ -1076,10 +1096,19 @@
   };
 
   // a labelled rock that drifted off the field safely: a spared rock is fine;
-  // a target that escaped unshot is a gentle miss (no life cost -- pressure is
-  // the boss clock), but the retrieval opportunity is emitted as incorrect.
+  // a target that escaped unshot is a gentle miss (no LIFE cost -- pressure is
+  // the boss clock), but it now costs a little SCORE so that ignoring hard
+  // targets is not a winning "coward" strategy (sim: coward ratio 1.12 -> 0.99;
+  // see sim/CA_REPORT.md). Combo breaks and the retrieval is emitted as missed.
   Game.prototype._rockEscaped = function (e) {
-    if (e.isTarget) { this.streak = 0; this.combo = 1; this._emit(e, 0); }
+    if (e.isTarget) {
+      this.streak = 0; this.combo = 1; this._emit(e, 0);
+      if (TUNE.escapeCost > 0) {
+        this.score = Math.max(0, this.score - TUNE.escapeCost);
+        this._popup(clamp(e.x, 30, this.W - 30), clamp(e.y, 30, this.H - 30), '-' + TUNE.escapeCost + ' missed', this.col.rose);
+        this._syncHud();
+      }
+    }
   };
 
   Game.prototype._emit = function (e, score) {
