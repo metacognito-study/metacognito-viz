@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1555_e1 gas expansion particulate shown-state | chem row 1555 | Before: 4 particles in the LEFT half of a 2 L container (divider dashed); After: same 4 spread over both halves; NO dS sign, NO disorder commentary -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<text x="220" y="92" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Before</text>
+<rect x="80" y="110" width="280" height="180" rx="10" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="220" y1="110" x2="220" y2="290" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="150" y="320" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1 L</text>
+<text x="290" y="320" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1 L</text>
+<circle cx="120" cy="150" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="180" cy="180" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="130" cy="240" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="195" cy="255" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<line x1="378" y1="200" x2="408" y2="200" stroke="var(--muted,#606b84)" stroke-width="2.5" marker-end="url(#ax)"/>
+<text x="580" y="92" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >After</text>
+<rect x="440" y="110" width="280" height="180" rx="10" fill="none" stroke="var(--ink,#18213a)" stroke-width="3"/>
+<line x1="580" y1="110" x2="580" y2="290" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="510" y="320" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1 L</text>
+<text x="650" y="320" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >1 L</text>
+<circle cx="490" cy="160" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="545" cy="250" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="625" cy="150" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<circle cx="672" cy="240" r="9" fill="var(--indigo-soft,#eef0ff)" stroke="var(--indigo,#5545e8)" stroke-width="2.4"/>
+<text x="400" y="392" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >same 4 particles, same 2 L container — dashed line just marks the halfway point</text>
+</svg>

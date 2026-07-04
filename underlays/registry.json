@@ -1500,6 +1500,210 @@
    "what": "Salt bridge at start shown-state: equal K+ and NO3- inside the bridge between the named cells (left Zn anode / right Cu cathode, given in cell text)",
    "answer_leak_check": "PASS: NO migration arrows (unlike u_1691 where arrows are the given) - deciding which ion migrates LEFT as Zn2+ accumulates IS the task",
    "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1464,
+   "exIdx": 1,
+   "asset": "u_1464_e1_common_ion_log_axis.svg",
+   "mode": "example-image",
+   "what": "AgCl dissolving in 0.100 M NaCl on a LOG concentration axis (coordinator ruling: log over broken axis; powers of ten labeled on gridlines, 'log scale' on axis): [Cl-] flat at 0.100 M, [Ag+] rising only to 1.8e-9 M, dashed 1.34e-5 pure-water reference (all values verbatim from cell)",
+   "answer_leak_check": "PASS: no Ksp = [Ag+][Cl-] math on the figure, no suppression explanation (using Ksp to explain the drastic suppression IS the task; the plotted values are cell-givens)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1467,
+   "exIdx": 1,
+   "asset": "u_1467_e1_dilution_recovery_log.svg",
+   "mode": "example-image",
+   "what": "Dilution-recovery shown-state on a log axis (ruling-consistent, 2-decade window so the factor-2 drop is visible): saturated at 1.34e-5, instant halving to 6.7e-6 at the volume-doubled event, recovery back to 1.34e-5 with excess solid present (all stages verbatim from cell)",
+   "answer_leak_check": "PASS: no Qsp<Ksp/undersaturated annotation and no driving-force explanation (what drives the re-dissolution IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1040,
+   "exIdx": 1,
+   "asset": "u_1040_e1_pe_1step_labeled.svg",
+   "mode": "example-image",
+   "what": "Single-step PE profile with the two CELL-GIVEN callouts drawn: Ea = 80 kJ/mol arrow at the transition state and dH = -40 kJ/mol arrow to products; react 0 / TS +80 / prod -40 with tick scale",
+   "answer_leak_check": "PASS: reverse Ea NOT drawn (identifying it is the task), no exothermic/endothermic verdict; only the labels the cell itself puts on the figure appear",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1039,
+   "exIdx": 1,
+   "asset": "u_1039_e1_pe_2step_ea_labeled.svg",
+   "mode": "example-image",
+   "what": "Two-step PE profile per cell: 0 -> TS1 80 (tall) -> Int 30 -> TS2 45 -> prod -20, with the CELL-GIVEN Ea1 = 80 kJ and Ea2 = 15 kJ callouts drawn from dashed level-guides",
+   "answer_leak_check": "PASS: rate-determining step unmarked, intermediate unnamed, overall dH not drawn (identifying RDS + intermediate and labeling dH IS the task; Ea labels are the cell's own figure content)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1057,
+   "exIdx": 1,
+   "asset": "u_1057_e1_mb_two_temps_ea.svg",
+   "mode": "example-image",
+   "what": "Maxwell-Boltzmann shown-state per cell: 300 K (higher, narrower) and 400 K (lower, broader, right-shifted) curves, dashed Ea = 50 kJ/mol line, shaded above-Ea tails with the 400 K tail visibly larger - every element cell-given",
+   "answer_leak_check": "PASS: fractions not quantified, no doubling-of-rate conclusion on the figure (estimating the fractions and explaining the disproportionate rate effect IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1072,
+   "exIdx": 1,
+   "asset": "u_1072_e1_mb_catalyst_ea.svg",
+   "mode": "example-image",
+   "what": "Single fixed-T Maxwell-Boltzmann curve with dashed Ea lines at 40 kJ/mol (catalysed) and 80 kJ/mol (uncatalysed) and the larger shaded tail beyond the lower Ea - all elements cell-given",
+   "answer_leak_check": "PASS: no how-the-catalyst-works text, no dH-unchanged statement, no shading-means-faster-rate conclusion (those three questions ARE the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1073,
+   "exIdx": 1,
+   "asset": "u_1073_e1_cat_uncat_conc_time.svg",
+   "mode": "example-image",
+   "what": "[A]-vs-time shown-state: catalysed (steeper, flattens earlier) and uncatalysed (shallower) curves from the same start, both ending at the SAME final level (geometry encodes the given); curves named per cell",
+   "answer_leak_check": "PASS: no which-reaches-first callout and no catalysts-don't-shift-equilibrium conclusion (reading the timing and drawing that implication IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1187,
+   "exIdx": 1,
+   "asset": "u_1187_e1_strong_acid_base_particulate.svg",
+   "mode": "example-image",
+   "what": "Strong acid/base particulate shown-state: 0.10 M HCl panel with only H+ and Cl- (no intact HCl) and 0.10 M NaOH panel with only Na+ and OH-; full-dissociation caption restates the cell's given",
+   "answer_leak_check": "PASS: no [H+]/[OH-] values and no pH values on the figure (stating both IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1189,
+   "exIdx": 1,
+   "asset": "u_1189_e1_weak_acid_particulate.svg",
+   "mode": "example-image",
+   "what": "Weak acid particulate shown-state: 0.10 M CH3COOH with 9 intact molecules and ONE H+/CH3COO- pair; caption restates the cell-given Ka and <1%-ionized fact plus a one-pair-for-visibility honesty note",
+   "answer_leak_check": "PASS: no comparison-to-strong-acid text and no numeric fraction estimate beyond the cell's own <1% given (articulating the difference and estimating the fraction IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1555,
+   "exIdx": 1,
+   "asset": "u_1555_e1_gas_expansion_panels.svg",
+   "mode": "example-image",
+   "what": "Gas expansion particulate shown-state: Before = 4 particles confined to the left 1 L half of a 2 L container (dashed halfway divider), After = same 4 spread across both halves (verbatim cell states)",
+   "answer_leak_check": "PASS: no dS sign, no entropy/disorder/positions commentary (predicting the sign and explaining via accessible positions IS the task)",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1380,
+   "exIdx": 1,
+   "asset": "u_1380_e1_titration_half_equiv_marked.svg",
+   "mode": "example-image",
+   "what": "WA-SB titration curve with the CELL-GIVEN half-equivalence marking: dashed horizontal at the curve's pH and dashed vertical at 12.50 mL; pH axis ticked every 2 so the value is readable",
+   "answer_leak_check": "PASS: the half-equivalence pH VALUE and pKa are not printed anywhere (reading pH ~4.7 off the scale and computing Ka = 10^-pKa IS the task); the dashed guides themselves are the cell's given",
+   "serves": []
+  },
+  {
+   "sheet": "chem",
+   "row": 1396,
+   "exIdx": 1,
+   "asset": "u_1396_e1_titration_wb_half_equiv_marked.svg",
+   "mode": "example-image",
+   "what": "WB-SA titration curve with the CELL-GIVEN half-equivalence marking: dashed horizontal at the curve's pH (~9.3 level) and dashed vertical at 12.50 mL; pH axis ticked every 2",
+   "answer_leak_check": "PASS: the half-equivalence pH value, pKb, and Ka(NH4+) are not printed (reading the pH and computing 14-pKb then Kw/Kb IS the task); dashed guides are the cell's given",
+   "serves": []
+  },
+  {
+   "sheet": "econ",
+   "row": 6,
+   "exIdx": 4,
+   "asset": "u_6_e4_econ_causal_chain_3box.svg",
+   "mode": "pad-underlay",
+   "what": "Causal-chain skeleton: three blank dashed '?' boxes joined by given arrows (family asset for 3-stage chain cues)",
+   "answer_leak_check": "PASS: boxes empty - each cue supplies its own stages for the student to write in",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 31,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 150,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 32,
+   "exIdx": 4,
+   "asset": "u_32_e4_econ_causal_chain_4box.svg",
+   "mode": "pad-underlay",
+   "what": "Causal-chain skeleton: four blank dashed '?' boxes joined by given arrows (family asset for 4-stage chain/flow cues)",
+   "answer_leak_check": "PASS: boxes empty - each cue supplies its own stages",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 63,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 72,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 54,
+   "exIdx": 4,
+   "asset": "u_54_e4_econ_number_line_blank.svg",
+   "mode": "pad-underlay",
+   "what": "Blank number line: 7 unlabeled ticks, double-headed; family asset for the 80->65 change and 0.75-0.80 terms-of-trade cues",
+   "answer_leak_check": "PASS: no values on ticks (each cue's scale, interval shading, and plotted points are the student's work)",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 105,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 106,
+     "exIdx": 4
+    },
+    {
+     "sheet": "econ",
+     "row": 107,
+     "exIdx": 4
+    }
+   ]
+  },
+  {
+   "sheet": "econ",
+   "row": 108,
+   "exIdx": 4,
+   "asset": "u_108_e4_econ_trade_flow_2country.svg",
+   "mode": "pad-underlay",
+   "what": "Two-country trade-flow skeleton: two country boxes with dashed blank name slots + two bare horizontal lanes",
+   "answer_leak_check": "PASS: no arrowheads on the lanes, no goods labels, country names blank (assigning exports/imports directions and names IS the exercise)",
+   "serves": [
+    {
+     "sheet": "econ",
+     "row": 114,
+     "exIdx": 4
+    }
+   ]
   }
  ]
 }

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1057_e1 M-B 300K vs 400K with Ea line shown-state | chem row 1057 | curves labeled, Ea = 50 kJ/mol dashed line + shaded exceed-Ea tails (ALL given per cell); fractions NOT quantified, rate conclusion absent -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<path d="M450,318 L470,340 L510,368 L560,385 L620,398 L690,405 L690,420 L450,420 Z" fill="var(--amber-soft,#fdf3d8)" fill-opacity="0.85"/>
+<path d="M450,362 L480,378 L520,390 L560,398 L620,406 L660,412 L660,420 L450,420 Z" fill="var(--indigo-soft,#eef0ff)" fill-opacity="0.95"/>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<path d="M150,418 C230,415 250,182 305,182 C350,182 380,300 430,350 C480,385 560,405 660,412" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linecap="round"/>
+<path d="M150,418 C240,416 280,242 365,242 C420,242 460,330 520,368 C570,390 620,400 690,405" fill="none" stroke="var(--amber,#f5b526)" stroke-width="4" stroke-linecap="round"/>
+<line x1="450" y1="130" x2="450" y2="420" stroke="var(--muted,#606b84)" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="450" y="118" font-size="14" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Ea = 50 kJ/mol</text>
+<text x="290" y="166" font-size="14" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >300 K</text>
+<text x="392" y="226" font-size="14" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >400 K</text>
+<text x="480" y="468" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >kinetic energy</text>
+<text x="60" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 60 260)">fraction of molecules</text>
+<text x="400" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >shaded = molecules with KE above Ea, per curve</text>
+</svg>

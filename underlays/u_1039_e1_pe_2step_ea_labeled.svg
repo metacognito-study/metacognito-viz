@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1039_e1 two-step PE with GIVEN Ea labels | chem row 1039 | 0 -> TS1 80 -> Int 30 -> TS2 45 -> prod -20; Ea1=80 and Ea2=15 labeled per cell; RDS unmarked, intermediate unnamed, dH not drawn -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<line x1="140" y1="440" x2="700" y2="440" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="440" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<line x1="134" y1="405" x2="140" y2="405" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="410" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >-20</text>
+<line x1="134" y1="370" x2="140" y2="370" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="375" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >0</text>
+<line x1="134" y1="318" x2="140" y2="318" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="323" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >30</text>
+<line x1="134" y1="291" x2="140" y2="291" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="294" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >45</text>
+<line x1="134" y1="230" x2="140" y2="230" stroke="var(--ink,#18213a)" stroke-width="2"/>
+<text x="126" y="235" font-size="13" fill="var(--muted,#606b84)" text-anchor="end" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >80</text>
+<line x1="240" y1="370" x2="330" y2="370" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="5 5"/>
+<line x1="390" y1="318" x2="500" y2="318" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="5 5"/>
+<line x1="462" y1="291" x2="500" y2="291" stroke="var(--muted,#606b84)" stroke-width="1.5" stroke-dasharray="5 5"/>
+<path d="M165,370 L240,370 C270,370 275,230 305,230 C335,230 340,318 368,318 L390,318 C412,318 418,291 440,291 C462,291 470,405 510,405 L660,405" fill="none" stroke="var(--indigo,#5545e8)" stroke-width="4" stroke-linecap="round"/>
+<line x1="305" y1="364" x2="305" y2="238" stroke="var(--muted,#606b84)" stroke-width="2" marker-start="url(#ax)" marker-end="url(#ax)"/>
+<text x="228" y="300" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Ea₁ = 80 kJ</text>
+<line x1="488" y1="316" x2="488" y2="295" stroke="var(--muted,#606b84)" stroke-width="2" marker-end="url(#ax)"/>
+<text x="562" y="308" font-size="14" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Ea₂ = 15 kJ</text>
+<text x="500" y="478" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >reaction coordinate</text>
+<text x="60" y="270" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 60 270)">potential energy (kJ)</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)">
+<!-- u_1072_e1 M-B with catalysed/uncatalysed Ea lines shown-state | chem row 1072 | one fixed-T curve, Ea lines at 40 (catalysed) and 80 (uncatalysed) kJ/mol, larger shaded area beyond the lower Ea (all given per cell); NO dH answer, NO rate explanation -->
+<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted,#606b84)"/></marker></defs>
+<path d="M430,340 L460,355 L510,385 L560,396 L620,405 L680,412 L680,420 L430,420 Z" fill="var(--amber-soft,#fdf3d8)" fill-opacity="0.9"/>
+<path d="M550,393 L620,405 L680,412 L680,420 L550,420 Z" fill="var(--indigo-soft,#eef0ff)"/>
+<line x1="140" y1="420" x2="700" y2="420" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/><line x1="140" y1="420" x2="140" y2="100" stroke="var(--ink,#18213a)" stroke-width="2.5" marker-end="url(#ax)"/>
+<path d="M150,418 C230,415 250,190 310,190 C360,190 400,310 460,355 C510,385 590,405 680,412" fill="none" stroke="var(--ink,#18213a)" stroke-width="4" stroke-linecap="round"/>
+<line x1="430" y1="150" x2="430" y2="420" stroke="var(--amber,#f5b526)" stroke-width="2.5" stroke-dasharray="7 6"/>
+<text x="430" y="138" font-size="13" fill="var(--amber,#f5b526)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Ea (catalysed) = 40 kJ/mol</text>
+<line x1="550" y1="190" x2="550" y2="420" stroke="var(--indigo,#5545e8)" stroke-width="2.5" stroke-dasharray="7 6"/>
+<text x="570" y="178" font-size="13" fill="var(--indigo,#5545e8)" text-anchor="middle" font-weight="700" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >Ea (uncatalysed) = 80 kJ/mol</text>
+<text x="480" y="468" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >kinetic energy</text>
+<text x="60" y="260" font-size="15" fill="var(--ink,#18213a)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" transform="rotate(-90 60 260)">fraction of molecules</text>
+<text x="400" y="446" font-size="13" fill="var(--muted,#606b84)" text-anchor="middle" font-weight="500" paint-order="stroke" stroke="var(--surface,#ffffff)" stroke-width="4" stroke-linejoin="round" >same curve, same T — shading = molecules beyond each Ea</text>
+</svg>
