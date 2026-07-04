@@ -119,6 +119,7 @@
   // ===== fixed market parameters (original scenario: a per-unit excise tax on streaming subscriptions) =====
   // Demand  P = a - bQ ,  Supply  P = c + dQ
   var a=100, b=2, c=10, d=3;
+  var C0=c;   // drawMarket's colors param shadows c; helpers inside it must use C0
   // pre-tax equilibrium: Qe=(a-c)/(b+d)=18 , Pe=a-b*Qe=64
   var Qe=(a-c)/(b+d);        // 18
   var Pe=a-b*Qe;             // 64
@@ -314,7 +315,7 @@
       ctxM.fillText(String(idx+1), X(s.Qt), Y(sPb)-3);
       ctxM.restore();
     });
-    function c2(q){ return c+d*q; }   // supply price helper (closure over c,d)
+    function c2(q){ return C0+d*q; }   // supply price helper (C0: the c param here is the colors object)
 
     // ----- live revenue rectangle: from Ps up to Pb, width 0..Qt (tint --amber) -----
     if(!shut && Qt>0){

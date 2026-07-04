@@ -340,9 +340,10 @@ function refresh(){
     var a=ELEMENTS[state.el1], b=ELEMENTS[state.el2];
     var hi = a.Z>b.Z ? a : b, lo = a.Z>b.Z ? b : a;
     var hiSym = a.Z>b.Z?state.el1:state.el2, loSym = a.Z>b.Z?state.el2:state.el1;
-    ex = 'Every peak of <b>'+hiSym+'</b> (higher Z) sits <b>further LEFT</b> (higher binding energy) than the matching peak of '+
+    ex = 'Almost every peak of <b>'+hiSym+'</b> (higher Z) sits <b>further LEFT</b> (higher binding energy) than the matching peak of '+
       loSym+': a larger nuclear charge pulls every electron in harder. Compare the two 1s peaks — that gap is almost pure Z<sub>eff</sub>. '+
-      'Peak heights are unchanged by which element you overlay; they always equal the electron count in that subshell.';
+      'Peak heights are unchanged by which element you overlay; they always equal the electron count in that subshell. '+
+      'One famous exception: a p⁴ pairing (O 2p, S 3p) sits at slightly LOWER binding energy than its p³ neighbour (N 2p, P 3p) — electron-pairing repulsion, the classic IE-dip teaching point.';
   } else {
     ex = 'Read the spectrum left → right: the far-left tall peak is the <b>1s core</b> (held most tightly, '+core.be+' MJ/mol). '+
       'Moving right, binding energy drops as electrons get further from the nucleus and are more shielded. '+

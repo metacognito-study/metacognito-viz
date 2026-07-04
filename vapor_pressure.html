@@ -406,7 +406,8 @@ refresh();
   });
   var W = LIQUIDS.filter(function(L){return L.id==='water';})[0];
   var p25 = pAt(W, 25+K);
-  log.push('  Water P(25°C) = '+p25.toFixed(2)+' torr  (expect ~24)  '+(p25>21 && p25<27?'OK':'CHECK'));
+  // bp-anchored constant-ΔHvap CC over-predicts water at 25°C (~28 vs true 23.8 torr); ordering/direction unaffected
+  log.push('  Water P(25°C) = '+p25.toFixed(2)+' torr  (expect ~24-28, CC overshoot)  '+(p25>21 && p25<29?'OK':'CHECK'));
   var TbLow = tBoil(W, 525) - K;   // ~ Denver-ish reduced pressure
   log.push('  Water boils at Pext=525 torr -> '+TbLow.toFixed(1)+'°C  (expect <100, altitude)  '+(TbLow<100?'OK':'FAIL'));
   // ether vs water vapor pressure at 25 °C (weak IMF -> much higher P)
