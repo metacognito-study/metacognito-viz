@@ -845,6 +845,7 @@
     trackLen: 20,           // track units to the finish; maps 1:1 to raceQs answered
     progEase: 3.2,          // how fast a car's dist eases toward its answered-progress target
     boostLead: 0.9,         // max track units a boost surge may lead the progress target
+    creep: 0.32,            // minimal rolling creep (track units/sec) so the car keeps inching between correct answers
     boostGain: 0.90,        // boost impulse added per correct answer (surge feel)
     boostGainTurbo: 1.5,    // when in turbo (3+ streak): bigger impulse
     stallSecs: 0.9,         // seconds the stall visual lingers after a wrong answer
@@ -1279,11 +1280,9 @@
     var q = this.cur;
     this.seen++;
     this.qIndex++;
-    // every answered question advances the car one step toward the 20-question
-    // finish (prog). A correct answer ADDS a boost surge on top (feel); a wrong
-    // answer advances the same step but with no boost + a stall, so a guesser
-    // still finishes but slower and behind the accurate pack.
-    this.player.prog = this.qIndex;
+    // Ibrahim: a WRONG answer must NOT advance you like a correct one. prog (which drives distance to the
+    // finish) now advances ONLY on a correct answer (see the ok-branch below) — matching the AI cars. A wrong
+    // answer stalls in place (no forward progress) + a teaching toast, so accuracy is what actually wins the race.
 
     // reflect the pick on the buttons briefly (right/wrong colouring)
     this._markAnswerButtons(ok, pickedIdx);
@@ -1292,6 +1291,7 @@
 
     if (ok) {
       this.correct++;
+      this.player.prog++;               // Ibrahim: advance toward the finish ONLY on a correct answer
       this.streak++;
       var wasTurbo = this.turbo;
       this.turbo = this.streak >= TUNE.turboStreak;
@@ -1397,8 +1397,9 @@
     var ease = clamp(dt * TUNE.progEase, 0, 1);
     var prevDist = p.dist;
     p.dist += (pTarget - p.dist) * ease;
-    p.dist += p.boost * 1.6 * dt;                 // boost surge (on top of the ease)
-    p.dist = Math.min(p.dist, pTarget + TUNE.boostLead);  // boost can lead the target only so far
+    p.dist += p.boost * 1.6 * dt;                 // boost surge (on top of the ease): the initial rolling kick
+    if (p.stall <= 0) p.dist += TUNE.creep * dt;  // Ibrahim: minimal rolling creep so it keeps inching between correct answers; PAUSED during a stall (wrong = stop)
+    p.dist = Math.min(p.dist, pTarget + TUNE.boostLead);  // boost + creep can lead the target only so far
     p.boost = Math.max(0, p.boost - p.boost * TUNE.speedDecay * dt);
     p.speed = (p.dist - prevDist) / Math.max(dt, 0.0001);   // for hum + trail heat
     if (this.reduced) p.trail = [];
