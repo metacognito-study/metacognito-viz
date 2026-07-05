@@ -1149,9 +1149,30 @@
   BB.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
   BB.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> teammates
   Game.prototype._setPeers = function (p) { this.remote = p || {}; if (this.mp) this._recalcTeamHp_(); };
-  Game.prototype._peerNd_ = function () { var s = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) { var v = r[k] && r[k].s; if (v && typeof v.nd === 'number') s += v.nd; } return s; };
+  Game.prototype._peerNd_ = function () { var s = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) { var v = r[k] && r[k].s; if (v && typeof v.nd === 'number' && v.bi === this.bossIdx) s += v.nd; } return s; };   // only teammates on the SAME boss chip MY boss (no cross-boss contamination)
   Game.prototype._peerCount_ = function () { var n = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) n++; return n; };
+  Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
   Game.prototype._recalcTeamHp_ = function () { if (!this.mp || !this.bossMaxHp) return; this.bossHp = clamp(this.bossMaxHp - (this.netDmg + this._peerNd_()), 0, this.bossMaxHp); };
+  Game.prototype._peerStrikes_ = function () {   // when a teammate on MY boss deals fresh damage, flash a beam + damage popup so I SEE their strikes
+    if (!this.mp || !this.remote) return;
+    if (!this._peerPrevNd) this._peerPrevNd = {};
+    var c = this._bossCenter(), pi = 0;
+    for (var uid in this.remote) {
+      if (!this.remote.hasOwnProperty(uid)) continue;
+      var v = this.remote[uid] && this.remote[uid].s;
+      var nd = (v && typeof v.nd === 'number' && v.bi === this.bossIdx) ? v.nd : 0;
+      var prev = this._peerPrevNd[uid];
+      if (prev != null && nd > prev + 0.5) {
+        var col = this._peerColor(pi);
+        try { this._fireBeam(col); } catch (e) {}
+        try { this._burst(c.x, c.y, this.rgb.green, 8, 'green'); } catch (e) {}
+        try { this._popup(c.x, c.y - c.r * 0.4, '-' + Math.round(nd - prev), col); } catch (e) {}
+        this.bossFlash = Math.max(this.bossFlash || 0, 0.4); this.bossPulse = Math.max(this.bossPulse || 0, 0.4);
+      }
+      this._peerPrevNd[uid] = nd;
+      pi++;
+    }
+  };
 
   // ---- error overlay used before a Game exists -------------------------
   function showError(msg) {
@@ -1445,8 +1466,10 @@
   Game.prototype._spawnBoss = function (i) {
     var def = BOSSES[i];
     this.bossIdx = i;
-    this.bossMaxHp = def.hp;
-    this.bossHp = def.hp;
+    var _tf = this.mp ? (1 + 0.4 * this._peerCount_()) : 1;   // team fight: boss marginally beefier per EXTRA player (not double) so it feels like collective effort
+    this.bossMaxHp = Math.round(def.hp * _tf);
+    this.bossHp = this.bossMaxHp;
+    if (this.mp) { this.netDmg = 0; this._peerPrevNd = {}; }   // per-boss shared-HP accounting starts fresh (peers scope their nd by bossIdx)
     this.shield = null;
     this.phaseDone = [false, false];
     this.bossSpin = 0;
@@ -2319,10 +2342,10 @@
     dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
     this.t += dt;
     if (this.state === 'playing') this._update(dt);
-    if (this.mp) this._recalcTeamHp_();   // reflect teammates' live damage/heals on the shared boss every frame
+    if (this.mp) { this._recalcTeamHp_(); this._peerStrikes_(); }   // reflect teammates' live damage/heals on the shared boss + flash their strikes
     this._draw();
-    // multiplayer: broadcast my cumulative net damage + score (throttled ~10/s)
-    if (this.onState) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ nd: this.netDmg, sc: this.score }); } catch (e) {} } }
+    // multiplayer: broadcast my cumulative net damage + score + which boss I'm on (throttled ~10/s)
+    if (this.onState) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ nd: this.netDmg, sc: this.score, bi: this.bossIdx }); } catch (e) {} } }
   };
 
   Game.prototype._toggleFullscreen = function () {
