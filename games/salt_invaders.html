@@ -903,6 +903,7 @@
   // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
   SI.start = SI.open;
   SI.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  SI.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> live squadron
 
   // ---- error overlay used before a Game exists -------------------------
   function showError(msg) {
@@ -1000,6 +1001,10 @@
     this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
     this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
     this.closed = false;
+    this.mp = (opts.mp && typeof opts.mp === 'object') ? opts.mp : null;   // { self, name, code } from the room relay
+    this.onState = typeof opts.onState === 'function' ? opts.onState : null;   // broadcaster
+    this.remote = {};   // uid -> { nm, s:{x,sc}, t } : other players' ships, rendered live
+    this._mpAcc = 0;
 
     // DOM
     this.canvas = document.getElementById('si-canvas');
@@ -1743,6 +1748,7 @@
     for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
 
     // shooter (drawn ship + thruster)
+    this._drawPeers();
     this._drawShooter();
 
     // popups
@@ -1930,6 +1936,29 @@
     ctx.setLineDash([]);
   };
 
+  Game.prototype._setPeers = function (p) { this.remote = p || {}; };
+  Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
+  Game.prototype._drawPeers = function () {   // other players' ships flying beside you, live
+    if (!this.mp || !this.remote) return;
+    var ctx = this.ctx, y = this._shooterY(), i = 0;
+    for (var uid in this.remote) {
+      if (!this.remote.hasOwnProperty(uid)) continue;
+      var rp = this.remote[uid], rs = (rp && rp.s) || {};
+      if (rs.x == null) { i++; continue; }
+      var x = clamp(rs.x, 0, 1) * this.W, col = this._peerColor(i);
+      ctx.save();
+      ctx.globalAlpha = 0.72;
+      ctx.translate(x, y); ctx.rotate(-Math.PI / 2);
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-9, -10); ctx.lineTo(-4, 0); ctx.lineTo(-9, 10); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.9; ctx.fillStyle = col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String((rp && rp.nm) || 'Player').slice(0, 12), x, y + 20);
+      ctx.restore();
+      i++;
+    }
+  };
   Game.prototype._drawParticle = function (p) {
     var ctx = this.ctx;
     ctx.save();
@@ -2018,6 +2047,8 @@
     this.t += dt;
     if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
     this._draw();
+    // multiplayer: broadcast my ship position + score (throttled ~10/s) so squadmates see me fly + shoot
+    if (this.onState && this.shooter) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ x: this.shooter.x, sc: this.score }); } catch (e) {} } }
   };
 
   Game.prototype._toggleFullscreen = function () {

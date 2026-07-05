@@ -1147,6 +1147,11 @@
   // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
   BB.start = BB.open;
   BB.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  BB.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> teammates
+  Game.prototype._setPeers = function (p) { this.remote = p || {}; if (this.mp) this._recalcTeamHp_(); };
+  Game.prototype._peerNd_ = function () { var s = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) { var v = r[k] && r[k].s; if (v && typeof v.nd === 'number') s += v.nd; } return s; };
+  Game.prototype._peerCount_ = function () { var n = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) n++; return n; };
+  Game.prototype._recalcTeamHp_ = function () { if (!this.mp || !this.bossMaxHp) return; this.bossHp = clamp(this.bossMaxHp - (this.netDmg + this._peerNd_()), 0, this.bossMaxHp); };
 
   // ---- error overlay used before a Game exists -------------------------
   function showError(msg) {
@@ -1217,6 +1222,11 @@
 
     this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
     this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+    this.mp = (opts.mp && typeof opts.mp === 'object') ? opts.mp : null;   // { self, name, code } from the room relay
+    this.onState = typeof opts.onState === 'function' ? opts.onState : null;   // broadcaster
+    this.remote = {};   // uid -> { nm, s:{nd,sc}, t } : teammates fighting THE SAME boss
+    this._mpAcc = 0;
+    this.netDmg = 0;   // my cumulative net damage (damage dealt - heals caused). Shared boss HP = maxHp - sum(all players' netDmg), so a wrong answer (which heals) revives the shared boss for everyone.
 
     // DOM
     this.canvas = document.getElementById('bb-canvas');
@@ -1696,7 +1706,9 @@
     var dmg = Math.round(TUNE.dmgBase * this.combo);
     var gain = Math.round(TUNE.scoreHit * this.combo);
     this.score += gain;
-    this.bossHp = Math.max(0, this.bossHp - dmg);
+    this.netDmg += dmg;
+    if (this.mp) this.bossHp = clamp(this.bossMaxHp - (this.netDmg + this._peerNd_()), 0, this.bossMaxHp);   // shared boss: my damage joins the team's
+    else this.bossHp = Math.max(0, this.bossHp - dmg);
     // co-op hook (host-authoritative HP; dead while BB_COOP=false)
     if (Coop.enabled()) { Coop.hostTransactHp(-dmg, this.bossMaxHp); Coop.sendScore(this.score); }
     this._fireBeam(this.col.green);
@@ -1751,7 +1763,8 @@
   Game.prototype._bossHeal = function (amt, hard) {
     var c = this._bossCenter();
     amt = Math.round(amt);
-    this.bossHp = Math.min(this.bossMaxHp, this.bossHp + amt);
+    if (this.mp) { this.netDmg -= amt; this.bossHp = clamp(this.bossMaxHp - (this.netDmg + this._peerNd_()), 0, this.bossMaxHp); }   // a wrong answer heals the SHARED boss (undoes some team damage) - the whole squad feels it
+    else this.bossHp = Math.min(this.bossMaxHp, this.bossHp + amt);
     if (Coop.enabled()) Coop.hostTransactHp(amt, this.bossMaxHp);
     this.flash = hard ? 0.9 : 0.45;
     this._popup(c.x, c.y - c.r * 0.4, '+' + amt, this.col.rose);
@@ -1972,6 +1985,14 @@
     ctx.clearRect(0, 0, W, H);
 
     this._drawStars();
+
+    if (this.mp) {   // faint, always-present reminder you are fighting the SAME boss as your classmates
+      var _pn = this._peerCount_();
+      ctx.save();
+      ctx.globalAlpha = 0.5; ctx.fillStyle = this.col.ink; ctx.font = '700 12px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('🛡 Squad: you + ' + _pn + ' classmate' + (_pn === 1 ? '' : 's') + ' · shared boss', W / 2, 22);
+      ctx.restore();
+    }
 
     ctx.save();
     if (this.shake > 0 && !this.reduced) {
@@ -2298,7 +2319,10 @@
     dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
     this.t += dt;
     if (this.state === 'playing') this._update(dt);
+    if (this.mp) this._recalcTeamHp_();   // reflect teammates' live damage/heals on the shared boss every frame
     this._draw();
+    // multiplayer: broadcast my cumulative net damage + score (throttled ~10/s)
+    if (this.onState) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ nd: this.netDmg, sc: this.score }); } catch (e) {} } }
   };
 
   Game.prototype._toggleFullscreen = function () {
