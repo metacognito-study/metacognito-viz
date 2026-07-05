@@ -1465,9 +1465,6 @@
       p.dist = TUNE.trackLen;
       this._finish(false);
     }
-
-    // multiplayer: broadcast my track position to the room (throttled ~10/s) so peers render my car live
-    if (this.onState) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ p: p.prog, d: p.dist }); } catch (e) {} } }
   };
 
   // map a car's answered-question count to its target distance on the track.
@@ -1844,6 +1841,9 @@
     if (this.state === 'playing') this._update(dt);
     this._draw();
     if (this.state === 'playing') this._syncHud();
+    // multiplayer: broadcast my track position every frame (throttled ~10/s), in ALL states, so classmates
+    // see my car on the same screen even at the start line / countdown, not only once the race is running.
+    if (this.onState && this.player) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ p: this.player.prog, d: this.player.dist }); } catch (e) {} } }
   };
 
   Game.prototype._toggleFullscreen = function () {
