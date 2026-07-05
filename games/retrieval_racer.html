@@ -909,6 +909,7 @@
   };
   RR.start = RR.open;
   RR.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  RR.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> live racers
 
   function showError(msg) {
     var el = document.getElementById('rr-error');
@@ -929,6 +930,10 @@
     try { this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
     this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
+    this.mp = (opts.mp && typeof opts.mp === 'object') ? opts.mp : null;   // { self, name, code } from the room relay
+    this.onState = typeof opts.onState === 'function' ? opts.onState : null;   // broadcaster (parent writes it to /gameRooms/.../live)
+    this.remote = {};   // uid -> { nm, s:{p,d}, t } : the other racers in the room, rendered live
+    this._mpAcc = 0;
     this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
 
     this.canvas = document.getElementById('rr-canvas');
@@ -1460,6 +1465,9 @@
       p.dist = TUNE.trackLen;
       this._finish(false);
     }
+
+    // multiplayer: broadcast my track position to the room (throttled ~10/s) so peers render my car live
+    if (this.onState) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ p: p.prog, d: p.dist }); } catch (e) {} } }
   };
 
   // map a car's answered-question count to its target distance on the track.
@@ -1515,10 +1523,13 @@
   // in lanes above, spread across the mid-lower band of the screen.
   Game.prototype._laneY = function (laneIdx) {
     var top = this.H * 0.52, bottom = this.H * 0.82;
-    var lanes = 1 + this.ais.length;
+    var lanes = 1 + this.ais.length + this._peerCount();   // include live peers so lane spacing stays even
     var step = (bottom - top) / Math.max(1, lanes - 1);
     return bottom - laneIdx * step;   // lane 0 lowest (nearest camera)
   };
+  Game.prototype._setPeers = function (p) { this.remote = p || {}; };
+  Game.prototype._peerCount = function () { var n = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) n++; return n; };
+  Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
 
   // ---- render ----------------------------------------------------------
   Game.prototype._draw = function () {
@@ -1543,6 +1554,20 @@
       var s = this._carScreen(ai, this._laneY(a + 1));
       this._drawTrail(ai, this._laneY(a + 1), this.rgb.steel, 0.5);
       this._drawCar(s.x, s.y, this._aiColor(a), ai.bob, false, ai.name, ai.level);
+    }
+    // live peers (real classmates in the room) - each in its own lane above the pace-cars, with their name
+    if (this.mp && this.remote) {
+      var _pc = 0, _base = this.ais.length + 1;
+      for (var _uid in this.remote) {
+        if (!this.remote.hasOwnProperty(_uid)) continue;
+        var _rp = this.remote[_uid], _rs = (_rp && _rp.s) || {};
+        var _rdist = (_rs.d != null) ? _rs.d : this._targetDist(_rs.p || 0);
+        var _car = { dist: _rdist, bob: 0 };
+        var _rsc = this._carScreen(_car, this._laneY(_base + _pc));
+        this._drawTrail(_car, this._laneY(_base + _pc), this._peerColor(_pc), 0.5);
+        this._drawCar(_rsc.x, _rsc.y, this._peerColor(_pc), 0, false, (_rp && _rp.nm) || 'Racer', 1);
+        _pc++;
+      }
     }
     var ps = this._carScreen(this.player, this._laneY(0));
     this._drawTrail(this.player, this._laneY(0), this.turbo ? this.rgb.amber : this.rgb.indigo, this.turbo ? 1 : 0.8);
