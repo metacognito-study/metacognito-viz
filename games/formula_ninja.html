@@ -1423,7 +1423,8 @@
         this._popup(e.x, e.y, 'TEACH', this.col.amber);
       } else {
         this._loseLife(0.9);
-        this._popup(e.x, e.y, 'WRONG', this.col.rose);
+        var pen = Math.min(this.score, 8); this.score = Math.max(0, this.score - 8);   // Ibrahim: a wrong choice DECREASES points
+        this._popup(e.x, e.y, pen > 0 ? ('WRONG -' + pen) : 'WRONG', this.col.rose);
         if (this.lives <= 0) { this._gameOver(false); return; }
       }
     }

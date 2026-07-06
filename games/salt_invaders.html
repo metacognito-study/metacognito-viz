@@ -1639,12 +1639,14 @@
       this.sfx.hit();
       this._emit(e, 1);
     } else {
-      // wrong: this was a "spare" item -> lose a life + red flash + TEACH
+      // wrong: this was a "spare" item -> lose a life + points + red flash + TEACH
       this.streak = 0; this.combo = 1;
       this._logShot(0);
       this._loseLife(0.9);
+      var pen = Math.min(this.score, 8);
+      this.score = Math.max(0, this.score - 8);   // Ibrahim: a wrong choice DECREASES points (never a free guess)
       this._burst(e.x, e.y, this.rgb.rose, 14, 'rose');
-      this._popup(e.x, e.y, 'WRONG', this.col.rose);
+      this._popup(e.x, e.y, pen > 0 ? ('WRONG -' + pen) : 'WRONG', this.col.rose);
       this._teach(e);
       this._hitstop();
       this.sfx.wrong();

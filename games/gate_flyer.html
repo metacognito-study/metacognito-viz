@@ -1518,8 +1518,9 @@
         return;
       }
       this._loseLife(0.9);
+      var pen = Math.min(this.score, 8); this.score = Math.max(0, this.score - 8);   // Ibrahim: a wrong choice DECREASES points
       this._burst(pl.x, (hitGate.top + hitGate.bottom) / 2, this.rgb.rose, 14, 'rose');
-      this._popup(pl.x, gy, 'WRONG', this.col.rose);
+      this._popup(pl.x, gy, pen > 0 ? ('WRONG -' + pen) : 'WRONG', this.col.rose);
       this._teach(hitGate);
       this._hitstop();
       this.sfx.wrong();
