@@ -171,6 +171,7 @@
   #fn-banner .fn-banner-target { color: var(--fn-green); }
   #fn-banner .fn-banner-spare { color: var(--fn-rose); }
   #fn-banner.fn-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  #fn-banner.fn-dim { opacity: .4; transition: opacity .5s ease; }
 
   /* teaching toast: the "why was that wrong" line, appears bottom-center briefly */
   #fn-teach {
@@ -1281,10 +1282,10 @@
       sEl.innerHTML = 'Spare the <span class="fn-banner-spare">' + spare + '</span>' + tail;
     }
     if (banner) {
-      banner.classList.remove('fn-hide');
+      banner.classList.remove('fn-hide'); banner.classList.remove('fn-dim');
       clearTimeout(this._bannerT);
       var self = this;
-      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('fn-hide'); }, this.boss ? 3200 : 2600);
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('fn-dim'); }, this.boss ? 3200 : 2600);
     }
   };
 

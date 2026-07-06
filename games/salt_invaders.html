@@ -185,6 +185,7 @@
   #si-banner .si-banner-target { color: var(--si-green); }
   #si-banner .si-banner-spare { color: var(--si-rose); }
   #si-banner.si-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  #si-banner.si-dim { opacity: .4; transition: opacity .5s ease; }
 
   /* teaching toast: the "why was that wrong" line, appears bottom-center briefly */
   #si-teach {
@@ -1323,10 +1324,10 @@
       sEl.innerHTML = 'Spare the <span class="si-banner-spare">' + spare + '</span>' + tail;
     }
     if (banner) {
-      banner.classList.remove('si-hide');
+      banner.classList.remove('si-hide'); banner.classList.remove('si-dim');
       clearTimeout(this._bannerT);
-      var self = this;
-      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('si-hide'); }, this.boss ? 3200 : 2600);
+      // Ibrahim: the round GOAL stays PERSISTENT (dims to low opacity, never hides) - we are not testing goal memory.
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('si-dim'); }, this.boss ? 3200 : 2600);
     }
   };
 

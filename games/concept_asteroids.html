@@ -136,6 +136,7 @@
   #ca-banner .ca-banner-target { color: var(--ca-green); }
   #ca-banner .ca-banner-spare { color: var(--ca-rose); }
   #ca-banner.ca-hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  #ca-banner.ca-dim { opacity: .4; transition: opacity .5s ease; }
   #ca-teach { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%) translateY(6px);
     max-width: 90%; text-align: center; pointer-events: none; opacity: 0;
     background: rgba(20,10,16,.86); border: 1.5px solid var(--ca-rose); border-radius: 12px;
@@ -1076,9 +1077,9 @@
       sEl.innerHTML = 'Spare the <span class="ca-banner-spare">' + spare + '</span>' + tail;
     }
     if (banner) {
-      banner.classList.remove('ca-hide');
+      banner.classList.remove('ca-hide'); banner.classList.remove('ca-dim');
       clearTimeout(this._bannerT);
-      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('ca-hide'); }, this.boss ? 3200 : 2600);
+      this._bannerT = setTimeout(function () { if (banner) banner.classList.add('ca-dim'); }, this.boss ? 3200 : 2600);
     }
   };
 
