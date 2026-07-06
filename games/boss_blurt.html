@@ -1162,6 +1162,7 @@
   Game.prototype._setPeers = function (p) { this.remote = p || {}; if (this.mp) this._recalcTeamHp_(); };
   Game.prototype._peerNd_ = function () { var s = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) { var v = r[k] && r[k].s; if (v && typeof v.nd === 'number' && v.bi === this.bossIdx) s += v.nd; } return s; };   // only teammates on the SAME boss chip MY boss (no cross-boss contamination)
   Game.prototype._peerCount_ = function () { var n = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) n++; return n; };
+  Game.prototype._peerMaxBi_ = function () { var m = -1, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) { var v = r[k] && r[k].s; if (v && typeof v.bi === 'number' && v.bi > m) m = v.bi; } return m; };   // highest boss index any teammate has reached (drives follow-the-leader advance)
   Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
   Game.prototype._recalcTeamHp_ = function () { if (!this.mp || !this.bossMaxHp) return; this.bossHp = clamp(this.bossMaxHp - (this.netDmg + this._peerNd_()), 0, this.bossMaxHp); };
   Game.prototype._peerStrikes_ = function () {   // when a teammate on MY boss deals fresh damage, flash a beam + damage popup so I SEE their strikes
@@ -1477,8 +1478,10 @@
   Game.prototype._spawnBoss = function (i) {
     var def = BOSSES[i];
     this.bossIdx = i;
-    var _tf = this.mp ? (1 + 0.4 * this._peerCount_()) : 1;   // team fight: boss marginally beefier per EXTRA player (not double) so it feels like collective effort
-    this.bossMaxHp = Math.round(def.hp * _tf);
+    // SHARED boss HP: maxHp MUST be identical on every client or the bars drift out of sync. Do NOT scale by
+    // local _peerCount_() (it varies per client with relay timing). Team resilience comes from many players
+    // chipping ONE shared bar (maxHp - sum of everyone's net damage), so it drops faster with more players.
+    this.bossMaxHp = def.hp;
     this.bossHp = this.bossMaxHp;
     if (this.mp) { this.netDmg = 0; this._peerPrevNd = {}; }   // per-boss shared-HP accounting starts fresh (peers scope their nd by bossIdx)
     this.shield = null;
@@ -2353,7 +2356,12 @@
     dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
     this.t += dt;
     if (this.state === 'playing') this._update(dt);
-    if (this.mp) { this._recalcTeamHp_(); this._peerStrikes_(); }   // reflect teammates' live damage/heals on the shared boss + flash their strikes
+    if (this.mp) {
+      this._recalcTeamHp_(); this._peerStrikes_();   // reflect teammates' live damage/heals on the shared boss + flash their strikes
+      // follow-the-leader: if a teammate has already advanced PAST my boss, the shared boss is dead on the team's
+      // reckoning -> advance too, so a laggard (who missed the final relayed damage) never gets stranded on a dead boss.
+      if (this.state === 'playing' && this.qphase !== 'inter' && this._peerMaxBi_() > this.bossIdx) { this.bossHp = 0; this._bossShattered(); }
+    }
     this._draw();
     // multiplayer: broadcast my cumulative net damage + score + which boss I'm on (throttled ~10/s)
     if (this.onState) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ nd: this.netDmg, sc: this.score, bi: this.bossIdx }); } catch (e) {} } }
