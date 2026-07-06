@@ -784,6 +784,7 @@
   };
   CA.start = CA.open;
   CA.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  CA.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> teammates' ships
 
   function showError(msg) {
     var el = document.getElementById('ca-error');
@@ -833,6 +834,11 @@
 
     this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
     this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+    // multiplayer: broadcast my ship + see teammates' ships live on my screen
+    this.mp = !!opts.mp;
+    this.onState = typeof opts.onState === 'function' ? opts.onState : null;
+    this.remote = {};   // uid -> { nm, s:{x,y,angle}, t } : peers' ships
+    this._mpAcc = 0;
 
     this.canvas = document.getElementById('ca-canvas');
     this.ctx = this.canvas.getContext('2d');
@@ -1470,6 +1476,7 @@
 
     for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
 
+    this._drawPeers();   // teammates' ships, live on my screen
     this._drawShip();
 
     // touch joystick ring (only while active)
@@ -1545,6 +1552,28 @@
     }
   };
 
+  Game.prototype._setPeers = function (p) { this.remote = p || {}; };
+  Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
+  Game.prototype._drawPeers = function () {   // teammates' ships flying in my field, live
+    if (!this.mp || !this.remote) return;
+    var ctx = this.ctx, i = 0;
+    for (var uid in this.remote) {
+      if (!this.remote.hasOwnProperty(uid)) continue;
+      var rp = this.remote[uid], rs = (rp && rp.s) || {};
+      if (rs.x == null || rs.y == null) { i++; continue; }
+      var x = clamp(rs.x, 0, 1) * this.W, y = clamp(rs.y, 0, 1) * this.H, col = this._peerColor(i), a = (rs.a == null ? -Math.PI / 2 : rs.a);
+      ctx.save();
+      ctx.globalAlpha = 0.62; ctx.translate(x, y); ctx.rotate(a);
+      ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-8, -7); ctx.lineTo(-4, 0); ctx.lineTo(-8, 7); ctx.closePath(); ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.85; ctx.fillStyle = col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String((rp && rp.nm) || 'Player').slice(0, 12), x, y - 14);
+      ctx.restore();
+      i++;
+    }
+  };
   Game.prototype._drawShip = function () {
     var ctx = this.ctx, s = this.ship;
     ctx.save();
@@ -1640,6 +1669,8 @@
     dt = clamp(dt, 0, 0.05);
     this.t += dt;
     if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
+    // multiplayer: broadcast my ship (normalized) ~10/s so teammates can render me
+    if (this.mp && this.onState && this.ship) { this._mpAcc += dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ x: this.ship.x / (this.W || 1), y: this.ship.y / (this.H || 1), a: this.ship.angle, sc: this.score }); } catch (e) {} } }
     this._draw();
   };
 

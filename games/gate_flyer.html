@@ -889,6 +889,7 @@
   // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
   GF.start = GF.open;
   GF.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  GF.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> teammates' gliders
 
   // ---- error overlay used before a Game exists -------------------------
   function showError(msg) {
@@ -923,13 +924,13 @@
                             //   the worst-case gate-to-gate move stays reachable
                             //   until ~wave 6-7, landing the death band on target
                             //   rather than a wave early)
-    gateH: 124,             // vertical opening height of one gate (comfortable).
+    gateH: 150,             // Ibrahim 07-06: widened 124->150 so players slip through more easily. vertical opening height of one gate (comfortable).
                             //   sim-tuned 2026-07-04: 118->124 + step 3->2 so
                             //   waves 1-5 are comfortable and the competent wall
                             //   lands ~wave 6-7 (worst-case gate spread becomes
                             //   unreachable by the asymmetric up-climb budget),
                             //   matching the SI_REPORT 6-8 death band target.
-    gateHMin: 96,           // tightest gate opening at speed
+    gateHMin: 120,          // Ibrahim 07-06: widened 96->120. tightest gate opening at speed
     gateHStep: 2,           // shrink per wave
     wallW: 46,              // thickness of a pillar (the vertical bar plane)
     pillarsPerWave: 8,      // pillars to clear a normal wave
@@ -965,6 +966,11 @@
     this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
     this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
     this.closed = false;
+    // multiplayer: broadcast my glider + see teammates flying alongside me
+    this.mp = !!opts.mp;
+    this.onState = typeof opts.onState === 'function' ? opts.onState : null;
+    this.remote = {};   // uid -> { nm, s:{y,tilt}, t } : peers' gliders
+    this._mpAcc = 0;
 
     // DOM
     this.canvas = document.getElementById('gf-canvas');
@@ -1295,7 +1301,7 @@
     var pad = 26;                       // keep gates off the very top/bottom edges
     var usable = this.H - pad * 2;
     // number of gates that FIT vertically (each gate needs gapH + a wall segment)
-    var wallSeg = 42;                   // solid wall between/around gates
+    var wallSeg = 34;                   // Ibrahim 07-06: 42->34, more room between the metal bars. solid wall between/around gates
     var perSlot = gapH + wallSeg;
     var nGates = clamp(Math.floor((usable + wallSeg) / perSlot), 2, 3);
     // choose which slot is the correct (target) gate
@@ -1635,6 +1641,7 @@
     for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
 
     // glider (drawn craft + thruster puff)
+    this._drawPeers();   // teammates' gliders in the same lane
     this._drawGlider();
 
     // popups
@@ -1816,6 +1823,28 @@
     ctx.closePath();
   };
 
+  Game.prototype._setPeers = function (p) { this.remote = p || {}; };
+  Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
+  Game.prototype._drawPeers = function () {   // teammates' gliders flying in the same lane, live
+    if (!this.mp || !this.remote) return;
+    var ctx = this.ctx, x = this.glider.x * this.W, i = 0;
+    for (var uid in this.remote) {
+      if (!this.remote.hasOwnProperty(uid)) continue;
+      var rp = this.remote[uid], rs = (rp && rp.s) || {};
+      if (rs.y == null) { i++; continue; }
+      var y = clamp(rs.y, 0, 1) * this.H, col = this._peerColor(i), tl = (rs.tilt || 0);
+      ctx.save();
+      ctx.globalAlpha = 0.55; ctx.translate(x, y); ctx.rotate(tl);
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(-10, -8); ctx.lineTo(-5, 0); ctx.lineTo(-10, 8); ctx.closePath(); ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.8; ctx.fillStyle = col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String((rp && rp.nm) || 'Player').slice(0, 12), x, y - 14);
+      ctx.restore();
+      i++;
+    }
+  };
   Game.prototype._drawGlider = function () {
     var ctx = this.ctx;
     var x = this.glider.x * this.W;
@@ -1917,6 +1946,8 @@
     dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
     this.t += dt;
     if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
+    // multiplayer: broadcast my glider height (normalized) + tilt ~10/s so teammates see me fly
+    if (this.mp && this.onState && this.glider) { this._mpAcc += dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ y: this.glider.y / (this.H || 1), tilt: this.glider.tilt || 0, sc: this.score }); } catch (e) {} } }
     this._draw();
   };
 

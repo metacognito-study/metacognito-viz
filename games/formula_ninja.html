@@ -895,6 +895,7 @@
   // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
   FN.start = FN.open;
   FN.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  FN.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> teammates' blades
 
   // ---- error overlay used before a Game exists -------------------------
   function showError(msg) {
@@ -983,6 +984,11 @@
     this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
     this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
     this.closed = false;
+    // multiplayer: broadcast my blade + see teammates slicing on my screen; more players => more blocks tossed
+    this.mp = !!opts.mp;
+    this.onState = typeof opts.onState === 'function' ? opts.onState : null;
+    this.remote = {};   // uid -> { nm, s:{x,y,px,py,sl}, t } : peers' blade tips
+    this._mpAcc = 0;
 
     // DOM
     this.canvas = document.getElementById('fn-canvas');
@@ -1255,6 +1261,7 @@
     this.airborneCap = Math.min(TUNE.maxConcurrent, Math.round(TUNE.baseConcurrent + (this.wave - 1) * TUNE.concurrentStep));
     var count = TUNE.baseCount + (this.wave - 1) * TUNE.countStep;
     if (this.boss) count = Math.round(count * 1.4);       // bosses launch a denser flurry
+    if (this.mp) count = Math.round(count * Math.min(2.5, 1 + 0.5 * this._peerCount_()));   // Ibrahim: more players => more blocks tossed (more slicers), capped
     // launch gap shrinks with wave -> more airborne at once (bounded by airborneCap)
     this.launchGap = clamp(TUNE.launchGapBase - (this.wave - 1) * TUNE.launchGapStep, TUNE.launchGapMin, TUNE.launchGapBase);
     this.launchTimer = 0.4;
@@ -1687,6 +1694,7 @@
     for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
 
     // blade trail (glowing swept stroke)
+    this._drawPeerBlades();   // teammates' slices under mine
     this._drawBlade();
 
     // popups
@@ -1852,6 +1860,33 @@
     ctx.restore();
   };
 
+  Game.prototype._setPeers = function (p) { this.remote = p || {}; };
+  Game.prototype._peerCount_ = function () { var n = 0, r = this.remote; if (r) for (var k in r) if (r.hasOwnProperty(k)) n++; return n; };
+  Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
+  Game.prototype._drawPeerBlades = function () {   // teammates' slices, live on my screen (a colored streak where they are swiping)
+    if (!this.mp || !this.remote) return;
+    var ctx = this.ctx, i = 0;
+    for (var uid in this.remote) {
+      if (!this.remote.hasOwnProperty(uid)) continue;
+      var rp = this.remote[uid], rs = (rp && rp.s) || {};
+      if (rs.x == null || rs.y == null) { i++; continue; }
+      var col = this._peerColor(i), x = clamp(rs.x, 0, 1) * this.W, y = clamp(rs.y, 0, 1) * this.H;
+      ctx.save();
+      ctx.lineCap = 'round';
+      if (rs.sl && rs.px != null && rs.py != null) {   // mid-swipe: draw the streak
+        var px = clamp(rs.px, 0, 1) * this.W, py = clamp(rs.py, 0, 1) * this.H;
+        ctx.strokeStyle = col; ctx.globalAlpha = 0.7; ctx.lineWidth = 5;
+        if (!this.reduced) { ctx.shadowColor = col; ctx.shadowBlur = 8; }
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 0.95; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 3.2, 0, 6.2832); ctx.fill();
+      }
+      ctx.globalAlpha = 0.8; ctx.fillStyle = col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String((rp && rp.nm) || 'Player').slice(0, 12), x, y - 12);
+      ctx.restore();
+      i++;
+    }
+  };
   Game.prototype._drawBlade = function () {
     if (this.blade.length < 2) return;
     var ctx = this.ctx, pts = this.blade, n = pts.length;
@@ -1966,6 +2001,15 @@
     dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
     this.t += dt;
     if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
+    // multiplayer: broadcast my blade tip (normalized) + slicing flag ~10/s so teammates see my slices
+    if (this.mp && this.onState) {
+      this._mpAcc += dt;
+      if (this._mpAcc >= 0.1) {
+        this._mpAcc = 0;
+        var n = this.blade.length, tip = n ? this.blade[n - 1] : null, prev = n > 1 ? this.blade[n - 2] : tip;
+        try { this.onState(tip ? { x: tip.x / (this.W || 1), y: tip.y / (this.H || 1), px: prev.x / (this.W || 1), py: prev.y / (this.H || 1), sl: !!this.slicing } : { sl: false }); } catch (e) {}
+      }
+    }
     this._draw();
   };
 
