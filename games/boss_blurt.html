@@ -258,18 +258,28 @@
     margin: 0 0 11px; line-height: 1.35; min-height: 23px;
   }
   #bb-q .bb-q-speed { color: var(--bb-amber); font-size: 11.5px; letter-spacing: .18em; font-weight: 900; display: block; margin-bottom: 2px; }
-  #bb-answers { display: flex; gap: 9px; }
+  #bb-answers { display: flex; gap: 9px; perspective: 700px; }
+  /* Ibrahim: answers are WORD-BRICKS you hurl at the boss - a right brick smashes it, a wrong brick heals it. */
   .bb-ans {
-    flex: 1 1 0; min-height: 52px; padding: 8px 10px; border-radius: 13px; cursor: pointer;
-    border: 1.5px solid var(--bb-line); background: rgba(24,30,52,.9); color: var(--bb-ink);
-    font-size: 15px; font-weight: 800; letter-spacing: -.01em;
-    transition: transform .1s ease, border-color .15s ease, background .15s ease;
+    flex: 1 1 0; min-height: 54px; padding: 9px 10px; border-radius: 7px; cursor: pointer; position: relative;
+    border: 1.5px solid #6b5233; border-bottom-width: 4px; border-right-width: 3px;
+    background: linear-gradient(180deg, #b06a3a 0%, #9a5a30 48%, #834b27 100%);
+    color: #fff3e6; text-shadow: 0 1px 0 rgba(0,0,0,.4);
+    font-size: 15px; font-weight: 850; letter-spacing: -.01em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 3px 6px rgba(0,0,0,.3);
+    transition: transform .1s ease, filter .15s ease;
   }
-  .bb-ans:active { transform: scale(.97); }
-  .bb-ans[disabled] { cursor: default; opacity: .92; }
-  .bb-ans.bb-right { border-color: var(--bb-green); background: rgba(34,197,139,.18); color: var(--bb-green); }
-  .bb-ans.bb-wrongpick { border-color: var(--bb-rose); background: rgba(255,84,112,.16); color: var(--bb-rose); }
+  .bb-ans::after { content: ''; position: absolute; inset: 4px; border-radius: 4px; pointer-events: none;
+    background-image: linear-gradient(90deg, rgba(0,0,0,.16) 1.5px, transparent 0), linear-gradient(0deg, rgba(0,0,0,.16) 1.5px, transparent 0);
+    background-size: 50% 50%; opacity: .5; }
+  .bb-ans:active { transform: scale(.96) translateY(1px); }
+  .bb-ans[disabled] { cursor: default; }
+  .bb-ans.bb-right { border-color: var(--bb-green); background: linear-gradient(180deg,#2fd694,#1f9c6b); color: #eafff5; }
+  .bb-ans.bb-wrongpick { border-color: var(--bb-rose); background: linear-gradient(180deg,#ff6f88,#d63c5e); color: #fff0f3; }
   .bb-ans sub { font-size: .68em; }
+  @keyframes bbThrow { 0% { transform: none; opacity: 1; } 100% { transform: translateY(-230px) scale(.32) rotate(16deg); opacity: 0; } }
+  .bb-ans.bb-thrown { animation: bbThrow .42s cubic-bezier(.4,.05,.6,1) forwards; z-index: 3; }
+  @media (prefers-reduced-motion: reduce) { .bb-ans.bb-thrown { animation: none; opacity: .25; } }
   #bb-q sub { font-size: .68em; }
   #bb-teach sub { font-size: .68em; }
 
@@ -350,9 +360,9 @@
     <div class="bb-overlay" id="bb-start">
       <div class="bb-card">
         <h1>Boss <span class="bb-accent">Blurt</span></h1>
-        <p>A crystalline Misconception Boss blocks the way. Answer the
-           questions to fire damage beams at it -- but every WRONG answer
-           HEALS the boss and costs a heart. Chain correct answers for a
+        <p>A crystalline Misconception Boss blocks the way. Each round shows a
+           GOAL - hurl the matching WORD-BRICK to smash the boss. Throw the WRONG
+           brick and it HEALS the boss and costs a heart. Chain correct throws for a
            combo multiplier. At 66% and 33% HP the boss raises shard
            shields: a quick-fire speed round breaks them. Shatter all five
            bosses to win the run.</p>
@@ -1653,7 +1663,7 @@
         b.type = 'button';
         b.className = 'bb-ans';
         b.innerHTML = self.q.answers[idx].html;
-        b.addEventListener('click', function () { self.sfx.resume(); self._answer(idx); });
+        b.addEventListener('click', function () { self.sfx.resume(); try { b.classList.add('bb-thrown'); } catch (e) {} self._answer(idx); });   // hurl the chosen word-brick at the boss
         ansEl.appendChild(b);
       })(i);
     }
