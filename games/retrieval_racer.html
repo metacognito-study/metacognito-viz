@@ -736,7 +736,8 @@
   }
 
   // Keep only pool items whose category belongs to an axis; index by category.
-  function buildAxisIndex(pool) {
+  function buildAxisIndex(pool, axes) {
+    var AXES_ = (axes && axes.length) ? axes : AXES;   // host may supply subject axes (econ); fall back to this game's hardcoded (chem) axes
     var byCat = {};
     for (var i = 0; i < pool.length; i++) {
       var it = pool[i];
@@ -747,8 +748,8 @@
       (byCat[cat] || (byCat[cat] = [])).push({ label: label, category: cat, rowId: it.rowId, lo: it.lo });
     }
     var usableAxes = [];
-    for (var a = 0; a < AXES.length; a++) {
-      var ax = AXES[a];
+    for (var a = 0; a < AXES_.length; a++) {
+      var ax = AXES_[a];
       var present = ax.cats.filter(function (c) { return byCat[c] && byCat[c].length; });
       if (present.length >= 2) usableAxes.push({ axis: ax, present: present });
     }
@@ -892,7 +893,7 @@
     if (opts.enabled !== true) return null;               // flag gate, matches other modules
     if (typeof document === 'undefined') return null;
     var usePool = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
-    var idx = buildAxisIndex(usePool);
+    var idx = buildAxisIndex(usePool, opts.axes);
     if (!idx.usableAxes.length) {
       showError('This game needs at least two categories from a topic (like salts and acids). Study a little further and it will unlock.');
       return null;
