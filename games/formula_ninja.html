@@ -362,6 +362,16 @@
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function rand(a, b) { return a + Math.random() * (b - a); }
   function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  // weighted category pick: probability proportional to how many pool items back each category (weakness-adaptive); uniform when balanced or unknown
+  function pickCatWeighted(cats, byCat) {
+    if (!cats || !cats.length) return cats && cats[0];
+    var w = [], tot = 0, k;
+    for (k = 0; k < cats.length; k++) { var n = (byCat && byCat[cats[k]] ? byCat[cats[k]].length : 0); w.push(n); tot += n; }
+    if (tot <= 0) return cats[(Math.random() * cats.length) | 0];
+    var r = Math.random() * tot;
+    for (k = 0; k < cats.length; k++) { r -= w[k]; if (r < 0) return cats[k]; }
+    return cats[cats.length - 1];
+  }
   function shuffle(arr) {
     var a = arr.slice();
     for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; }
@@ -1222,7 +1232,8 @@
     var choice = pick(this.idx.usableAxes);
     var axis = choice.axis;
     // target category must be a present one with a decoy available
-    var target = pick(choice.present);
+    // adaptive: bias the drilled category by how many pool items back it (the host over-populates the student's weak categories); uniform-random when categories are balanced
+    var target = pickCatWeighted(choice.present, this.idx.byCat);
     var decoys = choice.present.filter(function (c) { return c !== target; });
     this.rule = { axis: axis, target: target, decoys: decoys };
 
