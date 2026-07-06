@@ -1144,7 +1144,16 @@
     });
   };
 
+  // draw WITHOUT replacement within a game (shuffle-bag): a species never repeats until its whole category pool has been seen.
+  Game.prototype._drawItem_ = function (cat) {
+    var pool = this.idx && this.idx.byCat ? this.idx.byCat[cat] : null; if (!pool || !pool.length) return null;
+    var bags = this._bags || (this._bags = {});
+    var bag = bags[cat];
+    if (!bag || !bag.length) { bag = pool.slice(); for (var j = bag.length - 1; j > 0; j--) { var k = (Math.random() * (j + 1)) | 0; var t = bag[j]; bag[j] = bag[k]; bag[k] = t; } bags[cat] = bag; }
+    return bag.pop();
+  };
   Game.prototype._reset = function () {
+    this._bags = {};   // fresh no-repeat bags each game
     this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
     this.streak = 0; this.combo = 1; this.reveal = 0; this.invuln = 0; this.boss = false; this.bossTimer = 0;
     this.pillars.length = 0; this.particles.length = 0; this.popups.length = 0;
@@ -1298,7 +1307,7 @@
     for (var i = 0; i < nGates; i++) {
       var isTarget = (i === correctSlot);
       var cat = isTarget ? target : pick(decoys);
-      var item = pick(byCat[cat] || byCat[target]);
+      var item = this._drawItem_((byCat[cat] && byCat[cat].length) ? cat : target);
       // center the gate opening within its slot band
       var bandTop = pad + i * slotH;
       var cy = bandTop + slotH / 2 + rand(-slotH * 0.12, slotH * 0.12);

@@ -999,7 +999,16 @@
     ['ca-start', 'ca-pause', 'ca-over', 'ca-error'].forEach(function (o) { var el = document.getElementById(o); if (el) el.hidden = true; });
   };
 
+  // draw WITHOUT replacement within a game (shuffle-bag): a species never repeats until its whole category pool has been seen.
+  Game.prototype._drawItem_ = function (cat) {
+    var pool = this.idx && this.idx.byCat ? this.idx.byCat[cat] : null; if (!pool || !pool.length) return null;
+    var bags = this._bags || (this._bags = {});
+    var bag = bags[cat];
+    if (!bag || !bag.length) { bag = pool.slice(); for (var j = bag.length - 1; j > 0; j--) { var k = (Math.random() * (j + 1)) | 0; var t = bag[j]; bag[j] = bag[k]; bag[k] = t; } bags[cat] = bag; }
+    return bag.pop();
+  };
   Game.prototype._reset = function () {
+    this._bags = {};   // fresh no-repeat bags each game
     this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
     this.streak = 0; this.combo = 1; this.boss = false; this.bossTimer = 0; this.wrongGraceLeft = TUNE.wrongGrace;
     this.rocks.length = 0; this.bullets.length = 0; this.particles.length = 0; this.popups.length = 0;
@@ -1052,8 +1061,8 @@
     var byCat = this.idx.byCat, queue = [];
     var wantTargets = Math.max(3, Math.round(count * 0.5));
     var i;
-    for (i = 0; i < wantTargets; i++) queue.push(pick(byCat[target]));
-    for (i = wantTargets; i < count; i++) queue.push(pick(byCat[pick(decoys)]));
+    for (i = 0; i < wantTargets; i++) queue.push(this._drawItem_(target));
+    for (i = wantTargets; i < count; i++) queue.push(this._drawItem_(pick(decoys)));
     this.spawnQueue = shuffle(queue);
 
     if (this.boss) { this.bossTimer = TUNE.bossTime; this.sfx.boss(); }

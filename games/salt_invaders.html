@@ -1234,7 +1234,16 @@
     });
   };
 
+  // draw WITHOUT replacement within a game (shuffle-bag): reshuffle a category only once it is fully used up, so the same species never repeats until the whole pool has been seen. Big pool => effectively unlimited for one game.
+  Game.prototype._drawItem_ = function (cat) {
+    var pool = this.idx && this.idx.byCat ? this.idx.byCat[cat] : null; if (!pool || !pool.length) return null;
+    var bags = this._bags || (this._bags = {});
+    var bag = bags[cat];
+    if (!bag || !bag.length) { bag = pool.slice(); for (var j = bag.length - 1; j > 0; j--) { var k = (Math.random() * (j + 1)) | 0; var t = bag[j]; bag[j] = bag[k]; bag[k] = t; } bags[cat] = bag; }
+    return bag.pop();
+  };
   Game.prototype._reset = function () {
+    this._bags = {};   // fresh no-repeat bags each game
     this.score = 0; this.lives = TUNE.hearts; this.wave = 0; this.seen = 0; this.correct = 0;
     this.streak = 0; this.combo = 1; this.shotLog = []; this.reveal = 0; this.boss = false; this.bossTimer = 0;
     this.entities.length = 0; this.bullets.length = 0; this.particles.length = 0; this.popups.length = 0;
@@ -1296,8 +1305,8 @@
     var queue = [];
     var wantTargets = Math.max(3, Math.round(count * 0.5));
     var i;
-    for (i = 0; i < wantTargets; i++) queue.push({ item: pick(byCat[target]), scanner: false });
-    for (i = wantTargets; i < count; i++) { var dc = pick(decoys); queue.push({ item: pick(byCat[dc]), scanner: false }); }
+    for (i = 0; i < wantTargets; i++) queue.push({ item: this._drawItem_(target), scanner: false });
+    for (i = wantTargets; i < count; i++) { var dc = pick(decoys); queue.push({ item: this._drawItem_(dc), scanner: false }); }
     // sprinkle ~scannerChance of the queue as scanner powerups (mark, not extra items)
     for (i = 0; i < queue.length; i++) { if (Math.random() < TUNE.scannerChance) queue[i].scanner = true; }
     this.spawnQueue = shuffle(queue);
