@@ -839,6 +839,12 @@
     this.onState = typeof opts.onState === 'function' ? opts.onState : null;
     this.remote = {};   // uid -> { nm, s:{x,y,angle}, t } : peers' ships
     this._mpAcc = 0;
+    // #22 per-player weapon: bolt colour differs per player; brighter glow + wider bolts as you level up
+    var _WPAL = ['#ffb020', '#f472b6', '#22d3ee', '#a3e635', '#fb923c', '#c084fc'];
+    var _wu = (opts.mp && opts.mp.self) ? String(opts.mp.self) : '', _wh = 0; for (var _wi = 0; _wi < _wu.length; _wi++) { _wh = (_wh * 31 + _wu.charCodeAt(_wi)) | 0; }
+    this._wcol = _wu ? _WPAL[Math.abs(_wh) % _WPAL.length] : this.col.amber;
+    this._wglow = 4 + (this.level >= 6 ? 3 : 0) + (this.level >= 12 ? 3 : 0);
+    this._wr = 3 + (this.level >= 10 ? 1 : 0) + (this.level >= 16 ? 1 : 0);
 
     this.canvas = document.getElementById('ca-canvas');
     this.ctx = this.canvas.getContext('2d');
@@ -1185,7 +1191,7 @@
     var a = this.ship.angle;
     var nx = this.ship.x + Math.cos(a) * (TUNE.shipR + 2);
     var ny = this.ship.y + Math.sin(a) * (TUNE.shipR + 2);
-    this.bullets.push({ x: nx, y: ny, vx: Math.cos(a) * TUNE.bulletSpeed + this.ship.vx * 0.3, vy: Math.sin(a) * TUNE.bulletSpeed + this.ship.vy * 0.3, life: TUNE.bulletLife });
+    this.bullets.push({ x: nx, y: ny, vx: Math.cos(a) * TUNE.bulletSpeed + this.ship.vx * 0.3, vy: Math.sin(a) * TUNE.bulletSpeed + this.ship.vy * 0.3, life: TUNE.bulletLife, col: this._wcol, glow: this._wglow, wr: this._wr });
     this.sfx.shoot();
   };
 
@@ -1469,9 +1475,7 @@
     for (var i = 0; i < this.rocks.length; i++) this._drawRock(this.rocks[i]);
 
     // bullets (amber tracer with soft glow)
-    ctx.fillStyle = this.col.amber;
-    ctx.shadowColor = this.col.amber; ctx.shadowBlur = this.reduced ? 0 : 4;
-    for (i = 0; i < this.bullets.length; i++) { var b = this.bullets[i]; ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, 6.2832); ctx.fill(); }
+    for (i = 0; i < this.bullets.length; i++) { var b = this.bullets[i]; var bc = b.col || this.col.amber; ctx.fillStyle = bc; ctx.shadowColor = bc; ctx.shadowBlur = this.reduced ? 0 : (b.glow || 4); ctx.beginPath(); ctx.arc(b.x, b.y, b.wr || 3, 0, 6.2832); ctx.fill(); }
     ctx.shadowBlur = 0;
 
     for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);

@@ -384,6 +384,23 @@
     for (k = 0; k < cats.length; k++) { r -= w[k]; if (r < 0) return cats[k]; }
     return cats[cats.length - 1];
   }
+  // #22 per-player weapons: distinct look per player; picked by a stable hash of the player's uid.
+  var SI_WEAPONS = [
+    { name: 'plasma',     color: '#ffb020', r: 3.6, glow: 5, shape: 'dot',  sfx: 'shoot' },   // amber (classic)
+    { name: 'pink laser', color: '#f472b6', r: 2.1, glow: 9, shape: 'beam', sfx: 'shoot' },   // thin pink beam
+    { name: 'ion',        color: '#22d3ee', r: 2.7, glow: 7, shape: 'dot',  sfx: 'shoot' },   // small cyan
+    { name: 'quartz',     color: '#a3e635', r: 4.4, glow: 4, shape: 'dot',  sfx: 'shoot' },   // fat green
+    { name: 'flare',      color: '#fb923c', r: 3.0, glow: 8, shape: 'beam', sfx: 'shoot' },   // orange beam
+    { name: 'violet',     color: '#c084fc', r: 3.2, glow: 8, shape: 'dot',  sfx: 'shoot' }    // purple
+  ];
+  function _weaponIdxFor_(uid) {   // stable per-player weapon; solo (no uid) = classic plasma
+    if (!uid) return 0;
+    var h = 0, s = String(uid); for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; }
+    return Math.abs(h) % SI_WEAPONS.length;
+  }
+  // #19 shared targets: a seeded PRNG so every player in a room generates the SAME wave (same target + same boxes) from the same pool.
+  function _strHash32_(s) { var h = 2166136261 >>> 0; s = String(s || ''); for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   function shuffle(arr) {
     var a = arr.slice();
     for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; }
@@ -1015,8 +1032,15 @@
     this.closed = false;
     this.mp = (opts.mp && typeof opts.mp === 'object') ? opts.mp : null;   // { self, name, code } from the room relay
     this.onState = typeof opts.onState === 'function' ? opts.onState : null;   // broadcaster
-    this.remote = {};   // uid -> { nm, s:{x,sc}, t } : other players' ships, rendered live
+    this.remote = {};   // uid -> { nm, s:{x,sc,w,f}, t } : other players' ships, rendered live
     this._mpAcc = 0;
+    this._peerRx = {};   // #20 smoothing: rendered (lerped) x per peer, so their ship glides instead of stuttering at ~11/s
+    // #22 weapons: each player gets a distinct weapon look (by their uid); level-ups make it cooler.
+    this.wLevel = clamp((opts.level != null ? opts.level : 1) | 0, 1, 20) || 1;
+    this.weapon = SI_WEAPONS[_weaponIdxFor_(this.mp && this.mp.self)];
+    this._fireN = 0;   // fire-pulse counter broadcast so peers can render my shots in my colour
+    this._mpSeed = (this.mp && this.mp.code) ? _strHash32_(this.mp.code) : 0;   // #19 room-shared wave seed (same room code -> same boxes)
+    this._rng = null;   // set to a seeded PRNG during MP wave generation, null otherwise (so visuals stay freely random)
 
     // DOM
     this.canvas = document.getElementById('si-canvas');
@@ -1235,11 +1259,13 @@
   };
 
   // draw WITHOUT replacement within a game (shuffle-bag): reshuffle a category only once it is fully used up, so the same species never repeats until the whole pool has been seen. Big pool => effectively unlimited for one game.
+  Game.prototype._rand = function () { return this._rng ? this._rng() : Math.random(); };   // seeded during MP wave-gen (#19), else free
+  Game.prototype._pickR = function (arr) { return arr[(this._rand() * arr.length) | 0]; };
   Game.prototype._drawItem_ = function (cat) {
     var pool = this.idx && this.idx.byCat ? this.idx.byCat[cat] : null; if (!pool || !pool.length) return null;
     var bags = this._bags || (this._bags = {});
     var bag = bags[cat];
-    if (!bag || !bag.length) { bag = pool.slice(); for (var j = bag.length - 1; j > 0; j--) { var k = (Math.random() * (j + 1)) | 0; var t = bag[j]; bag[j] = bag[k]; bag[k] = t; } bags[cat] = bag; }
+    if (!bag || !bag.length) { bag = pool.slice(); for (var j = bag.length - 1; j > 0; j--) { var k = (this._rand() * (j + 1)) | 0; var t = bag[j]; bag[j] = bag[k]; bag[k] = t; } bags[cat] = bag; }
     return bag.pop();
   };
   Game.prototype._reset = function () {
@@ -1281,12 +1307,13 @@
   Game.prototype._nextWave = function () {
     this.wave++;
     this.boss = (this.wave % TUNE.bossEvery === 0);
+    // #19 shared targets: in a room, seed THIS wave from (roomCode, wave) so every player builds the SAME wave (same target + same boxes) from the same pool.
+    this._rng = (this.mp && this._mpSeed) ? mulberry32((this._mpSeed ^ Math.imul(this.wave, 2654435761)) >>> 0) : null;
 
-    var choice = pick(this.idx.usableAxes);
+    var choice = this._pickR(this.idx.usableAxes);
     var axis = choice.axis;
-    // target category must be a present one with a decoy available
-    // adaptive: bias the drilled category by how many pool items back it (the host over-populates the student's weak categories); uniform-random when categories are balanced
-    var target = pickCatWeighted(choice.present, this.idx.byCat);
+    // target: shared deterministic pick in a room; solo keeps the weakness-adaptive pick
+    var target = this.mp ? this._pickR(choice.present) : pickCatWeighted(choice.present, this.idx.byCat);
     var decoys = choice.present.filter(function (c) { return c !== target; });
     this.rule = { axis: axis, target: target, decoys: decoys };
 
@@ -1306,10 +1333,13 @@
     var wantTargets = Math.max(3, Math.round(count * 0.5));
     var i;
     for (i = 0; i < wantTargets; i++) queue.push({ item: this._drawItem_(target), scanner: false });
-    for (i = wantTargets; i < count; i++) { var dc = pick(decoys); queue.push({ item: this._drawItem_(dc), scanner: false }); }
+    for (i = wantTargets; i < count; i++) { var dc = this._pickR(decoys); queue.push({ item: this._drawItem_(dc), scanner: false }); }
     // sprinkle ~scannerChance of the queue as scanner powerups (mark, not extra items)
-    for (i = 0; i < queue.length; i++) { if (Math.random() < TUNE.scannerChance) queue[i].scanner = true; }
-    this.spawnQueue = shuffle(queue);
+    for (i = 0; i < queue.length; i++) { if (this._rand() < TUNE.scannerChance) queue[i].scanner = true; }
+    // seeded in-place shuffle so the spawn ORDER matches across room players too
+    for (i = queue.length - 1; i > 0; i--) { var _s = (this._rand() * (i + 1)) | 0; var _tmp = queue[i]; queue[i] = queue[_s]; queue[_s] = _tmp; }
+    this.spawnQueue = queue;
+    this._rng = null;   // wave content + order are fixed; positions/visuals go back to free random
 
     // boss timer
     if (this.boss) { this.bossTimer = TUNE.bossTime; this.sfx.boss(); }
@@ -1387,7 +1417,15 @@
     this.shooter.cooldown = 0.17;
     var sx = this.shooter.x * this.W;
     var sy = this._shooterY() - 12;   // muzzle just above the ship nose
-    this.bullets.push({ x: sx, y: sy, vy: -600, r: 3.5, nearFlag: {} });
+    var w = this.weapon || SI_WEAPONS[0], lv = this.wLevel || 1;
+    // #22 level-up firepower: brighter glow, then twin (L10) and triple-spread (L15) shots
+    var glow = w.glow + (lv >= 5 ? 2 : 0) + (lv >= 12 ? 3 : 0);
+    var offs = (lv >= 15) ? [-11, 0, 11] : (lv >= 10 ? [-7, 7] : [0]);
+    for (var k = 0; k < offs.length; k++) {
+      this.bullets.push({ x: sx + offs[k], y: sy, vy: -600, r: w.r, nearFlag: {}, col: w.color, glow: glow, shape: w.shape });
+    }
+    this.shooter.muzzle = 1;                        // brief muzzle flash (decays in _drawShooter via cooldown)
+    this._fireN = (this._fireN + 1) & 1023;         // pulse so peers can render my shots in my weapon colour
     this.sfx.shoot();
   };
 
@@ -1759,12 +1797,13 @@
     // entities
     for (var i = 0; i < this.entities.length; i++) this._drawEntity(this.entities[i]);
 
-    // bullets (amber tracer with a soft glow, cheap)
-    ctx.fillStyle = this.col.amber;
-    ctx.shadowColor = this.col.amber; ctx.shadowBlur = this.reduced ? 0 : 4;
+    // bullets: each carries its firer's weapon colour/glow/shape (#22)
     for (i = 0; i < this.bullets.length; i++) {
       var b = this.bullets[i];
-      ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.2832); ctx.fill();
+      var bc = b.col || this.col.amber;
+      ctx.fillStyle = bc; ctx.shadowColor = bc; ctx.shadowBlur = this.reduced ? 0 : (b.glow || 4);
+      if (b.shape === 'beam') { ctx.fillRect(b.x - (b.r * 0.55), b.y - 7, b.r * 1.1, 14); }
+      else { ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.2832); ctx.fill(); }
     }
     ctx.shadowBlur = 0;
 
@@ -1944,14 +1983,21 @@
     var x = this.shooter.x * this.W;
     var y = this._shooterY();
 
-    // player craft: clean geometric arrow, nose points UP (drawn nose-+x then rotated -90 deg)
+    // player craft: clean geometric arrow, nose points UP. In MP it wears the player's weapon colour (identity).
+    var w = this.weapon || SI_WEAPONS[0];
     ctx.save();
     ctx.translate(x, y); ctx.rotate(-Math.PI / 2);
-    ctx.fillStyle = this.col.indigo;
+    ctx.fillStyle = this.mp ? w.color : this.col.indigo;
     ctx.beginPath();
     ctx.moveTo(16, 0); ctx.lineTo(-10, -11); ctx.lineTo(-5, 0); ctx.lineTo(-10, 11); ctx.closePath();
     ctx.fill();
     ctx.restore();
+    // muzzle flash right after a shot (weapon-coloured), scales with level glow
+    if (this.shooter.cooldown > 0.10 && !this.reduced) {
+      var mk = clamp((this.shooter.cooldown - 0.10) / 0.07, 0, 1);
+      ctx.save(); ctx.globalAlpha = mk * 0.9; ctx.fillStyle = w.color; ctx.shadowColor = w.color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(x, y - 16, 4 + 5 * mk, 0, 6.2832); ctx.fill(); ctx.restore();
+    }
 
     // faint aim line
     ctx.strokeStyle = 'rgba(108,92,255,0.22)';
@@ -1962,14 +2008,33 @@
 
   Game.prototype._setPeers = function (p) { this.remote = p || {}; };
   Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
-  Game.prototype._drawPeers = function () {   // other players' ships flying beside you, live
+  Game.prototype._drawPeers = function () {   // other players' ships beside you, live - smoothed, weapon-coloured, shots rendered
     if (!this.mp || !this.remote) return;
     var ctx = this.ctx, y = this._shooterY(), i = 0;
+    var pr = this._peerRx || (this._peerRx = {});
+    var pf = this._peerFlash || (this._peerFlash = {});
+    var pl = this._peerLastF || (this._peerLastF = {});
     for (var uid in this.remote) {
       if (!this.remote.hasOwnProperty(uid)) continue;
       var rp = this.remote[uid], rs = (rp && rp.s) || {};
       if (rs.x == null) { i++; continue; }
-      var x = clamp(rs.x, 0, 1) * this.W, col = this._peerColor(i);
+      var tx = clamp(rs.x, 0, 1);
+      // #20 smoothing: glide the rendered x toward the broadcast x (kills the ~11/s stutter)
+      var cur = (pr[uid] == null) ? tx : pr[uid];
+      cur += (tx - cur) * 0.22; pr[uid] = cur;
+      var x = cur * this.W;
+      var wpn = SI_WEAPONS[((rs.w != null ? rs.w : _weaponIdxFor_(uid)) % SI_WEAPONS.length + SI_WEAPONS.length) % SI_WEAPONS.length] || SI_WEAPONS[0];
+      var col = wpn.color;
+      // #22 peer fire: when their fire-pulse advances, flash a shot in THEIR weapon colour
+      if (rs.f != null && rs.f !== pl[uid]) { pl[uid] = rs.f; pf[uid] = 1; }
+      if (pf[uid] > 0 && !this.reduced) {
+        var fk = pf[uid];
+        ctx.save(); ctx.globalAlpha = fk * 0.8; ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 10;
+        if (wpn.shape === 'beam') { ctx.fillRect(x - wpn.r * 0.6, y - 30, wpn.r * 1.2, 24); }
+        else { ctx.beginPath(); ctx.arc(x, y - 16, wpn.r + 1, 0, 6.2832); ctx.fill(); }
+        ctx.restore();
+        pf[uid] = Math.max(0, fk - 0.14);
+      }
       ctx.save();
       ctx.globalAlpha = 0.72;
       ctx.translate(x, y); ctx.rotate(-Math.PI / 2);
@@ -2072,7 +2137,7 @@
     if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
     this._draw();
     // multiplayer: broadcast my ship position + score (throttled ~10/s) so squadmates see me fly + shoot
-    if (this.onState && this.shooter) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.1) { this._mpAcc = 0; try { this.onState({ x: this.shooter.x, sc: this.score }); } catch (e) {} } }
+    if (this.onState && this.shooter) { this._mpAcc = (this._mpAcc || 0) + dt; if (this._mpAcc >= 0.08) { this._mpAcc = 0; try { this.onState({ x: this.shooter.x, sc: this.score, w: _weaponIdxFor_(this.mp && this.mp.self), f: this._fireN }); } catch (e) {} } }
   };
 
   Game.prototype._toggleFullscreen = function () {

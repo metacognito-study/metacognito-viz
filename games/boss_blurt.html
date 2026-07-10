@@ -1326,6 +1326,7 @@
     this.beams = [];           // {x0,y0,x1,y1,life,max,color}
     this.wisps = [];           // heal wisps rising into the boss
     this.particles = [];
+    this.shocks = [];   // #18 boss-shatter shockwave rings
     this.popups = [];
     this.stars = [];
     this.shake = 0;
@@ -1441,7 +1442,7 @@
     this.rule = null; this.lastAxisId = null; this.q = null; this.qTimer = 0;
     this.bossIdx = 0; this.bossHp = 0; this.bossMaxHp = 0; this.shield = null;
     this.phaseDone = [false, false]; this.bossesDown = 0;
-    this.beams.length = 0; this.wisps.length = 0; this.particles.length = 0; this.popups.length = 0;
+    this.beams.length = 0; this.wisps.length = 0; this.particles.length = 0; this.popups.length = 0; this.shocks.length = 0;
     this.shake = 0; this.hitstop = 0; this.flash = 0; this.goodFlash = 0;
     this.bossFlash = 0; this.bossPulse = 0; this.shatterT = 0; this.resolveT = 0;
     this.qphase = 'idle';
@@ -1824,29 +1825,55 @@
     if (pill) { pill.classList.remove('bb-pulse'); void pill.offsetWidth; pill.classList.add('bb-pulse'); }
   };
 
+  Game.prototype._spawnShock = function (x, y, spd, dur, w, col, delay) {
+    (this.shocks || (this.shocks = [])).push({ x: x, y: y, r: 6, spd: spd, dur: dur, w: w, col: col, life: 1, delay: delay || 0 });
+  };
   Game.prototype._bossShattered = function () {
-    var c = this._bossCenter();
+    var c = this._bossCenter(), self = this, rc = this.reduced;
     this.bossesDown++;
-    var bonus = TUNE.scoreBoss * (this.bossIdx + 1);
+    var tier = this.bossIdx + 1;              // 1..5 - each defeat is bigger than the last ("don't hold back")
+    var bonus = TUNE.scoreBoss * tier;
     this.score += bonus;
     if (Coop.enabled()) { Coop.sendScore(this.score); Coop.hostSetState({ wave: this.wave, boss: this.bossIdx + 1, hp: 0 }); }
-    // geometric shatter: a big triangle/square burst + white core flash
-    this._burst(c.x, c.y, this.rgb.indigo, this.reduced ? 12 : 42, 'indigo');
-    this._burst(c.x, c.y, this.rgb.steel, this.reduced ? 8 : 26, 'steel');
-    this._burst(c.x, c.y, this.rgb.amber, this.reduced ? 6 : 18, 'amber');
-    this._popup(c.x, c.y, BOSSES[this.bossIdx].name + ' SHATTERED +' + bonus, this.col.amber);
-    this.bossFlash = 1; this.goodFlash = 0.8;
-    this._addShake(true); if (!this.reduced) this.hitstop = 0.22;
-    this.sfx.shatter();
+    var mult = rc ? 0.35 : 1;
+    // core detonation - particle counts scale with the boss tier
+    function boom(cx, cy, scale) {
+      self._burst(cx, cy, self.rgb.indigo, Math.round((30 + 16 * tier) * scale * mult), 'indigo');
+      self._burst(cx, cy, self.rgb.steel, Math.round((18 + 10 * tier) * scale * mult), 'steel');
+      self._burst(cx, cy, self.rgb.amber, Math.round((12 + 8 * tier) * scale * mult), 'amber');
+      if (tier >= 3) self._burst(cx, cy, self.rgb.rose, Math.round(14 * scale * mult), 'rose');
+    }
+    boom(c.x, c.y, 1.25);
+    // expanding shockwave rings - one more, faster, wider with each boss
+    for (var r = 0; r <= tier; r++) { this._spawnShock(c.x, c.y, 320 + tier * 90, 0.5 + r * 0.12, 3 + tier, (r % 2 ? this.col.amber : this.col.indigo), r * 0.05); }
+    // chained secondary explosions ringing the core - 3..7 booms, only grows with tier
+    if (!rc) {
+      var chains = 2 + tier;
+      for (var k = 0; k < chains; k++) {
+        (function (kk) {
+          setTimeout(function () {
+            if (self.destroyed || self.state === 'over') return;
+            var ang = (kk / chains) * 6.2832 + kk * 1.3, rad = 46 + (kk % 3) * 32;
+            var bx = c.x + Math.cos(ang) * rad, by = c.y + Math.sin(ang) * rad;
+            boom(bx, by, 0.5); self._spawnShock(bx, by, 220, 0.4, 2.5, self.col.amber, 0);
+            self._addShake(true); try { self.sfx.shatter(); } catch (e) {}
+          }, 120 + kk * 105);
+        })(k);
+      }
+    }
+    this._popup(c.x, c.y - 6, BOSSES[this.bossIdx].name + ' SHATTERED +' + bonus, this.col.amber);
+    this.bossFlash = 1; this.goodFlash = 1;
+    this._addShake(true); if (!rc) this.hitstop = Math.min(0.55, 0.22 + 0.07 * tier);   // longer slow-mo each boss
+    this.sfx.shatter(); if (tier >= 2 && !rc) { setTimeout(function () { try { self.sfx.shatter(); } catch (e) {} }, 95); }
+    if (tier >= 4 && !rc) { setTimeout(function () { try { self.sfx.victory(); } catch (e) {} }, 200); }   // the biggest bosses go out with a fanfare
     this.shield = null;
     this._syncBossBar();
 
     if (this.bossIdx >= BOSSES.length - 1) { this._victory(); return; }
-    // the shatter RESTORES your hearts to full (sim-tuned: see TUNE.hearts),
-    // then an intermission beat before the next boss
+    // the shatter RESTORES your hearts to full (sim-tuned: see TUNE.hearts), then a longer celebration beat for later bosses
     this.hearts = TUNE.hearts;
     this.qphase = 'inter';
-    this.resolveT = TUNE.interSec;
+    this.resolveT = Math.max(TUNE.interSec, 1.3 + 0.28 * tier);
     var card = this._byId('bb-prompt'); if (card) card.classList.add('bb-hide');
   };
 
@@ -1948,6 +1975,15 @@
     this.bossSpin += dt * (this.shield ? 0.9 : 0.35);
     if (this.bossFlash > 0) this.bossFlash = Math.max(0, this.bossFlash - dt * 2.4);
     if (this.bossPulse > 0) this.bossPulse = Math.max(0, this.bossPulse - dt * 2.6);
+    // #18 shockwave rings from a boss shatter (expanding, fading)
+    if (this.shocks && this.shocks.length) {
+      for (i = this.shocks.length - 1; i >= 0; i--) {
+        var sw = this.shocks[i];
+        if (sw.delay > 0) { sw.delay -= dt; continue; }
+        sw.r += sw.spd * dt; sw.life -= dt / sw.dur;
+        if (sw.life <= 0) this.shocks.splice(i, 1);
+      }
+    }
 
     // question clock (only while a question is live)
     if (this.qphase === 'ask' && this.q) {
@@ -2067,6 +2103,14 @@
     ctx.globalAlpha = 1;
 
     // particles (blit prerendered sprites)
+    // #18 shockwave rings (drawn under particles): expanding, fading, weapon-bright
+    if (this.shocks && this.shocks.length) {
+      for (i = 0; i < this.shocks.length; i++) {
+        var sw = this.shocks[i]; if (sw.delay > 0) continue;
+        ctx.save(); ctx.globalAlpha = clamp(sw.life, 0, 1) * 0.7; ctx.strokeStyle = sw.col; ctx.lineWidth = sw.w * clamp(sw.life, 0.15, 1);
+        ctx.beginPath(); ctx.arc(sw.x, sw.y, sw.r, 0, 6.2832); ctx.stroke(); ctx.restore();
+      }
+    }
     for (i = 0; i < this.particles.length; i++) this._drawParticle(this.particles[i]);
 
     // popups

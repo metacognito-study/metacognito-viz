@@ -1104,6 +1104,7 @@
   Game.prototype._reset = function () {
     this.score = 0; this.qIndex = 0; this.seen = 0; this.correct = 0;
     this.streak = 0; this.turbo = false; this.cur = null; this.answered = false; this.finishPlace = 0;
+    this._allAsked = false; this._noQT = 0;   // Ibrahim hang fix: race-complete + no-question watchdog flags
     this.player.prog = 0; this.player.dist = 0; this.player.speed = 0; this.player.boost = 0; this.player.stall = 0; this.player.trail = [];
     for (var a = 0; a < this.ais.length; a++) {
       var ai = this.ais[a];
@@ -1332,9 +1333,9 @@
     this._qGapT = setTimeout(function () {
       if (quiz) quiz.classList.add('rr-hide');
       if (self.qIndex >= TUNE.raceQs) {
-        // all 20 answered: no more prompts. The car eases to its full-progress
-        // target (the finish line); _update's finish check fires when it arrives.
-        self.cur = null;
+        // all 20 ASKED: no more prompts. Ibrahim fix - the race ends on all questions ASKED, not all correct;
+        // the car glides to the finish line (even if some answers were wrong) and _update's finish check fires.
+        self.cur = null; self._allAsked = true;
       } else {
         setTimeout(function () { if (self.state === 'playing') self._nextQuestion(); }, 260);
       }
@@ -1399,7 +1400,9 @@
     // their own -- only answering all raceQs does. This binds the race to 20 Qs.
     var p = this.player;
     if (p.stall > 0) p.stall = Math.max(0, p.stall - dt);
-    var pTarget = this._targetDist(p.prog);
+    // self-heal: if a question never loads mid-race (e.g. its scheduled next-question was skipped during a pause/background), re-ask so the racer never strands. Once all are asked, glide to the finish.
+    if (this.answered && !this._allAsked) { this._noQT = (this._noQT || 0) + dt; if (this._noQT > 1.8 && this.state === 'playing') { this._noQT = 0; this._nextQuestion(); } } else { this._noQT = 0; }
+    var pTarget = this._allAsked ? TUNE.trackLen : this._targetDist(p.prog);
     var ease = clamp(dt * TUNE.progEase, 0, 1);
     var prevDist = p.dist;
     p.dist += (pTarget - p.dist) * ease;
@@ -1462,7 +1465,7 @@
     // finish check: the player crosses the line ONLY after all raceQs are
     // answered AND the car has eased essentially to the finish (so the last
     // boost glide completes visually). Bound to 20 questions, per spec.
-    if (this.state === 'playing' && p.prog >= TUNE.raceQs && p.dist >= TUNE.trackLen - 0.05) {
+    if (this.state === 'playing' && this._allAsked && p.dist >= TUNE.trackLen - 0.05) {
       p.dist = TUNE.trackLen;
       this._finish(false);
     }
