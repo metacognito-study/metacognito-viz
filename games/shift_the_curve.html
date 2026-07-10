@@ -507,6 +507,7 @@
 
     var usePool = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
     var idx = buildIndex(usePool);
+    if (idx.present.length < 2) { idx = buildIndex(DEMO_POOL); }   // host pool has no DIRECTIONAL shift items (D_right/S_left...) yet -> play the Elena-reviewed built-in deck (24/24 PASS 07-10)
     if (idx.present.length < 2) {
       showError('This game needs a few different market shocks (like a cost rise and an income rise). Study a little further and it will unlock.');
       return null;
@@ -1003,7 +1004,7 @@
     var partnerLabel = pool && pool.length ? pick(pool).label : ANSWERS[partnerKey].phrase;
     var f = EQ_CHANGE[partnerKey];
     var certain = (f.p === e.p) ? 'P' : 'Q';       // the variable both agree on
-    return { label: partnerLabel, certain: certain };
+    return { label: partnerLabel, key: partnerKey, certain: certain };   // Elena 07-10: carry the partner KEY so both curve answers score (both shifts are economically certain; only one of P/Q is ambiguous)
   };
 
   // ---- input: an answer was chosen ------------------------------------
@@ -1015,7 +1016,9 @@
     var card = this.card;
     card.resolved = true;
     this.sfx.tap();
-    var correct = (key === card.ans);
+    // Elena 07-10: on a two-shift boss card BOTH constituent curve moves are certain (it is P or Q that is
+    // ambiguous, not either curve) - accept the partner's curve answer too, animate whichever was chosen.
+    var correct = (key === card.ans) || !!(card.twoShift && card.twoShift.key && key === card.twoShift.key);
 
     if (correct) {
       this.streak++;
@@ -1030,8 +1033,9 @@
       this._hitstop();
       this.sfx.right();
       this._emit(card, 1);
-      // animate the CORRECT shift, then clear the card + advance
-      this._playShift(card.ans, false, function () { self._afterCard(); });
+      // animate the chosen (correct) shift, then clear the card + advance. On a normal card key===card.ans;
+      // on a two-shift card the accepted partner curve animates - the move the student actually named.
+      this._playShift(key, false, function () { self._afterCard(); });
     } else {
       // WRONG. First wrongGrace/wave (or invuln) = TEACH (no heart); else heart.
       this.streak = 0; this.combo = 1;

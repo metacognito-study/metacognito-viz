@@ -1041,6 +1041,9 @@
     this._fireN = 0;   // fire-pulse counter broadcast so peers can render my shots in my colour
     this._mpSeed = (this.mp && this.mp.code) ? _strHash32_(this.mp.code) : 0;   // #19 room-shared wave seed (same room code -> same boxes)
     this._rng = null;   // set to a seeded PRNG during MP wave generation, null otherwise (so visuals stay freely random)
+    // [8] weakness-theme rounds: the uid-sorted room roster (each entry {u, nm, wc:[weak categories]}) - waves
+    // rotate through it so wave N drills roster[(N-1) % len]'s weak theme when it fits the wave's axis.
+    this.roster = (this.mp && Array.isArray(opts.mp.roster) && opts.mp.roster.length) ? opts.mp.roster : null;
 
     // DOM
     this.canvas = document.getElementById('si-canvas');
@@ -1313,7 +1316,18 @@
     var choice = this._pickR(this.idx.usableAxes);
     var axis = choice.axis;
     // target: shared deterministic pick in a room; solo keeps the weakness-adaptive pick
-    var target = this.mp ? this._pickR(choice.present) : pickCatWeighted(choice.present, this.idx.byCat);
+    var target, focusNm = '';
+    if (this.mp && this.roster) {
+      // [8] rotate the round's theme through the roster: wave N belongs to player (N-1)%len; use their weak
+      // category when this wave's axis has one (deterministic: same roster+seed on every client).
+      var own = this.roster[(this.wave - 1) % this.roster.length];
+      var wcFit = (own && Array.isArray(own.wc)) ? own.wc.filter(function (c) { return choice.present.indexOf(c) >= 0; }) : [];
+      if (wcFit.length) { target = wcFit[(this._rand() * wcFit.length) | 0]; focusNm = String(own.nm || ''); }
+      else target = this._pickR(choice.present);
+    } else {
+      target = this.mp ? this._pickR(choice.present) : pickCatWeighted(choice.present, this.idx.byCat);
+    }
+    if (focusNm && !this.reduced) { try { this._popup(this.W * 0.5, this.H * 0.30, focusNm + "'s focus round", this.col.amber); } catch (e) {} }
     var decoys = choice.present.filter(function (c) { return c !== target; });
     this.rule = { axis: axis, target: target, decoys: decoys };
 

@@ -1164,7 +1164,14 @@
     var choice = pick(this.idx.usableAxes);
     var axis = choice.axis;
     var present = choice.present;
-    var trueCat = pick(present);
+    // [8] weakness-theme rotation: in a room, question N drills roster[(N)%len]'s weak category when this axis has one
+    var trueCat;
+    var _ros = (this.mp && Array.isArray(this.mp.roster) && this.mp.roster.length) ? this.mp.roster : null;
+    if (_ros) {
+      var _own = _ros[this.qIndex % _ros.length];
+      var _fit = (_own && Array.isArray(_own.wc)) ? _own.wc.filter(function (c) { return present.indexOf(c) >= 0; }) : [];
+      trueCat = _fit.length ? pick(_fit) : pick(present);
+    } else { trueCat = pick(present); }
     var item = pick(this.idx.byCat[trueCat]);
 
     // decide the form. ~1 in typeInEvery is a type-in (only when the axis has a

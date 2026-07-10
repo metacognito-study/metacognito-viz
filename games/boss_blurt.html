@@ -1524,6 +1524,14 @@
     this.qInWave = 0;
     // rotate the axis: avoid an immediate repeat when >1 usable axis
     var pool = this.idx.usableAxes;
+    // [8] weakness-theme rotation: wave N belongs to roster[(N-1)%len]; prefer an axis carrying one of their weak categories
+    var _ros = (this.mp && this.opts && this.opts.mp && Array.isArray(this.opts.mp.roster) && this.opts.mp.roster.length) ? this.opts.mp.roster : null;
+    if (_ros) {
+      var _own = _ros[(this.wave - 1) % _ros.length];
+      var _wc = (_own && Array.isArray(_own.wc)) ? _own.wc : [];
+      var _fitAxes = pool.filter(function (c) { return c.present.some(function (cat) { return _wc.indexOf(cat) >= 0; }); });
+      if (_fitAxes.length) pool = _fitAxes;
+    }
     var choice = pick(pool);
     if (pool.length > 1 && this.lastAxisId) {
       var guard = 0;

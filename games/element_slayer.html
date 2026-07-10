@@ -68,7 +68,7 @@
 
   // ---------- DEMO level (chem "salts", Elena-gateable). Target members + decoys from neighbouring categories. ----------
   var DEMO_POOL = [
-    { targetCategory:'salts', decoyLabel:'not a salt',
+    { targetCategory:'salts', ch:4, decoyLabel:'not a salt',
       enemies:[
         { label:'NaCl',  isTarget:true },  { label:'KNO₃', isTarget:true }, { label:'CaCO₃', isTarget:true },
         { label:'HCl',   isTarget:false }, // acid
@@ -308,9 +308,11 @@
   var live=null, ES={};
   ES.open=function(pool,opts){ opts=opts||{}; if(opts.enabled!==true)return null; if(typeof document==='undefined')return null;
     function _validLv(lv){ return lv&&lv.targetCategory&&Array.isArray(lv.enemies)&&lv.enemies.filter(function(e){return e.isTarget;}).length>=1&&lv.enemies.filter(function(e){return !e.isTarget;}).length>=1; }
+    var _cap=(opts.cap!=null&&isFinite(opts.cap))?Number(opts.cap):Infinity;   // Elena depth rule: never serve a level beyond the student's furthest chapter
+    function _inDepth(lv){ return lv.ch==null||Number(lv.ch)<=_cap; }
     var raw=(Array.isArray(pool)&&pool.length)?pool:DEMO_POOL;
-    var use=raw.filter(_validLv);
-    if(use.length<1){ use=DEMO_POOL.filter(_validLv); }   // host classification pool has no slayer-level items yet -> play the built-in seed set so the game still launches
+    var use=raw.filter(_validLv).filter(_inDepth);
+    if(use.length<1){ use=DEMO_POOL.filter(_validLv).filter(_inDepth); }   // host classification pool has no slayer-level items yet -> play the built-in seed set (depth-capped) so the game still launches
     if(use.length<1){ showError('This game needs a category with a few members and a few non-members in this chapter. Study a little further and it will unlock.'); return null; }
     if(live){ try{ live.destroy(); }catch(e){} live=null; }
     live=new Game(use,opts); return live; };
