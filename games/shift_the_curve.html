@@ -518,6 +518,7 @@
   // .start alias per the P1 brief (host contract uses .open; brief mentions .start)
   SC.start = SC.open;
   SC.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  SC.peers = function (peersObj) { if (live && typeof live._setPeers === 'function') live._setPeers(peersObj); };   // parent relay -> teammate scoreboard
 
   // ---- error overlay used before a Game exists -------------------------
   function showError(msg) {
@@ -582,6 +583,11 @@
     this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
     this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
     this.closed = false;
+    // multiplayer parity: broadcast my score + show a live teammate roster (this is a non-spatial game, so peers appear as a scoreboard rather than avatars)
+    this.mp = (opts.mp && typeof opts.mp === 'object') ? opts.mp : null;
+    this.onState = typeof opts.onState === 'function' ? opts.onState : null;
+    this.remote = {};
+    this._mpAcc = 0;
 
     // DOM
     this.canvas = document.getElementById('sc-canvas');
@@ -1306,10 +1312,26 @@
   };
 
   // ---- render ----------------------------------------------------------
+  Game.prototype._setPeers = function (p) { this.remote = p || {}; };
+  Game.prototype._peerColor = function (i) { var c = ['#22d3ee', '#f472b6', '#a3e635', '#fb923c', '#c084fc']; return c[i % c.length]; };
+  Game.prototype._drawPeers = function () {   // live teammate scoreboard (top-right), sorted by score
+    if (!this.mp || !this.remote) return;
+    var ctx = this.ctx, rows = [], uid;
+    for (uid in this.remote) { if (!this.remote.hasOwnProperty(uid)) continue; var rp = this.remote[uid], rs = (rp && rp.s) || {}; rows.push({ nm: (rp && rp.nm) || 'Player', sc: (rs.sc || 0) }); }
+    if (!rows.length) return;
+    rows.sort(function (a, b) { return b.sc - a.sc; });
+    ctx.save();
+    ctx.font = '700 11px -apple-system, sans-serif'; ctx.textAlign = 'right';
+    var x = this.W - 12, y = 14;
+    ctx.globalAlpha = 0.85; ctx.fillStyle = this.col.muted || '#9aa7c7'; ctx.fillText('TEAM', x, y); y += 15;
+    for (var i = 0; i < rows.length && i < 4; i++) { ctx.fillStyle = this._peerColor(i); ctx.fillText(String(rows[i].nm).slice(0, 12) + '  ' + rows[i].sc, x, y); y += 14; }
+    ctx.restore();
+  };
   Game.prototype._draw = function () {
     var ctx = this.ctx, W = this.W, H = this.H;
     ctx.clearRect(0, 0, W, H);
     this._drawStars();
+    this._drawPeers();   // teammate scoreboard overlay
 
     ctx.save();
     if (this.shake > 0 && !this.reduced) {
@@ -1592,6 +1614,7 @@
     dt = clamp(dt, 0, 0.05); // cap big jumps (tab switch)
     this.t += dt;
     if (this.state === 'playing') { this._update(dt); if (this.boss) this._syncHud(); }
+    if (this.mp && this.onState) { this._mpAcc += dt; if (this._mpAcc >= 0.25) { this._mpAcc = 0; try { this.onState({ sc: this.score }); } catch (e) {} } }   // broadcast my score for the teammate roster
     this._draw();
   };
 
