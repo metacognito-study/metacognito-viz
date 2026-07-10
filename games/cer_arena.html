@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CER Arena</title>
+<!--
+  CER ARENA — a three-stage Claim -> Evidence -> Reasoning argument game.  Spec: _align/_research/GAME_CER_ARENA_PRD.md
+  House contract (identical to salt_invaders / shift_the_curve):
+
+     window.CER_ARENA.open(pool, opts) -> instance | null
+       pool : array of CER items (see ITEM SHAPE); falls back to DEMO_POOL when empty/short
+       opts : { enabled:true, rtl, level, subject, chapterLabel,
+                onEmit:  function(rowId, lo, 'cerarena', 0|1, 1),   // fires ONCE per item on the CLAIM stage = the LO retrieval credit
+                onClose: function(summary) {} }                     // summary = {subject,chapterLabel,seen,score,sparks,claimAcc,evidenceAcc,reasoningAcc}
+     .start = alias of .open ; .close() tears down.
+
+  Currency (GAME_XP_ECONOMY_PRD): the CLAIM correctness on a real LO is the only thing routed to onEmit (Brain-XP LO credit,
+  capped/deduped host-side).  Everything else (evidence/reasoning correctness, speed) is SPARKS + pressure telemetry only —
+  a slow-but-correct student loses zero learning credit.  No colour-tells the answer.  Halal, no RNG rewards.
+
+  ITEM SHAPE (authored data, Elena-gated; NOT generated at runtime):
+     { loRow, subject, persona, stem, figure?,
+       claim:    { correct:'agree'|'disagree', text },
+       evidence: [ { text, relevant:true|false }, ... ],   // >=2 relevant, >=3 distractors
+       reasoning:[ { text, sound:true|false }, ... ] }     // >=1 sound,     >=3 distractors
+
+  Stack: vanilla JS + DOM only (no framework).  Themeable via --cer-* CSS vars (hex fallback for standalone).
+-->
+<style>
+  :root {
+    --cer-bg:      #0f1320;
+    --cer-surface: #171d2e;
+    --cer-surf2:   #1f2740;
+    --cer-ink:     #eaf0ff;
+    --cer-muted:   #9aa7c7;
+    --cer-line:    #2a3355;
+    --cer-indigo:  #6c5cff;
+    --cer-green:   #22c58b;
+    --cer-rose:    #ff5470;
+    --cer-amber:   #ffb020;
+    --cer-radius:  18px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(120% 90% at 50% -10%, #1b2340 0%, var(--cer-bg) 60%);
+    color: var(--cer-ink); overflow: hidden; user-select: none;
+  }
+  #cer-root { position: fixed; inset: 0; display: flex; flex-direction: column; padding: env(safe-area-inset-top) 12px 12px; }
+
+  /* pinned question stem (stays for all 3 stages) */
+  .cer-stem { flex: 0 0 auto; background: var(--cer-surface); border: 1px solid var(--cer-line); border-radius: var(--cer-radius);
+    padding: 13px 15px; margin: 8px 0 10px; box-shadow: 0 8px 24px -12px rgba(0,0,0,.6); }
+  .cer-persona { font-size: 12.5px; font-weight: 800; color: var(--cer-indigo); letter-spacing: .2px; margin-bottom: 3px; }
+  .cer-claimtext { font-size: 16px; font-weight: 700; line-height: 1.4; }
+  .cer-claimtext em { font-style: italic; color: var(--cer-ink); }
+  .cer-figure { font-size: 12.5px; color: var(--cer-muted); margin-top: 6px; }
+
+  /* stage header + progress */
+  .cer-stagebar { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .cer-step { flex: 1; height: 6px; border-radius: 3px; background: var(--cer-line); position: relative; overflow: hidden; }
+  .cer-step.done { background: var(--cer-green); }
+  .cer-step.active { background: var(--cer-indigo); }
+  .cer-stagelabel { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--cer-muted); min-width: 96px; text-align: right; }
+
+  /* playfield */
+  .cer-field { flex: 1 1 auto; position: relative; min-height: 0; display: flex; flex-direction: column; }
+
+  /* claim: big agree/disagree split */
+  .cer-split { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cer-half { border-radius: var(--cer-radius); border: 2px solid; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; font-weight: 900; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
+  .cer-half:active { transform: scale(.97); }
+  .cer-half.no  { background: color-mix(in srgb, var(--cer-rose) 15%, var(--cer-surface));  border-color: var(--cer-rose); color: var(--cer-rose); }
+  .cer-half.yes { background: color-mix(in srgb, var(--cer-green) 15%, var(--cer-surface)); border-color: var(--cer-green); color: var(--cer-green); }
+  .cer-half .ic { font-size: 34px; line-height: 1; }
+  .cer-half .lb { font-size: 17px; }
+  .cer-half .sub { font-size: 11.5px; font-weight: 700; opacity: .8; }
+
+  /* evidence / reasoning: a swipeable pill + toss zones */
+  .cer-prompt { flex: 0 0 auto; font-size: 12.5px; font-weight: 800; color: var(--cer-muted); text-align: center; margin: 2px 0 8px; }
+  .cer-zones { position: absolute; inset: 40px 0 74px; pointer-events: none; display: flex; justify-content: space-between; }
+  .cer-zone { width: 34%; border-radius: var(--cer-radius); border: 2px dashed; display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 14px; font-size: 12px; font-weight: 800; opacity: .5; }
+  .cer-zone.left  { border-color: var(--cer-rose); color: var(--cer-rose); }
+  .cer-zone.right { border-color: var(--cer-green); color: var(--cer-green); }
+  .cer-cardwrap { position: absolute; inset: 40px 0 74px; display: flex; align-items: center; justify-content: center; }
+  .cer-card { width: min(78%, 320px); min-height: 128px; background: var(--cer-surface); border: 1px solid var(--cer-line);
+    border-radius: var(--cer-radius); padding: 18px 18px; display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 15px; font-weight: 650; line-height: 1.42; box-shadow: 0 14px 34px -14px rgba(0,0,0,.7); cursor: grab; touch-action: none;
+    transition: transform .05s linear; }
+  .cer-card.snap { transition: transform .28s cubic-bezier(.2,.7,.3,1), opacity .28s ease; }
+  .cer-tossbtns { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; gap: 12px; justify-content: center; }
+  .cer-toss { flex: 1 1 0; max-width: 168px; min-height: 52px; border-radius: 14px; border: 2px solid; background: var(--cer-surface);
+    font-weight: 850; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
+  .cer-toss.left  { border-color: var(--cer-rose);  color: var(--cer-rose); }
+  .cer-toss.right { border-color: var(--cer-green); color: var(--cer-green); }
+  .cer-toss:active { transform: scale(.96); }
+
+  /* feedback flash */
+  .cer-flash { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 7px 15px; border-radius: 999px;
+    font-size: 13px; font-weight: 850; opacity: 0; transition: opacity .18s ease; pointer-events: none; z-index: 5; }
+  .cer-flash.show { opacity: 1; }
+  .cer-flash.good { background: color-mix(in srgb, var(--cer-green) 22%, var(--cer-surface)); color: var(--cer-green); }
+  .cer-flash.bad  { background: color-mix(in srgb, var(--cer-rose) 22%, var(--cer-surface)); color: var(--cer-rose); }
+
+  /* recap card */
+  .cer-recap { flex: 1; overflow-y: auto; }
+  .cer-recap h3 { font-size: 15px; margin: 4px 0 12px; }
+  .cer-rblock { background: var(--cer-surface); border: 1px solid var(--cer-line); border-left: 4px solid var(--cer-indigo);
+    border-radius: 12px; padding: 11px 13px; margin-bottom: 10px; }
+  .cer-rblock .rh { font-size: 11px; font-weight: 900; letter-spacing: .6px; text-transform: uppercase; color: var(--cer-muted); margin-bottom: 4px; }
+  .cer-rblock .rt { font-size: 14px; line-height: 1.45; }
+  .cer-rblock.ok   { border-left-color: var(--cer-green); }
+  .cer-rblock.miss { border-left-color: var(--cer-rose); }
+  .cer-rli { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; margin: 3px 0; }
+  .cer-rli .m { flex: 0 0 auto; font-weight: 900; }
+  .cer-rli .m.k { color: var(--cer-green); } .cer-rli .m.x { color: var(--cer-rose); }
+  .cer-score { text-align: center; margin: 6px 0 14px; }
+  .cer-score .big { font-size: 30px; font-weight: 900; }
+  .cer-score .sub { font-size: 12.5px; color: var(--cer-muted); }
+  .cer-btn { display: block; width: 100%; min-height: 50px; border-radius: 14px; border: none; background: var(--cer-indigo); color: #fff;
+    font-weight: 850; font-size: 15px; cursor: pointer; margin-top: 6px; }
+  .cer-btn.ghost { background: transparent; border: 1px solid var(--cer-line); color: var(--cer-ink); }
+
+  .cer-err { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+  .cer-err .box { background: var(--cer-surface); border: 1px solid var(--cer-line); border-radius: var(--cer-radius); padding: 22px; max-width: 340px; }
+
+  html[dir="rtl"] .cer-stagelabel { text-align: left; }
+  @media (prefers-reduced-motion: reduce) { .cer-card, .cer-half, .cer-toss { transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="cer-root" aria-live="polite"></div>
+
+<script>
+(function (global) {
+  'use strict';
+
+  // ---- theme helper: read --cer-* from the host, fall back to the standalone hex ----
+  function cssVar(name, fb) {
+    try { var v = getComputedStyle(document.documentElement).getPropertyValue(name); return (v && v.trim()) || fb; }
+    catch (e) { return fb; }
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  // ---------------- DEMO / seed pool (chem, hand-authored — Elena-gateable) ----------------
+  // Every item is a real justification question with >=2 relevant evidence + distractors and >=1 sound reasoning + distractors.
+  var DEMO_POOL = [
+    { loRow: null, subject: 'Chemistry', persona: 'Hasan',
+      stem: 'Two 10 mL samples of different liquids have different masses; sample A is heavier.',
+      figure: '10 mL of A and 10 mL of B; mass A > mass B.',
+      claim: { correct: 'agree', text: 'claims sample A has the greater density.' },
+      evidence: [
+        { text: 'The two samples have the same volume (10 mL each).', relevant: true },
+        { text: 'Sample A has the greater mass.', relevant: true },
+        { text: 'Sample A is a darker colour than B.', relevant: false },
+        { text: 'Sample A was poured into its cylinder first.', relevant: false },
+        { text: 'Both cylinders are the same brand.', relevant: false }
+      ],
+      reasoning: [
+        { text: 'Density = mass ÷ volume, so at equal volume the larger mass means the larger density.', sound: true },
+        { text: 'Heavier objects are always denser, whatever their volume.', sound: false },
+        { text: 'A darker liquid is always denser than a lighter-coloured one.', sound: false },
+        { text: 'Whatever is measured first must be the denser one.', sound: false }
+      ] },
+    { loRow: null, subject: 'Chemistry', persona: 'Layla',
+      stem: 'For N₂(g) + 3H₂(g) ⇌ 2NH₃(g) (exothermic) at equilibrium, the temperature is increased.',
+      claim: { correct: 'disagree', text: 'claims the amount of NH₃ will increase.' },
+      evidence: [
+        { text: 'The forward reaction is exothermic (releases heat).', relevant: true },
+        { text: 'Temperature was increased (heat added to the system).', relevant: true },
+        { text: 'There are 4 gas molecules on the left and 2 on the right.', relevant: false },
+        { text: 'Nitrogen makes up most of the atmosphere.', relevant: false },
+        { text: 'Ammonia has a sharp smell.', relevant: false }
+      ],
+      reasoning: [
+        { text: 'Adding heat shifts an exothermic equilibrium toward the reactants (Le Châtelier), lowering NH₃.', sound: true },
+        { text: 'Heating always speeds the forward reaction, so more product forms.', sound: false },
+        { text: 'More gas molecules on the left means heating makes more NH₃.', sound: false },
+        { text: 'Temperature never affects the position of equilibrium.', sound: false }
+      ] },
+    { loRow: null, subject: 'Chemistry', persona: 'Omar',
+      stem: 'A student is asked whether ethanoic (acetic) acid, CH₃COOH, is an acid.',
+      claim: { correct: 'agree', text: 'claims CH₃COOH is an acid.' },
+      evidence: [
+        { text: 'In water it donates a proton (H⁺) from its –COOH group.', relevant: true },
+        { text: 'Its aqueous solution turns blue litmus red.', relevant: true },
+        { text: 'It contains carbon and hydrogen atoms.', relevant: false },
+        { text: 'It is a liquid at room temperature.', relevant: false },
+        { text: 'It is found in vinegar.', relevant: false }
+      ],
+      reasoning: [
+        { text: 'A Brønsted–Lowry acid is a proton donor; CH₃COOH donates H⁺, so it is an acid (a weak one).', sound: true },
+        { text: 'Anything containing hydrogen is an acid.', sound: false },
+        { text: 'It is weak, so it is not really an acid at all.', sound: false },
+        { text: 'Only substances starting with an H, like HCl, are acids.', sound: false }
+      ] },
+    { loRow: null, subject: 'Chemistry', persona: 'Mei',
+      stem: 'Equal moles of a strong acid (HCl) and a weak acid (CH₃COOH) are each dissolved in the same volume of water.',
+      claim: { correct: 'agree', text: 'claims the HCl solution has the lower pH.' },
+      evidence: [
+        { text: 'HCl ionises completely in water.', relevant: true },
+        { text: 'CH₃COOH only partially ionises in water.', relevant: true },
+        { text: 'Both acids contain hydrogen.', relevant: false },
+        { text: 'HCl is a gas when pure.', relevant: false },
+        { text: 'Vinegar is safe to taste but HCl is not.', relevant: false }
+      ],
+      reasoning: [
+        { text: 'Complete ionisation gives a higher [H⁺] than partial ionisation at equal concentration, so pH is lower.', sound: true },
+        { text: 'Strong acids always have a lower pH regardless of concentration or how much ionises.', sound: false },
+        { text: 'The acid with more atoms per molecule has the lower pH.', sound: false },
+        { text: 'Weak acids cannot lower pH at all.', sound: false }
+      ] },
+    { loRow: null, subject: 'Chemistry', persona: 'Yusuf',
+      stem: 'A sealed flask of NO₂/N₂O₄ at equilibrium is compressed to half its volume at constant temperature. 2NO₂(g) ⇌ N₂O₄(g).',
+      claim: { correct: 'disagree', text: 'claims more NO₂ will form.' },
+      evidence: [
+        { text: 'The left side has 2 gas molecules; the right side has 1.', relevant: true },
+        { text: 'The volume was decreased, raising the pressure.', relevant: true },
+        { text: 'NO₂ is a brown gas.', relevant: false },
+        { text: 'The flask is made of glass.', relevant: false },
+        { text: 'Temperature was held constant.', relevant: false }
+      ],
+      reasoning: [
+        { text: 'Higher pressure shifts equilibrium toward the side with fewer gas molecules (the N₂O₄ side).', sound: true },
+        { text: 'Compressing a gas always makes the reaction go to the reactant side.', sound: false },
+        { text: 'The browner gas is always favoured when you squeeze the flask.', sound: false },
+        { text: 'Changing the volume never affects a gaseous equilibrium.', sound: false }
+      ] },
+    { loRow: null, subject: 'Chemistry', persona: 'Sara',
+      stem: 'A catalyst is added to a reaction mixture that has already reached equilibrium.',
+      claim: { correct: 'disagree', text: 'claims the catalyst will increase the yield of product at equilibrium.' },
+      evidence: [
+        { text: 'A catalyst lowers the activation energy of both directions equally.', relevant: true },
+        { text: 'The system was already at equilibrium when the catalyst was added.', relevant: true },
+        { text: 'Catalysts are often transition metals.', relevant: false },
+        { text: 'The reaction is in a sealed flask.', relevant: false },
+        { text: 'The catalyst is a fine powder.', relevant: false }
+      ],
+      reasoning: [
+        { text: 'A catalyst speeds both forward and reverse equally, so it changes the rate, not the equilibrium position or yield.', sound: true },
+        { text: 'A catalyst always increases the amount of product because it speeds the reaction up.', sound: false },
+        { text: 'A catalyst only speeds the forward reaction, so more product forms.', sound: false },
+        { text: 'Adding any solid always shifts equilibrium to the right.', sound: false }
+      ] }
+  ];
+
+  // ---------------- Game ----------------
+  function Game(pool, opts) {
+    this.pool = shuffle(pool).slice(0, Math.min(pool.length, 8));
+    this.opts = opts;
+    this.rtl = !!opts.rtl;
+    this.onEmit = typeof opts.onEmit === 'function' ? opts.onEmit : null;
+    this.onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+    this.col = {
+      green: cssVar('--cer-green', '#22c58b'), rose: cssVar('--cer-rose', '#ff5470'),
+      indigo: cssVar('--cer-indigo', '#6c5cff'), amber: cssVar('--cer-amber', '#ffb020')
+    };
+    this.root = document.getElementById('cer-root');
+    if (this.rtl) document.documentElement.setAttribute('dir', 'rtl');
+    // running tallies
+    this.i = 0;                    // item index
+    this.seen = 0; this.sparks = 0;
+    this.claimHits = 0; this.claimTot = 0;
+    this.evHits = 0; this.evTot = 0;
+    this.rsHits = 0; this.rsTot = 0;
+    this.telemetry = [];
+    this._startItem();
+  }
+
+  Game.prototype._startItem = function () {
+    var it = this.pool[this.i];
+    if (!it) return this._finish();
+    // per-item working state
+    this.item = it;
+    this.stage = 1;                 // 1 claim, 2 evidence, 3 reasoning, 4 recap
+    this.picked = { claim: null, evidence: [], reasoning: [] };
+    this.evQueue = shuffle(it.evidence);
+    this.rsQueue = shuffle(it.reasoning);
+    this.evPtr = 0; this.rsPtr = 0;
+    this.tStart = Date.now();
+    this._render();
+  };
+
+  Game.prototype._stemHtml = function () {
+    var it = this.item;
+    return '<div class="cer-stem">' +
+      '<div class="cer-persona">' + esc(it.persona) + ' says:</div>' +
+      '<div class="cer-claimtext"><em>&ldquo;' + esc(it.claim.text) + '&rdquo;</em></div>' +
+      '<div class="cer-figure">' + esc(it.stem) + (it.figure ? ' &middot; ' + esc(it.figure) : '') + '</div>' +
+      '</div>';
+  };
+  Game.prototype._barHtml = function () {
+    function step(n, cur) { return '<div class="cer-step ' + (n < cur ? 'done' : (n === cur ? 'active' : '')) + '"></div>'; }
+    var labels = { 1: '1 · Claim', 2: '2 · Evidence', 3: '3 · Reasoning', 4: 'Result' };
+    return '<div class="cer-stagebar">' + step(1, this.stage) + step(2, this.stage) + step(3, this.stage) +
+      '<div class="cer-stagelabel">' + labels[this.stage] + '</div></div>';
+  };
+
+  Game.prototype._render = function () {
+    if (this.stage === 4) return this._renderRecap();
+    var html = this._stemHtml() + this._barHtml() + '<div class="cer-field" id="cer-field"></div>';
+    this.root.innerHTML = '<div class="cer-flash" id="cer-flash"></div>' + html;
+    if (this.stage === 1) this._renderClaim();
+    else this._renderToss();
+  };
+
+  Game.prototype._flash = function (good, msg) {
+    var f = document.getElementById('cer-flash'); if (!f) return;
+    f.className = 'cer-flash ' + (good ? 'good' : 'bad') + ' show';
+    f.textContent = msg;
+    var self = this; clearTimeout(this._ft); this._ft = setTimeout(function () { if (f) f.className = 'cer-flash'; }, 850);
+  };
+
+  // ---- Stage 1: claim (agree / disagree) ----
+  Game.prototype._renderClaim = function () {
+    var f = document.getElementById('cer-field');
+    f.innerHTML = '<div class="cer-prompt">Do you agree with the claim?</div>' +
+      '<div class="cer-split">' +
+        '<button class="cer-half no"  data-c="disagree" aria-label="Disagree"><span class="ic">✗</span><span class="lb">Disagree</span><span class="sub">the claim is wrong</span></button>' +
+        '<button class="cer-half yes" data-c="agree"    aria-label="Agree"><span class="ic">✓</span><span class="lb">Agree</span><span class="sub">the claim is right</span></button>' +
+      '</div>';
+    var self = this;
+    Array.prototype.forEach.call(f.querySelectorAll('.cer-half'), function (b) {
+      b.addEventListener('click', function () { self._commitClaim(b.getAttribute('data-c')); });
+    });
+  };
+  Game.prototype._commitClaim = function (choice) {
+    var it = this.item, ok = (choice === it.claim.correct);
+    this.picked.claim = { choice: choice, ok: ok };
+    this.claimTot++; if (ok) { this.claimHits++; this.sparks += 10; }
+    this.telemetry.push({ loRow: it.loRow, stage: 'claim', correct: ok ? 1 : 0, ms: Date.now() - this.tStart });
+    // CLAIM correctness on a real LO is the ONLY thing routed to the learning ledger (host caps/dedupes)
+    if (this.onEmit && it.loRow != null) { try { this.onEmit(it.loRow, it.lo || null, 'cerarena', ok ? 1 : 0, 1); } catch (e) {} }
+    this._flash(ok, ok ? 'Claim locked in' : 'Noted — let’s test it');
+    this.stage = 2; this.tStage = Date.now();
+    var self = this; setTimeout(function () { self._render(); }, 360);
+  };
+
+  // ---- Stage 2 & 3: toss pills left (reject) / right (keep) ----
+  Game.prototype._currentQueue = function () { return this.stage === 2 ? this.evQueue : this.rsQueue; };
+  Game.prototype._currentPtr = function () { return this.stage === 2 ? this.evPtr : this.rsPtr; };
+  Game.prototype._renderToss = function () {
+    var f = document.getElementById('cer-field');
+    var isEv = this.stage === 2;
+    var prompt = isEv ? 'Keep the evidence that <b>supports</b> the argument. Toss what’s irrelevant.'
+                      : 'Keep the <b>sound</b> reasoning. Toss what’s flawed.';
+    f.innerHTML =
+      '<div class="cer-prompt">' + prompt + '</div>' +
+      '<div class="cer-zones"><div class="cer-zone left">✗ ' + (isEv ? 'irrelevant' : 'flawed') + '</div>' +
+        '<div class="cer-zone right">✓ ' + (isEv ? 'relevant' : 'sound') + '</div></div>' +
+      '<div class="cer-cardwrap" id="cer-cardwrap"></div>' +
+      '<div class="cer-tossbtns">' +
+        '<button class="cer-toss left"  id="cer-tl">✗ Toss</button>' +
+        '<button class="cer-toss right" id="cer-tr">✓ Keep</button>' +
+      '</div>';
+    var self = this;
+    document.getElementById('cer-tl').addEventListener('click', function () { self._decide(false); });
+    document.getElementById('cer-tr').addEventListener('click', function () { self._decide(true); });
+    this._mountCard();
+  };
+  Game.prototype._mountCard = function () {
+    var wrap = document.getElementById('cer-cardwrap'); if (!wrap) return;
+    var q = this._currentQueue(), ptr = this._currentPtr();
+    var item = q[ptr];
+    if (!item) { this._advanceStage(); return; }
+    var card = document.createElement('div');
+    card.className = 'cer-card'; card.id = 'cer-card';
+    card.innerHTML = esc(item.text);
+    wrap.innerHTML = ''; wrap.appendChild(card);
+    this._attachDrag(card);
+  };
+  Game.prototype._attachDrag = function (card) {
+    var self = this, sx = 0, sy = 0, dx = 0, dragging = false;
+    function down(e) { dragging = true; var p = e.touches ? e.touches[0] : e; sx = p.clientX; sy = p.clientY; card.style.transition = 'none'; }
+    function move(e) {
+      if (!dragging) return; var p = e.touches ? e.touches[0] : e; dx = p.clientX - sx;
+      var rot = dx / 18; card.style.transform = 'translateX(' + dx + 'px) rotate(' + rot + 'deg)';
+      card.style.borderColor = dx > 40 ? self.col.green : (dx < -40 ? self.col.rose : '');
+      if (e.cancelable) e.preventDefault();
+    }
+    function up() {
+      if (!dragging) return; dragging = false; card.style.transition = '';
+      if (Math.abs(dx) > 70) { self._decide(dx > 0); }
+      else { card.classList.add('snap'); card.style.transform = ''; card.style.borderColor = ''; setTimeout(function () { card.classList.remove('snap'); }, 280); }
+      dx = 0;
+    }
+    card.addEventListener('touchstart', down, { passive: true }); card.addEventListener('touchmove', move, { passive: false }); card.addEventListener('touchend', up);
+    card.addEventListener('mousedown', function (e) { down(e); var mm = function (ev) { move(ev); }, mu = function () { up(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); }; document.addEventListener('mousemove', mm); document.addEventListener('mouseup', mu); });
+  };
+  Game.prototype._decide = function (kept) {
+    var q = this._currentQueue(), isEv = this.stage === 2;
+    var ptr = isEv ? this.evPtr : this.rsPtr;
+    var item = q[ptr]; if (!item) return;
+    var wanted = isEv ? item.relevant : item.sound;   // should this pill be kept?
+    var ok = (kept === wanted);
+    if (isEv) { this.evTot++; if (ok) this.evHits++; if (kept && item.relevant) this.picked.evidence.push(item.text); }
+    else { this.rsTot++; if (ok) this.rsHits++; if (kept && item.sound) this.picked.reasoning.push(item.text); }
+    if (ok) this.sparks += 6;
+    this.telemetry.push({ loRow: this.item.loRow, stage: isEv ? 'evidence' : 'reasoning', correct: ok ? 1 : 0, ms: Date.now() - (this.tStage || this.tStart) });
+    // animate the card out, then next
+    var card = document.getElementById('cer-card');
+    if (card) { card.classList.add('snap'); card.style.transform = 'translateX(' + (kept ? 460 : -460) + 'px) rotate(' + (kept ? 22 : -22) + 'deg)'; card.style.opacity = '0'; }
+    this._flash(ok, ok ? 'Good call' : (wanted ? 'That one mattered' : 'Not needed'));
+    if (isEv) this.evPtr++; else this.rsPtr++;
+    var self = this;
+    setTimeout(function () {
+      var nq = self._currentQueue(), np = self._currentPtr();
+      if (np >= nq.length) self._advanceStage(); else self._mountCard();
+    }, 300);
+  };
+  Game.prototype._advanceStage = function () {
+    if (this.stage === 2) { this.stage = 3; this.tStage = Date.now(); this._render(); }
+    else { this.stage = 4; this._render(); }
+  };
+
+  // ---- Stage 4: recap card ----
+  Game.prototype._renderRecap = function () {
+    var it = this.item, c = this.picked;
+    var claimOk = c.claim && c.claim.ok;
+    var evList = it.evidence.filter(function (e) { return e.relevant; }).map(function (e) {
+      var kept = c.evidence.indexOf(e.text) >= 0;
+      return '<div class="cer-rli"><span class="m ' + (kept ? 'k">✓' : 'x">✗') + '</span><span>' + esc(e.text) + '</span></div>';
+    }).join('');
+    var rsList = it.reasoning.filter(function (r) { return r.sound; }).map(function (r) {
+      var kept = c.reasoning.indexOf(r.text) >= 0;
+      return '<div class="cer-rli"><span class="m ' + (kept ? 'k">✓' : 'x">✗') + '</span><span>' + esc(r.text) + '</span></div>';
+    }).join('');
+    var right = this.claimHits + this.evHits + this.rsHits, tot = this.claimTot + this.evTot + this.rsTot;
+    this.seen++;
+    this.root.innerHTML = this._stemHtml() +
+      '<div class="cer-recap">' +
+        '<h3>The argument you built</h3>' +
+        '<div class="cer-rblock ' + (claimOk ? 'ok' : 'miss') + '"><div class="rh">Claim</div><div class="rt">' +
+          (claimOk ? 'You ' + esc(c.claim.choice) + 'd — correct. ' : 'The stronger call was to ' + esc(it.claim.correct) + '. ') +
+          '</div></div>' +
+        '<div class="cer-rblock"><div class="rh">Evidence that supports it</div>' + (evList || '<div class="rt">—</div>') + '</div>' +
+        '<div class="cer-rblock"><div class="rh">Reasoning that links it</div>' + (rsList || '<div class="rt">—</div>') + '</div>' +
+        '<div class="cer-score"><div class="big">' + right + '/' + tot + '</div><div class="sub">+' + this.sparks + ' Sparks · ✓ = you kept it, ✗ = you missed it</div></div>' +
+        (this.i + 1 < this.pool.length ? '<button class="cer-btn" id="cer-next">Next question</button>' : '') +
+        '<button class="cer-btn ghost" id="cer-done">' + (this.i + 1 < this.pool.length ? 'Finish here' : 'Finish') + '</button>' +
+      '</div>';
+    var self = this;
+    var nx = document.getElementById('cer-next'); if (nx) nx.addEventListener('click', function () { self.i++; self.sparks = self.sparks; self._startItem(); });
+    document.getElementById('cer-done').addEventListener('click', function () { self._finish(); });
+  };
+
+  Game.prototype._summary = function () {
+    function pct(h, t) { return t ? Math.round(100 * h / t) : 0; }
+    return {
+      subject: this.opts.subject || this.item && this.item.subject || null,
+      chapterLabel: this.opts.chapterLabel || null,
+      seen: this.seen, score: this.claimHits + this.evHits + this.rsHits, sparks: this.sparks,
+      claimAcc: pct(this.claimHits, this.claimTot), evidenceAcc: pct(this.evHits, this.evTot), reasoningAcc: pct(this.rsHits, this.rsTot),
+      telemetry: this.telemetry
+    };
+  };
+  Game.prototype._finish = function () {
+    var sum = this._summary();
+    this.root.innerHTML = '<div class="cer-err"><div class="box"><h3 style="margin:0 0 8px">Nice arguing 👏</h3>' +
+      '<div style="color:var(--cer-muted);font-size:13.5px;line-height:1.5">You built ' + sum.seen + ' argument' + (sum.seen === 1 ? '' : 's') +
+      ' · +' + sum.sparks + ' Sparks<br>Claim ' + sum.claimAcc + '% · Evidence ' + sum.evidenceAcc + '% · Reasoning ' + sum.reasoningAcc + '%</div>' +
+      '<button class="cer-btn" style="margin-top:14px" onclick="(function(){})()" id="cer-close">Close</button></div></div>';
+    var self = this;
+    var cb = document.getElementById('cer-close'); if (cb) cb.addEventListener('click', function () { self.destroy(); });
+    if (this.onClose) { try { this.onClose(sum); } catch (e) {} }
+  };
+  Game.prototype.destroy = function () { try { this.root.innerHTML = ''; } catch (e) {} };
+
+  function showError(msg) {
+    var r = document.getElementById('cer-root'); if (!r) return;
+    r.innerHTML = '<div class="cer-err"><div class="box"><div style="font-size:13.5px;line-height:1.5">' + esc(msg) + '</div></div></div>';
+  }
+
+  // ---------------- public API (house contract) ----------------
+  var live = null;
+  var CER = {};
+  CER.open = function (pool, opts) {
+    opts = opts || {};
+    if (opts.enabled !== true) return null;              // flag gate, matches other modules
+    if (typeof document === 'undefined') return null;
+    // need well-formed CER items (a claim + at least a couple of evidence/reasoning each)
+    function _validCer(it) { return it && it.claim && it.claim.correct && Array.isArray(it.evidence) && it.evidence.length >= 2 && Array.isArray(it.reasoning) && it.reasoning.length >= 2; }
+    var raw = (Array.isArray(pool) && pool.length) ? pool : DEMO_POOL;
+    var usePool = raw.filter(_validCer);
+    if (usePool.length < 1) { usePool = DEMO_POOL.filter(_validCer); }   // host classification pool has no CER-shaped items yet -> play the built-in seed set so the game still launches
+    if (usePool.length < 1) { showError('This game needs a few claim-style questions in this chapter. Study a little further and it will unlock.'); return null; }
+    if (live) { try { live.destroy(); } catch (e) {} live = null; }
+    live = new Game(usePool, opts);
+    return live;
+  };
+  CER.start = CER.open;
+  CER.close = function () { if (live) { try { live.destroy(); } catch (e) {} live = null; } };
+  CER._DEMO_POOL = DEMO_POOL;   // exposed for the host + the self-sim
+  global.CER_ARENA = CER;
+
+  // ---------------- standalone bootstrap (opened directly = demo) ----------------
+  if (!global.__CER_EMBEDDED__) {
+    document.addEventListener('DOMContentLoaded', function () {
+      CER.open(null, { enabled: true, subject: 'Chemistry', chapterLabel: 'Demo',
+        onEmit: function () {}, onClose: function (s) { try { console.log('CER summary', s); } catch (e) {} } });
+    });
+  }
+})(typeof window !== 'undefined' ? window : this);
+</script>
+</body>
+</html>

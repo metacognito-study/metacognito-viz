@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Element Slayer</title>
+<!--
+  ELEMENT SLAYER — a chemistry-themed hack-&-slash platformer.  Spec: _align/_research/GAME_SLAYER_PRD.md
+  House contract (identical to salt_invaders / shift_the_curve / cer_arena):
+
+     window.ELEMENT_SLAYER.open(pool, opts) -> instance | null
+       pool : array of LEVELS (see LEVEL SHAPE); falls back to DEMO_POOL when empty
+       opts : { enabled:true, rtl, level, subject, chapterLabel,
+                onEmit:  function(rowId, lo, 'slayer', 0|1, 1),   // fires when a labelled enemy is slain: 1 if it was the TARGET category, 0 if a decoy
+                onClose: function(summary) {} }                   // {subject,chapterLabel,seen,score,sparks,targetsCleared,mistakes}
+
+  Learning: the skill trained is CATEGORY DISCRIMINATION ("which of these ARE salts?").  Slaying a correct TARGET enemy that
+  carries a real loRow emits the capped LO retrieval credit (Brain-XP).  Combo/finish-speed = Sparks + pressure telemetry only.
+  Slaying a DECOY (wrong category) costs a life + a gentle "that's an acid, not a salt" flash — formative, never punitive to XP.
+  No colour-tells the category (all enemies share the palette; only the LABEL differs).  Halal geometric art, no gore, no RNG rewards.
+
+  LEVEL SHAPE (authored, Elena-gated):
+     { targetCategory:'salts', decoyLabel:'not a salt',
+       enemies:[ { label:'NaCl', isTarget:true,  loRow:123 }, { label:'HCl', isTarget:false }, ... ] }
+  Stack: vanilla JS + canvas only.  Vector characters drawn procedurally (crisp, tiny).  Themeable via --es-* (hex fallback).
+-->
+<style>
+  :root{ --es-bg:#0d1120; --es-ink:#eaf0ff; --es-muted:#9aa7c7; --es-indigo:#6c5cff; --es-green:#22c58b; --es-rose:#ff5470; --es-amber:#ffb020; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--es-bg);color:var(--es-ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;user-select:none;-webkit-user-select:none;}
+  #es-root{position:fixed;inset:0;}
+  #es-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+  .es-hud{position:absolute;top:calc(8px + env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;
+    align-items:center;font-weight:800;font-size:13px;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+  .es-goal{background:rgba(20,26,44,.72);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 13px;font-size:12.5px;}
+  .es-goal b{color:var(--es-amber);}
+  .es-hearts{letter-spacing:2px;}
+  /* on-screen controls (touch) */
+  .es-ctrl{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;pointer-events:auto;}
+  .es-ctrl.left{left:14px;} .es-ctrl.right{right:14px;}
+  .es-btn{width:58px;height:58px;border-radius:50%;border:1px solid rgba(255,255,255,.16);background:rgba(28,36,58,.7);
+    color:#fff;font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer;}
+  .es-btn.jump{background:rgba(58,44,110,.72);} .es-btn.slash{background:rgba(110,44,64,.72);width:66px;height:66px;font-size:20px;}
+  .es-flash{position:absolute;top:38%;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:999px;font-weight:850;font-size:14px;
+    opacity:0;transition:opacity .2s ease;pointer-events:none;}
+  .es-flash.show{opacity:1;} .es-flash.good{background:rgba(34,197,139,.22);color:var(--es-green);} .es-flash.bad{background:rgba(255,84,112,.22);color:var(--es-rose);}
+  .es-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;}
+  .es-card{background:rgba(20,26,44,.94);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:24px;max-width:340px;}
+  .es-card h2{margin:0 0 8px;font-size:20px;} .es-card p{color:var(--es-muted);font-size:13.5px;line-height:1.5;margin:0 0 16px;}
+  .es-cta{min-height:50px;width:100%;border-radius:14px;border:none;background:var(--es-indigo);color:#fff;font-weight:850;font-size:15px;cursor:pointer;}
+  @media (min-width:900px){ .es-btn{width:48px;height:48px;} }
+</style>
+</head>
+<body>
+<div id="es-root">
+  <canvas id="es-canvas"></canvas>
+  <div class="es-hud"><div class="es-goal" id="es-goal"></div><div class="es-hearts" id="es-hearts"></div></div>
+  <div class="es-flash" id="es-flash"></div>
+  <div class="es-ctrl left"><div class="es-btn" id="es-l" aria-label="Left">◀</div><div class="es-btn" id="es-r" aria-label="Right">▶</div></div>
+  <div class="es-ctrl right"><div class="es-btn slash" id="es-a" aria-label="Slash">⚔</div><div class="es-btn jump" id="es-j" aria-label="Jump">⤒</div></div>
+</div>
+<script>
+(function (global) {
+  'use strict';
+  function cssVar(n,fb){ try{ var v=getComputedStyle(document.documentElement).getPropertyValue(n); return (v&&v.trim())||fb; }catch(e){ return fb; } }
+  function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t; } return a; }
+
+  // ---------- DEMO level (chem "salts", Elena-gateable). Target members + decoys from neighbouring categories. ----------
+  var DEMO_POOL = [
+    { targetCategory:'salts', decoyLabel:'not a salt',
+      enemies:[
+        { label:'NaCl',  isTarget:true },  { label:'KNO₃', isTarget:true }, { label:'CaCO₃', isTarget:true },
+        { label:'HCl',   isTarget:false }, // acid
+        { label:'NaOH',  isTarget:false }, // base
+        { label:'CH₄', isTarget:false }, // covalent molecule
+        { label:'MgSO₄', isTarget:true }, { label:'NH₃', isTarget:false } // ammonia (base/molecular)
+      ] }
+  ];
+
+  function Game(levels, opts){
+    this.levels=levels; this.opts=opts; this.rtl=!!opts.rtl;
+    this.onEmit=typeof opts.onEmit==='function'?opts.onEmit:null;
+    this.onClose=typeof opts.onClose==='function'?opts.onClose:null;
+    this.col={ ink:cssVar('--es-ink','#eaf0ff'), muted:cssVar('--es-muted','#9aa7c7'), indigo:cssVar('--es-indigo','#6c5cff'),
+      green:cssVar('--es-green','#22c58b'), rose:cssVar('--es-rose','#ff5470'), amber:cssVar('--es-amber','#ffb020') };
+    this.canvas=document.getElementById('es-canvas'); this.ctx=this.canvas.getContext('2d');
+    this.W=0;this.H=0;this.dpr=Math.min(global.devicePixelRatio||1,2);
+    this.keys={left:false,right:false};
+    this.reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // physics constants (derived jump: reach ~jh px in ~jt s -> v0 & g)
+    var jh=132, jt=0.36; this.grav=(2*jh)/(jt*jt)/1000/1000; this.jumpV=-(2*jh)/jt/1000; // per-ms
+    this.seen=0; this.sparks=0; this.targetsCleared=0; this.mistakes=0; this.combo=0;
+    this.levelIdx=0;
+    this._bind(); this._resize();
+    this._startLevel();
+    this._raf=requestAnimationFrame(this._loop.bind(this));
+  }
+
+  Game.prototype._resize=function(){
+    var r=this.canvas.getBoundingClientRect(); this.W=r.width; this.H=r.height;
+    this.canvas.width=r.width*this.dpr; this.canvas.height=r.height*this.dpr; this.ctx.setTransform(this.dpr,0,0,this.dpr,0,0);
+    this.groundY=this.H-70;
+  };
+  Game.prototype._bind=function(){
+    var self=this;
+    global.addEventListener('resize',function(){ self._resize(); });
+    function hold(id,on,off){ var e=document.getElementById(id); if(!e)return;
+      e.addEventListener('touchstart',function(ev){ ev.preventDefault(); on(); },{passive:false});
+      e.addEventListener('touchend',function(ev){ ev.preventDefault(); if(off)off(); },{passive:false});
+      e.addEventListener('mousedown',function(ev){ ev.preventDefault(); on(); });
+      e.addEventListener('mouseup',function(){ if(off)off(); });
+      e.addEventListener('mouseleave',function(){ if(off)off(); });
+    }
+    hold('es-l',function(){ self.keys.left=true; },function(){ self.keys.left=false; });
+    hold('es-r',function(){ self.keys.right=true; },function(){ self.keys.right=false; });
+    hold('es-j',function(){ self._jump(); });
+    hold('es-a',function(){ self._slash(); });
+    this._kd=function(e){ if(e.key==='ArrowLeft')self.keys.left=true; else if(e.key==='ArrowRight')self.keys.right=true;
+      else if(e.key===' '||e.key==='ArrowUp'){ self._jump(); e.preventDefault(); } else if(e.key==='Enter'||e.key.toLowerCase()==='x'){ self._slash(); } };
+    this._ku=function(e){ if(e.key==='ArrowLeft')self.keys.left=false; else if(e.key==='ArrowRight')self.keys.right=false; };
+    global.addEventListener('keydown',this._kd); global.addEventListener('keyup',this._ku);
+  };
+
+  Game.prototype._startLevel=function(){
+    var lv=this.levels[this.levelIdx]; if(!lv) return this._win();
+    this.level=lv;
+    this.targetsTotal=lv.enemies.filter(function(e){return e.isTarget;}).length;
+    this.player={ x:60, y:this.groundY-46, w:30, h:46, vx:0, vy:0, onGround:true, face:1, slashT:0, inv:0 };
+    this.lives=3;
+    // lay enemies + platforms across a scrolling course
+    var order=shuffle(lv.enemies); this.enemies=[]; var gx=260;
+    for(var i=0;i<order.length;i++){ var e=order[i];
+      this.enemies.push({ label:e.label, isTarget:!!e.isTarget, loRow:e.loRow!=null?e.loRow:null, lo:e.lo||null,
+        x:gx, y:this.groundY-44, w:40, h:44, vx:-0.018-Math.random()*0.01, alive:true, dead:0, hitT:0, bob:Math.random()*6.28 });
+      gx += 150+Math.random()*90;
+    }
+    this.courseW = gx+320; this.finishX=this.courseW-140;
+    this.platforms=[];
+    // platform heights kept within a single jump (jh=132px): max offset 78+2*20=118 < 132, so every platform is reachable
+    for(var p=1;p<order.length;p+=2){ this.platforms.push({ x:200+p*150, y:this.groundY-78-((p%3)*20), w:96, h:14 }); }
+    this.camX=0; this.particles=[]; this.done=false;
+    this._hud();
+  };
+
+  Game.prototype._jump=function(){ var p=this.player; if(p&&p.onGround){ p.vy=this.jumpV; p.onGround=false; } };
+  Game.prototype._slash=function(){ var p=this.player; if(!p)return; p.slashT=140; this._resolveSlash(); };
+  Game.prototype._resolveSlash=function(){
+    var p=this.player, reach=46, self=this;
+    var hx = p.face>0 ? p.x+p.w : p.x-reach, hw=reach+p.w*0.4;
+    for(var i=0;i<this.enemies.length;i++){ var e=this.enemies[i]; if(!e.alive)continue;
+      if(e.x< hx+hw && e.x+e.w>hx && Math.abs((e.y+e.h/2)-(p.y+p.h/2))<52){ this._strike(e); }
+    }
+  };
+  Game.prototype._strike=function(e){
+    e.alive=false; e.dead=1; this._burst(e.x+e.w/2, e.y+e.h/2, e.isTarget);
+    if(e.isTarget){ this.targetsCleared++; this.combo++; this.sparks += 8 + Math.min(this.combo,6)*2;
+      this._flash(true, this.combo>2? ('Combo x'+this.combo+'!') : 'Correct — that’s a '+this.level.targetCategory.replace(/s$/,''));
+      if(this.onEmit && e.loRow!=null){ try{ this.onEmit(e.loRow, e.lo, 'slayer', 1, 1); }catch(err){} }
+    } else {
+      this.combo=0; this.mistakes++; this.lives--; this._flash(false, e.label+' is '+this.level.decoyLabel);
+      if(this.onEmit && e.loRow!=null){ try{ this.onEmit(e.loRow, e.lo, 'slayer', 0, 1); }catch(err){} }
+      if(this.lives<=0){ this._lose(); }
+    }
+    this._hud();
+  };
+  Game.prototype._burst=function(x,y,good){ if(this.reduced){return;} var c=good?this.col.green:this.col.rose;
+    for(var i=0;i<12;i++){ this.particles.push({x:x,y:y,vx:(Math.random()-.5)*.4,vy:(Math.random()-.7)*.4,life:1,c:c}); } };
+  Game.prototype._flash=function(good,msg){ var f=document.getElementById('es-flash'); if(!f)return;
+    f.className='es-flash '+(good?'good':'bad')+' show'; f.textContent=msg;
+    var self=this; clearTimeout(this._ft); this._ft=setTimeout(function(){ if(f)f.className='es-flash'; },900); };
+  Game.prototype._hud=function(){
+    var g=document.getElementById('es-goal'); if(g) g.innerHTML='Clear all <b>'+this.level.targetCategory.toUpperCase()+'</b> &middot; '+this.targetsCleared+'/'+this.targetsTotal;
+    var h=document.getElementById('es-hearts'); if(h){ var s=''; for(var i=0;i<3;i++) s+= i<this.lives?'❤️':'🤍'; h.textContent=s; }
+  };
+
+  Game.prototype._loop=function(t){
+    if(this.done) return;
+    var dt=Math.min(t-(this._lt||t),40); this._lt=t;
+    this._update(dt); this._draw();
+    this._raf=requestAnimationFrame(this._loop.bind(this));
+  };
+  Game.prototype._update=function(dt){
+    var p=this.player, sp=0.42;
+    p.vx = (this.keys.left?-sp:0) + (this.keys.right?sp:0);
+    if(this.keys.left)p.face=-1; else if(this.keys.right)p.face=1;
+    p.x += p.vx*dt;
+    p.vy += this.grav*dt; p.y += p.vy*dt;
+    // ground
+    if(p.y+p.h>=this.groundY){ p.y=this.groundY-p.h; p.vy=0; p.onGround=true; }
+    // one-way platforms (land only when falling onto them)
+    for(var i=0;i<this.platforms.length;i++){ var pf=this.platforms[i];
+      if(p.vy>=0 && p.x+p.w>pf.x && p.x<pf.x+pf.w){ var prevBottom=p.y+p.h - p.vy*dt;
+        if(prevBottom<=pf.y+6 && p.y+p.h>=pf.y && p.y+p.h<=pf.y+pf.h+16){ p.y=pf.y-p.h; p.vy=0; p.onGround=true; } } }
+    if(p.x<0)p.x=0; if(p.x>this.courseW-p.w)p.x=this.courseW-p.w;
+    if(p.slashT>0)p.slashT-=dt; if(p.inv>0)p.inv-=dt;
+    // enemies advance + pushback on contact
+    for(i=0;i<this.enemies.length;i++){ var e=this.enemies[i];
+      if(e.dead){ e.dead+=dt; continue; }
+      e.bob+=dt*0.006; e.x += e.vx*dt;
+      if(e.x<40){ e.x=40; e.vx*=-1; }
+      if(p.inv<=0 && e.x<p.x+p.w && e.x+e.w>p.x && e.y<p.y+p.h && e.y+e.h>p.y){
+        // pushback: knock the player back, brief i-frames (contact != death; only decoy-slash costs a life)
+        p.x += (p.x<e.x? -34:34); p.vy=this.jumpV*0.5; p.inv=650; this.combo=0;
+      }
+    }
+    // particles
+    for(i=this.particles.length-1;i>=0;i--){ var pt=this.particles[i]; pt.x+=pt.vx*dt; pt.y+=pt.vy*dt; pt.vy+=0.0009*dt; pt.life-=dt*0.0016; if(pt.life<=0)this.particles.splice(i,1); }
+    // camera follows player
+    var target=Math.max(0,Math.min(p.x-this.W*0.35, this.courseW-this.W)); this.camX += (target-this.camX)*Math.min(1,dt*0.01);
+    // finish
+    if(p.x+p.w>=this.finishX){ if(this.targetsCleared>=this.targetsTotal){ this._levelClear(); } else { p.x=this.finishX-p.w-2; this._flash(false,'Clear the '+this.level.targetCategory+' first!'); } }
+  };
+
+  // ---------- drawing (procedural vector, crisp) ----------
+  Game.prototype._draw=function(){
+    var c=this.ctx, W=this.W, H=this.H, cam=this.camX;
+    // sky gradient
+    var g=c.createLinearGradient(0,0,0,H); g.addColorStop(0,'#1b2340'); g.addColorStop(1,'#0d1120'); c.fillStyle=g; c.fillRect(0,0,W,H);
+    // parallax hills
+    c.save(); c.globalAlpha=.5; c.fillStyle='#18203a';
+    for(var hx=-((cam*0.3)%260); hx<W+260; hx+=260){ c.beginPath(); c.arc(hx+130, this.groundY+20, 150, Math.PI, 0); c.fill(); } c.restore();
+    // ground
+    c.fillStyle='#232c48'; c.fillRect(0,this.groundY,W,H-this.groundY);
+    c.fillStyle='#2c375c'; c.fillRect(0,this.groundY,W,4);
+    c.save(); c.translate(-cam,0);
+    // platforms
+    c.fillStyle='#2f3a60'; for(var i=0;i<this.platforms.length;i++){ var pf=this.platforms[i]; this._round(c,pf.x,pf.y,pf.w,pf.h,6); c.fill(); }
+    // finish flag
+    c.fillStyle=this.col.amber; c.fillRect(this.finishX,this.groundY-120,4,120);
+    c.beginPath(); c.moveTo(this.finishX+4,this.groundY-120); c.lineTo(this.finishX+40,this.groundY-108); c.lineTo(this.finishX+4,this.groundY-96); c.fill();
+    // enemies
+    for(i=0;i<this.enemies.length;i++){ this._drawEnemy(this.enemies[i]); }
+    // particles
+    for(i=0;i<this.particles.length;i++){ var pt=this.particles[i]; c.globalAlpha=Math.max(0,pt.life); c.fillStyle=pt.c; c.fillRect(pt.x-2,pt.y-2,4,4); }
+    c.globalAlpha=1;
+    // player
+    this._drawPlayer();
+    c.restore();
+  };
+  Game.prototype._round=function(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); };
+  Game.prototype._drawEnemy=function(e){
+    var c=this.ctx; if(e.dead){ return; }
+    var y=e.y+Math.sin(e.bob)*3;
+    // body: rounded "element creature" blob — SAME palette for all (no colour tell); label carries the meaning
+    c.save();
+    c.fillStyle='#39456e';
+    this._round(c,e.x,y,e.w,e.h,12); c.fill();
+    c.fillStyle='#4a5891'; this._round(c,e.x+5,y+6,e.w-10,e.h*0.5,8); c.fill(); // face plate
+    // little hat
+    c.fillStyle='#2c3355'; this._round(c,e.x+6,y-8,e.w-12,10,4); c.fill();
+    // eyes
+    c.fillStyle='#0d1120'; c.beginPath(); c.arc(e.x+e.w*0.36,y+e.h*0.34,2.4,0,6.28); c.arc(e.x+e.w*0.64,y+e.h*0.34,2.4,0,6.28); c.fill();
+    // label plate
+    c.font='700 12px system-ui,sans-serif'; c.textAlign='center'; c.textBaseline='middle';
+    var tw=c.measureText(e.label).width+12; c.fillStyle='rgba(13,17,32,.85)';
+    this._round(c,e.x+e.w/2-tw/2,y+e.h+4,tw,17,5); c.fill();
+    c.fillStyle=this.col.ink; c.fillText(e.label,e.x+e.w/2,y+e.h+13);
+    c.restore();
+  };
+  Game.prototype._drawPlayer=function(){
+    var c=this.ctx, p=this.player, blink=(p.inv>0 && ((p.inv/90)|0)%2===0);
+    if(blink) return;
+    c.save(); c.translate(p.x,p.y);
+    // legs
+    c.fillStyle=this.col.indigo; c.fillRect(6,p.h-14,7,14); c.fillRect(p.w-13,p.h-14,7,14);
+    // body (lab coat)
+    c.fillStyle='#e8edf7'; this._round(c,2,10,p.w-4,p.h-20,7); c.fill();
+    c.fillStyle=this.col.indigo; c.fillRect(p.w/2-2,12,4,p.h-24); // coat seam
+    // head
+    c.fillStyle='#f2d9b8'; c.beginPath(); c.arc(p.w/2,8,9,0,6.28); c.fill();
+    // goggles
+    c.fillStyle=this.col.amber; c.fillRect(p.w/2-8,5,16,4);
+    // sword (slash arc)
+    if(p.slashT>0){ c.strokeStyle=this.col.amber; c.lineWidth=4; c.beginPath();
+      var dir=p.face>0?1:-1, bx=p.face>0?p.w:0; c.arc(bx,p.h/2, 40, -0.7*dir, 0.7*dir, dir<0); c.stroke();
+      c.strokeStyle='rgba(255,255,255,.5)'; c.lineWidth=1.5; c.stroke(); }
+    c.restore();
+  };
+
+  Game.prototype._levelClear=function(){
+    if(this._cleared) return; this._cleared=true; this.seen++;
+    this.levelIdx++;
+    if(this.levelIdx<this.levels.length){ this._cleared=false; this._startLevel(); }
+    else { this._win(); }
+  };
+  Game.prototype._overlay=function(title,msg,cta,fn){
+    var o=document.createElement('div'); o.className='es-overlay';
+    o.innerHTML='<div class="es-card"><h2>'+title+'</h2><p>'+msg+'</p><button class="es-cta">'+cta+'</button></div>';
+    document.getElementById('es-root').appendChild(o);
+    var self=this; o.querySelector('.es-cta').addEventListener('click',function(){ o.remove(); fn(); });
+  };
+  Game.prototype._win=function(){ this.done=true; cancelAnimationFrame(this._raf);
+    var self=this; this._overlay('Course cleared! ⚔️','You cleared '+this.targetsCleared+' targets · +'+this.sparks+' Sparks · '+this.mistakes+' slip-ups.','Finish',function(){ self._finish(); }); };
+  Game.prototype._lose=function(){ this.done=true; cancelAnimationFrame(this._raf);
+    var self=this; this._overlay('Out of lives','Too many wrong targets. Remember: only slay the '+this.level.targetCategory+'.','Try again',function(){ self.levelIdx=Math.max(0,self.levelIdx); self.done=false; self._cleared=false; self.mistakes=0; self._startLevel(); self._raf=requestAnimationFrame(self._loop.bind(self)); }); };
+  Game.prototype._summary=function(){ return { subject:this.opts.subject||null, chapterLabel:this.opts.chapterLabel||null,
+    seen:this.seen, score:this.targetsCleared, sparks:this.sparks, targetsCleared:this.targetsCleared, mistakes:this.mistakes }; };
+  Game.prototype._finish=function(){ var s=this._summary(); if(this.onClose){ try{ this.onClose(s); }catch(e){} } this.destroy(); };
+  Game.prototype.destroy=function(){ this.done=true; try{ cancelAnimationFrame(this._raf); }catch(e){}
+    try{ global.removeEventListener('keydown',this._kd); global.removeEventListener('keyup',this._ku); }catch(e){}
+    try{ var o=document.querySelector('.es-overlay'); if(o)o.remove(); }catch(e){} };
+
+  function showError(msg){ var r=document.getElementById('es-root'); if(!r)return;
+    r.innerHTML='<div class="es-overlay"><div class="es-card"><p>'+msg+'</p></div></div>'; }
+
+  // ---------- public API ----------
+  var live=null, ES={};
+  ES.open=function(pool,opts){ opts=opts||{}; if(opts.enabled!==true)return null; if(typeof document==='undefined')return null;
+    function _validLv(lv){ return lv&&lv.targetCategory&&Array.isArray(lv.enemies)&&lv.enemies.filter(function(e){return e.isTarget;}).length>=1&&lv.enemies.filter(function(e){return !e.isTarget;}).length>=1; }
+    var raw=(Array.isArray(pool)&&pool.length)?pool:DEMO_POOL;
+    var use=raw.filter(_validLv);
+    if(use.length<1){ use=DEMO_POOL.filter(_validLv); }   // host classification pool has no slayer-level items yet -> play the built-in seed set so the game still launches
+    if(use.length<1){ showError('This game needs a category with a few members and a few non-members in this chapter. Study a little further and it will unlock.'); return null; }
+    if(live){ try{ live.destroy(); }catch(e){} live=null; }
+    live=new Game(use,opts); return live; };
+  ES.start=ES.open;
+  ES.close=function(){ if(live){ try{ live.destroy(); }catch(e){} live=null; } };
+  ES._DEMO_POOL=DEMO_POOL;
+  global.ELEMENT_SLAYER=ES;
+
+  if(!global.__ES_EMBEDDED__){ document.addEventListener('DOMContentLoaded',function(){
+    ES.open(null,{ enabled:true, subject:'Chemistry', chapterLabel:'Demo', onEmit:function(){}, onClose:function(s){ try{ console.log('slayer summary',s); }catch(e){} } });
+  }); }
+})(typeof window!=='undefined'?window:this);
+</script>
+</body>
+</html>
