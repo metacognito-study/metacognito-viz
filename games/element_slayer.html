@@ -68,7 +68,7 @@
 
   // ---------- DEMO level (chem "salts", Elena-gateable). Target members + decoys from neighbouring categories. ----------
   var DEMO_POOL = [
-    { targetCategory:'salts', ch:4, decoyLabel:'not a salt',
+    { targetCategory:'salts', ch:4, subject:'Chemistry', decoyLabel:'not a salt',
       enemies:[
         { label:'NaCl',  isTarget:true },  { label:'KNO₃', isTarget:true }, { label:'CaCO₃', isTarget:true },
         { label:'HCl',   isTarget:false }, // acid
@@ -76,6 +76,14 @@
         { label:'CH₄', isTarget:false }, // covalent molecule
         { label:'MgSO₄', isTarget:true }, { label:'NH₃', isTarget:false } // ammonia (base/molecular)
       ] }
+,
+    // ---- 2026-07-10 content-growth batch (Elena-author + Elena-QA passed) ----
+    {"targetCategory": "acids", "ch": 2, "decoyLabel": "not an acid", "enemies": [{"label": "HCl", "isTarget": true, "loRow": 225}, {"label": "HNO₃", "isTarget": true, "loRow": 225}, {"label": "H₂SO₄", "isTarget": true, "loRow": 225}, {"label": "HBr", "isTarget": true, "loRow": 225}, {"label": "NaOH", "isTarget": false}, {"label": "NaCl", "isTarget": false}, {"label": "CH₄", "isTarget": false}, {"label": "NH₃", "isTarget": false}], "subject": "Chemistry"},
+    {"targetCategory": "bases", "ch": 4, "decoyLabel": "not a base", "enemies": [{"label": "NaOH", "isTarget": true, "loRow": 393}, {"label": "KOH", "isTarget": true, "loRow": 393}, {"label": "Ca(OH)₂", "isTarget": true, "loRow": 393}, {"label": "Mg(OH)₂", "isTarget": true, "loRow": 393}, {"label": "HCl", "isTarget": false}, {"label": "HNO₃", "isTarget": false}, {"label": "NaCl", "isTarget": false}, {"label": "CO₂", "isTarget": false}], "subject": "Chemistry"},
+    {"targetCategory": "ionic compounds", "ch": 1, "decoyLabel": "covalent (not ionic)", "enemies": [{"label": "NaCl", "isTarget": true, "loRow": 105}, {"label": "MgO", "isTarget": true, "loRow": 105}, {"label": "CaCl₂", "isTarget": true, "loRow": 105}, {"label": "KBr", "isTarget": true, "loRow": 105}, {"label": "CO₂", "isTarget": false}, {"label": "H₂O", "isTarget": false}, {"label": "CH₄", "isTarget": false}, {"label": "SO₂", "isTarget": false}], "subject": "Chemistry"},
+    {"targetCategory": "endothermic changes", "ch": 1, "decoyLabel": "exothermic (heat out)", "enemies": [{"label": "Melting ice", "isTarget": true, "loRow": 137}, {"label": "Boiling water", "isTarget": true, "loRow": 137}, {"label": "Photosynthesis", "isTarget": true, "loRow": 137}, {"label": "Instant cold pack", "isTarget": true, "loRow": 137}, {"label": "Burning fuel", "isTarget": false}, {"label": "Freezing water", "isTarget": false}, {"label": "Condensation", "isTarget": false}, {"label": "Rusting iron", "isTarget": false}], "subject": "Chemistry"},
+    {"targetCategory": "demand shifters", "ch": 4, "decoyLabel": "a supply shifter", "enemies": [{"label": "Incomes rise", "isTarget": true, "loRow": 128}, {"label": "More buyers", "isTarget": true, "loRow": 128}, {"label": "Substitute price up", "isTarget": true, "loRow": 128}, {"label": "New taste for it", "isTarget": true, "loRow": 128}, {"label": "Input costs fall", "isTarget": false}, {"label": "New technology", "isTarget": false}, {"label": "More sellers", "isTarget": false}, {"label": "Producer tax", "isTarget": false}], "subject": "Economics"},
+    {"targetCategory": "macro topics", "ch": 1, "decoyLabel": "a micro topic", "enemies": [{"label": "Unemployment rate", "isTarget": true, "loRow": 40}, {"label": "Inflation rate", "isTarget": true, "loRow": 40}, {"label": "GDP growth", "isTarget": true, "loRow": 40}, {"label": "Budget deficit", "isTarget": true, "loRow": 40}, {"label": "One firm's price", "isTarget": false}, {"label": "A single market", "isTarget": false}, {"label": "One buyer's choice", "isTarget": false}, {"label": "One worker's wage", "isTarget": false}], "subject": "Economics"}
   ];
 
   function Game(levels, opts){
@@ -155,7 +163,7 @@
   Game.prototype._strike=function(e){
     e.alive=false; e.dead=1; this._burst(e.x+e.w/2, e.y+e.h/2, e.isTarget);
     if(e.isTarget){ this.targetsCleared++; this.combo++; this.sparks += 8 + Math.min(this.combo,6)*2;
-      this._flash(true, this.combo>2? ('Combo x'+this.combo+'!') : 'Correct — that’s a '+this.level.targetCategory.replace(/s$/,''));
+      var one=this.level.targetCategory.replace(/s$/,''); this._flash(true, this.combo>2? ('Combo x'+this.combo+'!') : ('Correct — that’s '+(/^[aeiou]/i.test(one)?'an ':'a ')+one));
       if(this.onEmit && e.loRow!=null){ try{ this.onEmit(e.loRow, e.lo, 'slayer', 1, 1); }catch(err){} }
     } else {
       this.combo=0; this.mistakes++; this.lives--; this._flash(false, e.label+' is '+this.level.decoyLabel);
@@ -311,8 +319,9 @@
     var _cap=(opts.cap!=null&&isFinite(opts.cap))?Number(opts.cap):Infinity;   // Elena depth rule: never serve a level beyond the student's furthest chapter
     function _inDepth(lv){ return lv.ch==null||Number(lv.ch)<=_cap; }
     var raw=(Array.isArray(pool)&&pool.length)?pool:DEMO_POOL;
-    var use=raw.filter(_validLv).filter(_inDepth);
-    if(use.length<1){ use=DEMO_POOL.filter(_validLv).filter(_inDepth); }   // host classification pool has no slayer-level items yet -> play the built-in seed set (depth-capped) so the game still launches
+    function _inSubj(lv){ return !opts.subject||!lv.subject||lv.subject===opts.subject; }   // never serve chem levels to econ students or vice versa
+    var use=raw.filter(_validLv).filter(_inDepth).filter(_inSubj);
+    if(use.length<1){ use=DEMO_POOL.filter(_validLv).filter(_inDepth).filter(_inSubj); }   // host classification pool has no slayer-level items yet -> play the built-in seed set (depth-capped) so the game still launches
     if(use.length<1){ showError('This game needs a category with a few members and a few non-members in this chapter. Study a little further and it will unlock.'); return null; }
     if(live){ try{ live.destroy(); }catch(e){} live=null; }
     live=new Game(use,opts); return live; };
