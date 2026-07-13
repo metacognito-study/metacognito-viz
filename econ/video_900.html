@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Better at everything, still gains from trade</title>
+<style>
+  /* ===== app token system (mirrors player.template.html so the clip is app-native) ===== */
+  :root{
+    --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
+    --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff;
+    --shadow:0 10px 30px rgba(33,48,86,0.08);
+  }
+  [data-theme="dark"]{ --ink:#edf0f5; --muted:#aab2c0; --surface:#1d212a; --surface-2:#272c36; --page:#0d0f13; --line:#343a45; --indigo:#8f84ff; --indigo-soft:#262a52; --shadow:0 12px 30px rgba(0,0,0,.45); }
+  [data-theme="pink"]{ --page:#fdf2f8; --surface-2:#fbeaf2; --indigo:#db2777; --indigo-soft:#fce7f3; }
+  [data-theme="blue"]{ --page:#eef6ff; --surface-2:#e6f1ff; --indigo:#2563eb; --indigo-soft:#dbeafe; }
+  [data-theme="mint"]{ --page:#eafaf3; --surface-2:#dcf5ea; --indigo:#0e9e76; --indigo-soft:#d3f3e6; }
+  [data-theme="purple"]{ --page:#f7f1ff; --surface-2:#efe6ff; --indigo:#7c3aed; --indigo-soft:#ece2ff; }
+  [data-theme="mango"]{ --page:#fff6e9; --surface-2:#ffedd6; --indigo:#e2690f; --indigo-soft:#ffe3c4; }
+  [data-theme="metallic"]{ --ink:#eef1f8; --muted:#a7b0c5; --surface:#161a26; --surface-2:#1e2435; --page:#0a0e1a; --line:#2c3346; --indigo:#7a68ee; --indigo-soft:#241f47; --shadow:0 16px 40px rgba(0,0,0,.55); }
+
+  *{ box-sizing:border-box; } html,body{ margin:0; height:100%; }
+  body{ font-family:var(--app-font); background:var(--page); display:flex; align-items:center; justify-content:center; }
+  /* 9:16 Short letterboxed inside whatever frame the host gives us */
+  video{ width:100%; height:100%; max-height:100vh; object-fit:contain; background:var(--page); display:block; }
+</style>
+</head>
+<body>
+  <video id="v" src="media/short_900.mp4" poster="media/short_900_poster.jpg"
+         controls playsinline preload="metadata"></video>
+<script>
+  // theme handoff (mirrors the econ visualizers): ?theme/font/scale + postMessage.
+  (function(){
+    var d = document.documentElement;
+    function applyTheme(t, f, s){
+      if(t) d.dataset.theme = t;
+      if(f) document.body.style.fontFamily = f;
+      if(s) document.body.style.zoom = s;
+    }
+    try{
+      var q = new URLSearchParams(location.search);
+      applyTheme(q.get('theme'), q.get('font'), q.get('scale'));
+    }catch(e){}
+    window.addEventListener('message', function(ev){
+      var m = ev && ev.data;
+      if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale); }
+    });
+  })();
+  // host contract: announce completion so playlist / Media Mode queue auto-advances
+  document.getElementById('v').addEventListener('ended', function(){
+    try{ parent.postMessage({type:'ended'}, '*'); }catch(e){}
+  });
+</script>
+</body>
+</html>
