@@ -4,10 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Metacognito · Perfectly inelastic demand</title>
+<!-- user-selectable UI fonts (match Index.core.html) so the clip's narrative text follows the app font; degrades to system fallback offline -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Quicksand:wght@400;500;600;700&family=Comfortaa:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Shantell+Sans:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap">
 <style>
+  /* SELF-HOSTED Space Grotesk (the diagram-label font) - no external dependency, no CSP allowlist, works offline.
+     One variable woff2 (latin subset, weights 300-700) at out/fonts/, referenced relative to the card HTML. */
+  @font-face{ font-family:'Space Grotesk'; font-style:normal; font-weight:300 700; font-display:swap;
+    src:url('fonts/SpaceGrotesk-latin.woff2') format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
   /* ===== app token system (verbatim from Index.html :root + [data-theme]) so the clip is app-native ===== */
   :root{
     --app-font:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    /* designed, FIXED diagram-label font (axis labels, figure/curve/molecule labels) - NOT user-toggled. See PRD_FONTS.md */
+    --label-font:'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif;
     --ink:#18213a; --muted:#606b84; --surface:#ffffff; --surface-2:#f7f9fc; --page:#f6f8fc;
     --line:#e5eaf2; --indigo:#5545e8; --indigo-soft:#eef0ff; --amber:#f5b526; --rose:#f43f61;
     --correct:#0e8f86; --shadow:0 10px 30px rgba(33,48,86,0.08);
@@ -26,6 +37,9 @@
   .slide{ position:absolute; inset:0; opacity:0; transition:opacity .28s ease; }
   .slide.on{ opacity:1; }
   .slide svg{ width:100%; height:100%; display:block; }
+  /* line-by-line reveal: each sentence fades + slides in from the left as the voice reaches it */
+  .slide .ln{ opacity:0; transform:translateX(-16px); transition:opacity .5s ease, transform .5s cubic-bezier(.2,.7,.2,1); }
+  .slide .ln.show{ opacity:1; transform:translateX(0); }
   .bar{ display:flex; align-items:center; gap:10px; margin-top:10px; }
   .pp{ flex:none; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer; color:#fff;
        background:color-mix(in srgb, var(--indigo) 82%, #0a0e1a); font-size:18px; box-shadow:var(--shadow); }
@@ -35,7 +49,14 @@
   .time{ flex:none; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; min-width:74px; text-align:right; }
   .spd{ flex:none; font:inherit; font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; cursor:pointer;
         color:var(--ink); background:var(--surface-2); border:1px solid var(--line); }
-  @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } .pp:active{ transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } .pp:active{ transform:none; } .slide .ln{ opacity:1; transform:none; transition:none; } }
+  /* clickable keyword glossary - dotted underline + tap popup, mirroring the flashcards */
+  .vocab-term{ text-decoration:underline dotted; text-decoration-color:color-mix(in srgb, var(--indigo) 55%, var(--muted)); text-decoration-thickness:1.4px; text-underline-offset:2px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .vocab-popup{ position:fixed; z-index:50; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px; box-shadow:0 8px 28px rgba(0,0,0,.24); max-width:260px; min-width:150px; max-height:72vh; overflow-y:auto; overscroll-behavior:contain; }
+  .vocab-popup.hidden{ display:none; }
+  .vocab-term-title{ font-weight:800; font-size:14px; color:var(--ink); margin-bottom:5px; }
+  .vocab-arabic{ font-size:19px; color:var(--indigo); direction:rtl; text-align:right; margin-bottom:5px; font-weight:600; line-height:1.5; }
+  .vocab-def{ font-size:12.5px; color:var(--muted); line-height:1.45; overflow-wrap:break-word; }
 </style>
 </head>
 <body>
@@ -47,31 +68,75 @@
     <div class="time" id="time">0:00</div>
   </div>
   <audio id="au" preload="metadata" src="https://cdn.jsdelivr.net/gh/metacognito-study/metacognito-audioecon@main/mp3/142.mp3"></audio>
+  <div class="vocab-popup hidden" id="vocabPopup" role="dialog" aria-label="Keyword meaning">
+    <div class="vocab-term-title"></div><div class="vocab-arabic"></div><div class="vocab-def"></div>
+  </div>
 <script>
 (function(){
-  var SLIDES = [{"at":0,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Can you describe the shape of a perfectly inelastic demand curve?</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"26\" width=\"116\" height=\"34\" rx=\"17\" fill=\"var(--indigo-soft,#eef0ff)\"/><text x=\"42\" y=\"49\" font-size=\"15\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">elasticity</text><text x=\"612\" y=\"49\" text-anchor=\"end\" font-size=\"16\" font-weight=\"700\" fill=\"var(--muted,#606b84)\">#142</text><text font-size=\"28\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"150\">Can you describe the shape of</tspan><tspan x=\"24\" y=\"190\">a perfectly inelastic demand</tspan><tspan x=\"24\" y=\"230\">curve?</tspan></text></svg>"},{"at":7.16,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Perfectly inelastic demand is vertical</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text font-size=\"24\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"44\">Perfectly inelastic demand is vertical</tspan></text><line x1='74' y1='58' x2='74' y2='288' stroke='var(--muted,#606b84)' stroke-width='2'/><line x1='74' y1='288' x2='614' y2='288' stroke='var(--muted,#606b84)' stroke-width='2'/><text x='340' y='320' text-anchor='middle' font-size='15' font-weight='700' fill='var(--muted,#606b84)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>Quantity (doses)</text><text x='26' y='177' text-anchor='middle' font-size='15' font-weight='700' fill='var(--muted,#606b84)' transform='rotate(-90 26 177)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>Price ($)</text><polyline points='286.8,288.0 286.8,88.2' fill='none' stroke='var(--indigo,#5545e8)' stroke-width='3.5'/><text x='282.8' y='80.2' text-anchor='end' font-size='14' font-weight='800' fill='var(--indigo,#5545e8)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>D</text><polyline points='74.0,177.0 563.4,177.0' fill='none' stroke='var(--muted,#606b84)' stroke-width='3.5' stroke-dasharray='6 5'/><text x='393.2' y='117.8' text-anchor='middle' font-size='13' font-weight='800' fill='var(--indigo,#5545e8)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>quantity fixed, price varies</text><text x='435.8' y='162.2' text-anchor='middle' font-size='13' font-weight='800' fill='var(--muted,#606b84)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>horizontal = elastic</text><text x=\"24\" y=\"342\" font-size=\"8\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">a vertical line at the fixed quantity (price can be anything); the horizontal line is the opposite (perfectly elastic)</text></svg>"},{"at":26.18,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Quantity stays at 2, so the percentage change in quantity is zero, and elasticity equals zero.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE CALCULATION</text><text font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"118\">Quantity stays at 2, so the</tspan><tspan x=\"24\" y=\"157\">percentage change in quantity</tspan><tspan x=\"24\" y=\"196\">is zero, and elasticity equals</tspan><tspan x=\"24\" y=\"235\">zero.</tspan></text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">zero divided by any price change is still zero</text></svg>"},{"at":64.48,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Perfectly inelastic: quantity does not change at all when price changes, so the demand curve is vertical.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">WHAT IT SHOWS</text><text font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"118\">Perfectly inelastic: quantity</tspan><tspan x=\"24\" y=\"157\">does not change at all when</tspan><tspan x=\"24\" y=\"196\">price changes, so the demand</tspan><tspan x=\"24\" y=\"235\">curve is vertical.</tspan></text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">the same quantity is demanded whatever the price</text></svg>"},{"at":86.42,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>A HORIZONTAL line is perfect ELASTICITY (price fixed). A VERTICAL line is perfect INELASTICITY (quantity fixed).</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE CLASSIC TRAP</text><text font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"118\">A HORIZONTAL line is perfect</tspan><tspan x=\"24\" y=\"157\">ELASTICITY (price fixed). A</tspan><tspan x=\"24\" y=\"196\">VERTICAL line is perfect</tspan><tspan x=\"24\" y=\"235\">INELASTICITY (quantity fixed).</tspan></text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">the two extreme curves are exact opposites</text></svg>"},{"at":121.32,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Spending rises one-for-one with the price, because quantity never responds (there is no substitute).</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">NO SUBSTITUTE</text><text font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"118\">Spending rises one-for-one with</tspan><tspan x=\"24\" y=\"157\">the price, because quantity</tspan><tspan x=\"24\" y=\"196\">never responds (there is no</tspan><tspan x=\"24\" y=\"235\">substitute).</tspan></text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">the extreme case of an inelastic market</text></svg>"},{"at":150.86,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Perfectly inelastic</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"36\" width=\"8\" height=\"250\" rx=\"4\" fill=\"var(--indigo,#5545e8)\"/><text font-size=\"34\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"48\" y=\"70\">Perfectly inelastic</tspan></text><text font-size=\"20\" font-weight=\"500\" fill=\"var(--muted,#606b84)\"><tspan x=\"48\" y=\"128\">A vertical demand curve, a value of zero, and</tspan><tspan x=\"48\" y=\"157\">zero quantity response to any price change.</tspan></text><rect x=\"24\" y=\"296\" width=\"592\" height=\"46\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"324\" text-anchor=\"middle\" font-size=\"19\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">vertical = perfectly inelastic   ·   horizontal = perfectly elastic</text></svg>"}];            // [{svg, at}]  at = start time in seconds
+  var SLIDES = [{"at":0,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Can you describe the shape of a perfectly inelastic demand curve?</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"26\" width=\"116\" height=\"34\" rx=\"17\" fill=\"var(--indigo-soft,#eef0ff)\"/><text x=\"42\" y=\"49\" font-size=\"15\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\"><tspan class=\"vocab-term\" data-vocab-key=\"elasticity\">Elasticity</tspan></text><text x=\"612\" y=\"49\" text-anchor=\"end\" font-size=\"16\" font-weight=\"700\" fill=\"var(--muted,#606b84)\">#142</text><text font-size=\"28\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"150\">Can you describe the shape of</tspan><tspan x=\"24\" y=\"190\">a <tspan class=\"vocab-term\" data-vocab-key=\"perfectly inelastic demand\">perfectly inelastic demand</tspan></tspan><tspan x=\"24\" y=\"230\">curve?</tspan></text><rect x=\"24\" y=\"300\" width=\"156\" height=\"38\" rx=\"19\" fill=\"var(--indigo,#5545e8)\"/><path d=\"M44 311 L44 327 L56 319 Z\" fill=\"#fff\"/><text x=\"64\" y=\"324\" font-size=\"15\" font-weight=\"700\" fill=\"#fff\">play · 2:45</text></svg>"},{"at":7.16,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Perfectly Inelastic Demand Is Vertical</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text font-size=\"24\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"24\" y=\"44\"><tspan class=\"vocab-term\" data-vocab-key=\"perfectly inelastic demand\">Perfectly Inelastic Demand</tspan> Is Vertical</tspan></text><g font-family=\"var(--label-font,'Space Grotesk','IBM Plex Sans',ui-sans-serif,sans-serif)\"><line x1='74' y1='58' x2='74' y2='274' stroke='var(--muted,#606b84)' stroke-width='2'/><line x1='74' y1='274' x2='614' y2='274' stroke='var(--muted,#606b84)' stroke-width='2'/><text x='340' y='306' text-anchor='middle' font-size='15' font-weight='700' fill='var(--muted,#606b84)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>Quantity (doses)</text><text x='26' y='170' text-anchor='middle' font-size='15' font-weight='700' fill='var(--muted,#606b84)' transform='rotate(-90 26 170)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>Price ($)</text><polyline points='286.8,274.0 286.8,86.8' fill='none' stroke='var(--indigo,#5545e8)' stroke-width='3.5'/><text x='282.8' y='78.8' text-anchor='end' font-size='14' font-weight='800' fill='var(--indigo,#5545e8)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>D</text><polyline points='74.0,170.0 563.4,170.0' fill='none' stroke='var(--muted,#606b84)' stroke-width='1.6' stroke-dasharray='5 5' stroke-opacity='0.45'/><text x='393.2' y='114.5' text-anchor='middle' font-size='13' font-weight='800' fill='var(--indigo,#5545e8)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>Quantity fixed, price varies</text><text x='435.8' y='156.1' text-anchor='middle' font-size='13' font-weight='800' fill='var(--muted,#606b84)' paint-order='stroke' stroke='var(--surface,#ffffff)' stroke-width='4.5' stroke-linejoin='round'>Horizontal = <tspan class=\"vocab-term\" data-vocab-key=\"elastic\">elastic</tspan></text></g><text x=\"24\" y=\"331\" font-size=\"13\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">A vertical line at the fixed quantity (price can be anything);</text><text x=\"24\" y=\"348\" font-size=\"13\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">the horizontal line is the opposite (perfectly elastic)</text></svg>"},{"at":26.18,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Quantity stays at 2, so the percentage change in quantity is zero, and elasticity equals zero.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE CALCULATION</text><text class=\"ln\" data-g=\"0\" data-w=\"27\" x=\"24\" y=\"118\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Quantity stays at 2, so the</text><text class=\"ln\" data-g=\"0\" data-w=\"29\" x=\"24\" y=\"157\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">percentage change in quantity</text><text class=\"ln\" data-g=\"0\" data-w=\"30\" x=\"24\" y=\"196\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">is zero, and <tspan class=\"vocab-term\" data-vocab-key=\"elasticity\">elasticity</tspan> equals</text><text class=\"ln\" data-g=\"0\" data-w=\"6\" x=\"24\" y=\"235\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">zero.</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">Zero divided by any price change is still zero</text></svg>"},{"at":64.48,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Perfectly inelastic: quantity does not change at all when price changes, so the demand curve is vertical.</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">WHAT IT SHOWS</text><text class=\"ln\" data-g=\"0\" data-w=\"29\" x=\"24\" y=\"118\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Perfectly inelastic: quantity</text><text class=\"ln\" data-g=\"0\" data-w=\"27\" x=\"24\" y=\"157\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">does not change at all when</text><text class=\"ln\" data-g=\"0\" data-w=\"28\" x=\"24\" y=\"196\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">price changes, so the <tspan class=\"vocab-term\" data-vocab-key=\"demand\">demand</tspan></text><text class=\"ln\" data-g=\"0\" data-w=\"18\" x=\"24\" y=\"235\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">curve is vertical.</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">The same quantity is demanded whatever the price</text></svg>"},{"at":86.42,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>A HORIZONTAL line is perfect ELASTICITY (price fixed). A VERTICAL line is perfect INELASTICITY (quantity fixed).</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">THE CLASSIC TRAP</text><text class=\"ln\" data-g=\"0\" data-w=\"28\" x=\"24\" y=\"118\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">A HORIZONTAL line is perfect</text><text class=\"ln\" data-g=\"0\" data-w=\"25\" x=\"24\" y=\"157\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan class=\"vocab-term\" data-vocab-key=\"elasticity\">ELASTICITY</tspan> (price fixed).</text><text class=\"ln\" data-g=\"1\" data-w=\"26\" x=\"24\" y=\"196\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">A VERTICAL line is perfect</text><text class=\"ln\" data-g=\"1\" data-w=\"30\" x=\"24\" y=\"235\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">INELASTICITY (quantity fixed).</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">The two extreme curves are exact opposites</text></svg>"},{"at":121.32,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Spending rises one-for-one with the price, because quantity never responds (there is no substitute).</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"24\" y=\"46\" font-size=\"12\" font-weight=\"700\" letter-spacing=\"1\" fill=\"var(--muted,#606b84)\">NO SUBSTITUTE</text><text class=\"ln\" data-g=\"0\" data-w=\"31\" x=\"24\" y=\"118\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">Spending rises one-for-one with</text><text class=\"ln\" data-g=\"0\" data-w=\"27\" x=\"24\" y=\"157\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">the price, because quantity</text><text class=\"ln\" data-g=\"0\" data-w=\"27\" x=\"24\" y=\"196\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">never responds (there is no</text><text class=\"ln\" data-g=\"0\" data-w=\"12\" x=\"24\" y=\"235\" font-size=\"29\" font-weight=\"800\" fill=\"var(--ink,#18213a)\">substitute).</text><rect x=\"24\" y=\"286\" width=\"592\" height=\"50\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"316\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">The extreme case of an inelastic market</text></svg>"},{"at":150.86,"svg":"<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"var(--app-font,Inter,ui-sans-serif,-apple-system,system-ui,sans-serif)\" role=\"img\" preserveAspectRatio=\"xMidYMid meet\"><title>Perfectly Inelastic</title><rect x=\"1\" y=\"1\" width=\"638\" height=\"358\" rx=\"18\" fill=\"var(--surface,#ffffff)\" stroke=\"var(--line,#e5eaf2)\"/><rect x=\"24\" y=\"36\" width=\"8\" height=\"250\" rx=\"4\" fill=\"var(--indigo,#5545e8)\"/><text font-size=\"34\" font-weight=\"800\" fill=\"var(--ink,#18213a)\"><tspan x=\"48\" y=\"70\">Perfectly Inelastic</tspan></text><text class=\"ln\" data-g=\"0\" data-w=\"35\" x=\"48\" y=\"128\" font-size=\"20\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">A vertical <tspan class=\"vocab-term\" data-vocab-key=\"demand curve\">demand curve</tspan>, a value of</text><text class=\"ln\" data-g=\"0\" data-w=\"35\" x=\"48\" y=\"157\" font-size=\"20\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">zero, and zero quantity response to</text><text class=\"ln\" data-g=\"0\" data-w=\"17\" x=\"48\" y=\"186\" font-size=\"20\" font-weight=\"500\" fill=\"var(--muted,#606b84)\">any price change.</text><mask id=\"dood0\"><image href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHMAAADDCAYAAACxiS6TAAADh0lEQVR4nO3d266bMBBGYSbq+7+yq1xsCaEkm7CZwaxZ302lJg2HnzG2OXRZJEmSJEmSJEmSJEmSJEmSJL5YwMYYY/t3EYHd5ugUJD3Ux9IwyL3fuRtcmKNZ04oO812Qzz+3odKqExXm2ITTpSKRYe5Brk5smNGsKtFhdoQJc3zRXFKrFhOmDBPFylw4PVrDBDFMEMMEMcyFM1QxTBDDBMGEGZCm8i8wYXYcV7YJc0ADaxlmR4YJggozDnSCSB0nVJh7zpvkcyk6zG4ME+TR+e67AJ0vkWF+Qj5ftguTDhlmwJrP1mF2fZioRZgdzpfoMANYeW3D7Agb5mjQrLYIc/gYvO5u2k7C7M1kTNjBmrKZnT3IWdcxZt5Jfzn6R+IE+1nreLZpVmS9k87YQaPgpU5nri+qmZ2x2brbuk8RZnWzFSctY/07MwR6eZiznn/uGOjlYWYEOX7Zqc/Pz9zxsxyEl4aZ0YEYX4SUEeiV1fmgBhkffjerabw60EvCzO7SR0R82qHPzzKX/bOMhR5m1kaO1QGyd6I9e8dXB/roMASJjarlVgf6oA9B4qKe5hWBloR597HkUdXbWtrMdgryig5RephXjrvGZE+BZS87vVIqryyML3q06+9Urxt+Ou9M45dx5N7hy938W0BiFdKnQKkdMlSYrwJdPiAFiQxzTw+SFiI6THpo00znETses0D2ZrsyTJDSc2a3c1g1KxPEMEEME8ShCYiVCWKYIIYJ4jgTxMoEMUwQwwRxnAm65GdlghgmSPltI50ug4WPJ+gom1kQwwQxTBDHmSBWJohhgmaAvAQGYmWCoB8cuhp6BsiHhnJh3tAlz5kodoBAHJqAWJmJvG1Eh1mZIF41AXEGKBF6Bki5DBPEcSaIlQlimCCGmQg9A+SLEHNZmSCGmchJA5gonAVynAliMwtimCAOTZJhx5ndDPJ/hqpc9mZBvNMgkZMGOszeLIgdIBDDBDHMZL7TAGI4aaCjbGZBnDRIhJ408IauXDazIIYJYpggj+oOQad3tD95p4EOsZkFMUwQx5nJKvsIViaIYYJ4dx6IlZkI/eR0R9GhA+Qboc8XlcGtj9J1mK+O3lf/Zs9nM6pa39Iw3wW63cht1b47CL75bO939v7+3gPzt4P2TGVHduVGzaJ6m0t3atfzZBQdvJdUSJdQo0kLJEmSJEmSJEmSJEmSJEmStMzvP+7NJQjSxP9oAAAAAElFTkSuQmCC\" x=\"524.7\" y=\"137.0\" width=\"82.6\" height=\"140.0\" preserveAspectRatio=\"xMidYMid meet\"/></mask><rect x=\"524.7\" y=\"137.0\" width=\"82.6\" height=\"140.0\" fill=\"var(--indigo,#5545e8)\" mask=\"url(#dood0)\"/><rect x=\"24\" y=\"296\" width=\"592\" height=\"46\" rx=\"12\" fill=\"var(--surface-2,#f7f9fc)\" stroke=\"var(--line,#e5eaf2)\"/><text x=\"320\" y=\"324\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"700\" fill=\"var(--indigo,#5545e8)\">Vertical = perfectly inelastic   ·   horizontal = perfectly <tspan class=\"vocab-term\" data-vocab-key=\"elastic\">elastic</tspan></text></svg>"}];            // [{svg, at}]  at = start time in seconds
   var au = document.getElementById('au'), stage = document.getElementById('stage');
   var pp = document.getElementById('pp'), fill = document.getElementById('fill');
   var track = document.getElementById('track'), timeEl = document.getElementById('time');
   var spd = document.getElementById('spd');
 
-  // theme handoff (mirrors the econ visualizers): ?theme/font/scale + postMessage
-  function applyTheme(t,f,s){ var d=document.documentElement;
-    if(t) d.dataset.theme=t; if(f) d.dataset.font=f;
-    if(s) d.style.setProperty('--fz', s); }
+  // theme handoff (mirrors the econ visualizers): ?theme/font/scale/bg + postMessage.
+  // The clip wears the host app's colour theme, FONT family, and BACKGROUND so it
+  // looks native wherever it is embedded. font can be a known key or any CSS family;
+  // bg sets the clip surface to the app's chosen background colour.
+  // Keys mirror the app's [data-font] map (Index.core.html) 1:1 so the clip's
+  // narrative font follows the user's UI choice. The families are loaded via the
+  // Google Fonts <link> in <head>; offline they degrade to the system fallback.
+  var FONTS={ lexend:"'Lexend',ui-sans-serif,system-ui,sans-serif",
+    inter:"'Inter',ui-sans-serif,system-ui,sans-serif",
+    quicksand:"'Quicksand',ui-rounded,system-ui,sans-serif",
+    comfortaa:"'Comfortaa',ui-rounded,system-ui,sans-serif",
+    lora:"'Lora',Georgia,'Times New Roman',serif",
+    shantell:"'Shantell Sans',ui-rounded,system-ui,sans-serif",
+    caveat:"'Caveat',ui-rounded,cursive", gaegu:"'Gaegu',ui-rounded,cursive",
+    system:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif",
+    serif:"Georgia,'Times New Roman',serif" };
+  function applyTheme(t,f,s,bg){ var d=document.documentElement;
+    if(t) d.dataset.theme=t;
+    if(f){ d.dataset.font=f; d.style.setProperty('--app-font', FONTS[f.toLowerCase()]||f); }
+    if(s) d.style.setProperty('--fz', s);
+    if(bg){ d.style.setProperty('--surface', bg); document.body.style.background=bg; } }
   (function(){ var q=new URLSearchParams(location.search);
-    applyTheme(q.get('theme'), q.get('font'), q.get('scale')); })();
+    applyTheme(q.get('theme'), q.get('font'), q.get('scale'), q.get('bg')); })();
   window.addEventListener('message', function(e){ var m=e.data||{};
-    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale); } });
+    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale, m.bg); } });
 
-  // render slides stacked
+  // render slides stacked; index each slide's reveal units. One unit = one SENTENCE
+  // (all of a sentence's wrapped lines share a data-g and reveal together, so a
+  // sentence is never shown half-finished). Weight = sentence length.
+  var LN=[];                                   // LN[i] = [{els:[...],cum,tot,t}] per sentence
   SLIDES.forEach(function(sl,i){ var d=document.createElement('div');
-    d.className='slide'+(i===0?' on':''); d.id='sl'+i; d.innerHTML=sl.svg; stage.appendChild(d); });
+    d.className='slide'+(i===0?' on':''); d.id='sl'+i; d.innerHTML=sl.svg; stage.appendChild(d);
+    var els=[].slice.call(d.querySelectorAll('.ln')), groups=[], by={};
+    els.forEach(function(e){ var g=e.getAttribute('data-g')||'0';
+      if(!by[g]){ by[g]={els:[],w:0,cum:0,tot:0,t:0}; groups.push(by[g]); }
+      by[g].els.push(e); by[g].w+=(+e.getAttribute('data-w')||10); });
+    var tot=0; groups.forEach(function(g){ tot+=g.w; });
+    var cum=0; groups.forEach(function(g){ g.cum=cum; g.tot=tot; cum+=g.w; });
+    LN[i]=groups; });
+
+  // spread each slide's sentences across this fraction of its air-time (start of this
+  // slide to start of the next), weighted by sentence length -> longer sentences hold longer.
+  var REVEAL=0.78;
+  function computeLineTimes(){ var dur=au.duration||0;
+    for(var i=0;i<SLIDES.length;i++){ var span=(i+1<SLIDES.length?SLIDES[i+1].at:dur)-SLIDES[i].at;
+      if(!(span>0)) span=3;
+      LN[i].forEach(function(g){ g.t=SLIDES[i].at+(g.tot? g.cum/g.tot:0)*REVEAL*span; }); } }
+  function setLines(i,t){ var L=LN[i]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var on=t>=L[k].t, es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.toggle('show', on); } }
+  function resetLines(i){ var L=LN[i]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.remove('show'); } }
+
   var cur=0;
   function showFor(t){ var idx=0;
     for(var i=0;i<SLIDES.length;i++){ if(t>=SLIDES[i].at) idx=i; }
     if(idx!==cur){ var a=document.getElementById('sl'+cur), b=document.getElementById('sl'+idx);
-      if(a)a.classList.remove('on'); if(b)b.classList.add('on'); cur=idx; } }
+      if(a)a.classList.remove('on'); if(b)b.classList.add('on'); resetLines(idx); cur=idx; }
+    setLines(idx,t); }
 
   function fmt(s){ s=Math.max(0,s|0); return (s/60|0)+':'+('0'+(s%60)).slice(-2); }
   function tick(){ var d=au.duration||0, t=au.currentTime||0;
@@ -81,37 +146,74 @@
   au.addEventListener('play', function(){ pp.textContent='⏸'; pp.setAttribute('aria-label','Pause'); });
   au.addEventListener('pause', function(){ pp.textContent='▶'; pp.setAttribute('aria-label','Play'); });
   au.addEventListener('timeupdate', tick);
-  au.addEventListener('loadedmetadata', tick);
+  au.addEventListener('loadedmetadata', function(){ computeLineTimes(); tick(); });
+  au.addEventListener('durationchange', computeLineTimes);
+  // FALLBACK so text is never blank: the lines reveal on audio time, so a failed or
+  // stalled <audio> would otherwise leave a slide with no visible text (a regression
+  // vs the old static build). If the audio errors, or after 3s nothing has loaded,
+  // reveal the current slide's lines outright.
+  function revealAllCurrent(){ var L=LN[cur]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.add('show'); } }
+  au.addEventListener('error', revealAllCurrent);
+  setTimeout(function(){ if(au.error || au.readyState===0) revealAllCurrent(); }, 3000);
   au.addEventListener('ended', function(){ cur=0; SLIDES.forEach(function(_,i){
-    document.getElementById('sl'+i).classList.toggle('on', i===0); }); });
+    document.getElementById('sl'+i).classList.toggle('on', i===0); resetLines(i); }); });
   track.onclick=function(e){ var r=track.getBoundingClientRect();
     if(au.duration) au.currentTime=(e.clientX-r.left)/r.width*au.duration; };
   var speeds=[1,1.25,1.5,0.85], si=0;
   spd.onclick=function(){ si=(si+1)%speeds.length; au.playbackRate=speeds[si]; spd.textContent=speeds[si]+'×'; };
-})();
-</script>
-<script>
-(function(){
-  if (window.self === window.top) return;
-  var au = document.getElementById('au'); if (!au) return;
-  var A = null, B = null, st = 0;
-  function post(m){ m.__abv = true; try { parent.postMessage(m, '*'); } catch(e){} }
-  function rep(){ post({ type:'time', t: au.currentTime||0, d: au.duration||0, a: A, b: B, state: st }); }
-  window.addEventListener('message', function(e){
-    var m = e.data; if (!m || m.__abv !== true || !m.cmd) return;
-    var t = au.currentTime||0;
-    if (m.cmd === 'setA') { A = t; B = null; st = 1; }
-    else if (m.cmd === 'setB') { if (A != null && t > A + 0.25) { B = t; st = 2; } }
-    else if (m.cmd === 'clear') { A = null; B = null; st = 0; }
-    else if (m.cmd === 'play') { try { au.play(); } catch(e2){} }
-    else if (m.cmd === 'pause') { try { au.pause(); } catch(e2){} }
-    else if (m.cmd === 'setRate') { try { au.playbackRate = Number(m.v) || 1; } catch(e2){} }
-    rep();
-  });
-  setInterval(function(){ if (st === 2 && A != null && B != null && (au.currentTime||0) >= B) { try { au.currentTime = A; } catch(e){} } rep(); }, 250);
-  au.addEventListener('ended', function(){ post({ type:'ended' }); });
-  au.addEventListener('ratechange', function(){ post({ type:'rate', v: au.playbackRate }); });
-  post({ type:'ready' }); rep();
+
+  // ── A<->B segment repeater bridge (the host app drives this via postMessage). The PARENT app owns the
+  // A/B button + the painted band/markers; this page owns its inner <audio>: it captures currentTime on
+  // setA/setB, LOOPS (seek to A when t >= B), clears, and REPORTS {t,d,a,b,state} back so the parent can
+  // paint. Same A/B model as the app's audio player. Fully back-compatible: a host that never posts __abv
+  // and never listens leaves this inert, and we only report UP when actually embedded (parent != self). ──
+  var AB_PARENT = (window.parent && window.parent !== window) ? window.parent : null;
+  var abA=null, abB=null, abState=0;   // 0 idle · 1 A set, awaiting B · 2 looping A<->B
+  function abReport(type){ if(!AB_PARENT) return; try{ AB_PARENT.postMessage({ __abv:true, type:(type||'time'),
+    t:au.currentTime||0, d:au.duration||0, a:abA, b:abB, state:abState }, '*'); }catch(e){} }
+  function abHandle(cmd){
+    var c=au.currentTime||0;
+    if(cmd==='setA'){ abA=c; abB=null; abState=1; }
+    else if(cmd==='setB'){
+      if(abA==null || c<=abA+0.25){ abA=c; abB=null; abState=1; }                 // B must be after A, else re-set A
+      else { abB=c; abState=2; try{ au.currentTime=abA; }catch(e){} var p=au.play(); if(p&&p.catch) p.catch(function(){}); }
+    } else if(cmd==='clear'){ abA=null; abB=null; abState=0; }
+    abReport('state');                                                            // reconcile the parent immediately
+  }
+  window.addEventListener('message', function(e){ var m=e.data||{};
+    if(m && m.__abv===true){ if(m.cmd){ abHandle(m.cmd); } else if(m.type==='ping'){ abReport('ready'); } } });
+  au.addEventListener('timeupdate', function(){
+    if(abState===2 && abA!=null && abB!=null && (au.currentTime||0) >= abB-0.04){ try{ au.currentTime=abA; }catch(e){} }
+    abReport('time'); });
+  // B near the very end: if 'ended' fires before the loop-check catches B, replay from A (never stop on a loop)
+  au.addEventListener('ended', function(){ if(abState===2 && abA!=null){ try{ au.currentTime=abA; }catch(e){} var p=au.play(); if(p&&p.catch) p.catch(function(){}); } }, true);
+  au.addEventListener('loadedmetadata', function(){ abReport('ready'); });        // announce support once timing is known
+  abReport('ready');                                                              // and immediately, for a parent already listening
+
+  // ── Clickable keyword glossary (mirrors the flashcards). build.mjs underlines
+  // glossary terms in the slide SVG as <tspan class="vocab-term" data-vocab-key>;
+  // tapping one pops up its Arabic + brief English gloss. Tap again / tap away closes. ──
+  var VOCAB = {"elasticity":{"t":"Elasticity","ar":"المرونة: مدى استجابة الكمية للتغيرات في السعر أو الدخل.","def":"A measure of how much one economic variable responds to a change in another economic variable."},"perfectly inelastic demand":{"t":"Perfectly inelastic demand","ar":"الطلب عديم المرونة: الكمية لا تتغير مهما تغير السعر","def":"A situation where the quantity demanded does not change at all, regardless of changes in price."},"elastic":{"t":"Price elasticity of demand","ar":"","def":"A measure of the responsiveness of quantity demanded to a change in price. Calculated as the percentage change in quantity demanded divided by the percentage change in price."},"demand":{"t":"Demand","ar":"الطلب: رغبة المستهلك وقدرته على الشراء","def":"The willingness and ability of consumers to purchase a good or service at various prices during a specific period."},"demand curve":{"t":"Demand curve","ar":"منحنى الطلب: رسم بياني للسعر والكمية المطلوبة","def":"A graph showing the relationship between the price of a good and the quantity consumers are willing and able to buy."}};
+  var vpop = document.getElementById('vocabPopup'), vKey = '';
+  function hideVocab(){ vpop.classList.add('hidden'); vKey=''; }
+  function showVocab(el){ var key=el.getAttribute('data-vocab-key'), e=VOCAB[key];
+    if(!e){ return; }
+    if(!vpop.classList.contains('hidden') && vKey===key){ hideVocab(); return; }  // tap same term toggles off
+    vKey=key;
+    vpop.querySelector('.vocab-term-title').textContent=e.t||key;                 // exact term casing (pH, pOH, NaCl)
+    var ar=vpop.querySelector('.vocab-arabic'); ar.textContent=e.ar||''; ar.style.display=e.ar?'':'none';
+    vpop.querySelector('.vocab-def').textContent=e.def||'';
+    vpop.classList.remove('hidden'); vpop.style.visibility='hidden';              // measure off-screen, then place
+    var r=el.getBoundingClientRect(), pw=vpop.offsetWidth, ph=vpop.offsetHeight;
+    var left=Math.max(8, Math.min(r.left+r.width/2-pw/2, window.innerWidth-pw-8));
+    var top=r.bottom+8; if(top+ph>window.innerHeight-8) top=r.top-ph-8; if(top<8) top=8;
+    vpop.style.left=left+'px'; vpop.style.top=top+'px'; vpop.style.visibility=''; }
+  stage.addEventListener('click', function(e){ var t=e.target.closest && e.target.closest('.vocab-term');
+    if(t){ e.stopPropagation(); showVocab(t); } });
+  document.addEventListener('click', function(e){ if(vpop.classList.contains('hidden')) return;
+    if(e.target.closest && (e.target.closest('.vocab-term') || e.target.closest('.vocab-popup'))) return; hideVocab(); });
+  window.addEventListener('resize', hideVocab);
 })();
 </script>
 </body>
