@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chemical Kinetics — integrated rate laws</title>
+<title>Chemical Kinetics - integrated rate laws</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -50,7 +50,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Chemical Kinetics — integrated rate laws</h1>
+  <h1 class="viz-title">Chemical Kinetics - integrated rate laws</h1>
   <p class="viz-sub">Watch [A] fall over time, then switch the y-axis: the plot that turns into a <b>straight line</b> tells you the reaction order. <span class="pill" id="lawPill">1st order</span></p>
 
   <div class="panel">
@@ -229,8 +229,8 @@ function refresh(){
     reskinChart();
 
     var isLinear = (plotType===LINEAR_PLOT[state.order]);
-    var badge = isLinear ? '<span class="badge linear">STRAIGHT LINE — this is the giveaway for '+['zero','first','second'][state.order]+' order</span>'
-                         : '<span class="badge curved">curved — try another y-axis to find the straight line</span>';
+    var badge = isLinear ? '<span class="badge linear">STRAIGHT LINE - this is the giveaway for '+['zero','first','second'][state.order]+' order</span>'
+                         : '<span class="badge curved">curved - try another y-axis to find the straight line</span>';
     document.getElementById('chartNote').innerHTML = badge;
 
     // KPIs
@@ -240,7 +240,7 @@ function refresh(){
       '<div class="kpi"><div class="lab">Linear plot</div><div class="num" style="font-size:.86rem">'+({conc:'[A] vs t',ln:'ln[A] vs t',inv:'1/[A] vs t'})[LINEAR_PLOT[state.order]]+'</div></div>'+
       '<div class="kpi"><div class="lab">Slope of linear plot</div><div class="num">'+slopeTxt+'</div></div>';
 
-    var hl = state.order===1 ? 'For first order the half-life is <b>constant</b> ('+halfLife().toFixed(1)+' s) — it never depends on concentration.'
+    var hl = state.order===1 ? 'For first order the half-life is <b>constant</b> ('+halfLife().toFixed(1)+' s) - it never depends on concentration.'
            : state.order===0 ? 'For zero order the half-life <b>shrinks</b> as the reaction proceeds (depends on [A]₀).'
            : 'For second order the half-life <b>grows</b> as [A] falls (depends on [A]₀).';
     document.getElementById('explain').innerHTML =
@@ -257,7 +257,7 @@ function refresh(){
 }
 
 /* =====================================================================
-   ARRHENIUS tab — ln k vs 1/T, slope = −Ea/R
+   ARRHENIUS tab - ln k vs 1/T, slope = −Ea/R
    ===================================================================== */
 function refreshArr(){
   document.getElementById('lEa').textContent = state.Ea;

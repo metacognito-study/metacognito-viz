@@ -76,7 +76,7 @@
       <span><span class="sw" style="background:var(--correct)"></span><b>After</b> (moles remaining / formed)</span>
     </div>
     <div class="legend-note">
-      <b>How to read it:</b> compare each reactant's <b>moles ÷ coefficient</b> — the <b>smallest</b> quotient is the
+      <b>How to read it:</b> compare each reactant's <b>moles ÷ coefficient</b> - the <b>smallest</b> quotient is the
       <b>limiting</b> reactant (fully consumed → 0 after). Product formed = limiting's quotient × product coefficient.
       The <b>excess</b> reactant has some left over.
     </div>
@@ -84,9 +84,9 @@
 
   <div class="panel">
     <div class="kpis">
-      <div class="kpi limiting"><div class="lab">Limiting reactant</div><div class="num" id="kLim">—</div></div>
-      <div class="kpi excess"><div class="lab">Excess left over</div><div class="num" id="kExc">—</div></div>
-      <div class="kpi product"><div class="lab">Product formed</div><div class="num" id="kProd">—</div></div>
+      <div class="kpi limiting"><div class="lab">Limiting reactant</div><div class="num" id="kLim"> - </div></div>
+      <div class="kpi excess"><div class="lab">Excess left over</div><div class="num" id="kExc"> - </div></div>
+      <div class="kpi product"><div class="lab">Product formed</div><div class="num" id="kProd"> - </div></div>
     </div>
     <div class="legend-note" id="explain">Drag a slider to compute the limiting reactant.</div>
   </div>
@@ -186,7 +186,7 @@ function solve(){
 }
 
 /* =====================================================================
-   CONTROLS — build sliders for the current reaction's reactants
+   CONTROLS - build sliders for the current reaction's reactants
    ===================================================================== */
 function buildControls(){
   var rxn = REACTIONS[curRxn];
@@ -212,7 +212,7 @@ function buildControls(){
 }
 
 /* =====================================================================
-   CHART — grouped before/after bars per species
+   CHART - grouped before/after bars per species
    ===================================================================== */
 function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
@@ -270,14 +270,14 @@ function draw(){
   reskinChart();
 
   // KPI cards
-  var limName = (sol.limiting && sol.extent>0) ? sol.limiting.name : '—';
+  var limName = (sol.limiting && sol.extent>0) ? sol.limiting.name : ' - ';
   document.getElementById('kLim').textContent = limName;
 
   if (sol.extent <= 0){
-    document.getElementById('kExc').textContent = '—';
+    document.getElementById('kExc').textContent = ' - ';
     document.getElementById('kProd').textContent = '0 mol';
     document.getElementById('explain').innerHTML =
-      'No reaction runs — at least one reactant is at <b>0 mol</b>. Add some of every reactant.';
+      'No reaction runs - at least one reactant is at <b>0 mol</b>. Add some of every reactant.';
     return;
   }
 
@@ -362,7 +362,7 @@ draw();
   all &= check('alcl3', {'Al':4,'Cl₂':3}, {limiting:'Cl₂', prodName:'AlCl₃', prod:2, excName:'Al', exc:2});
   // CH₄+2O₂→CO₂+2H₂O, 2 CH₄ + 5 O₂ → O₂ limiting (5/2=2.5 vs 2/1=2... wait): 2/1=2, 5/2=2.5 → CH₄ limiting, 2 CO₂, 1 O₂ leftover
   all &= check('combust', {'CH₄':2,'O₂':5}, {limiting:'CH₄', prodName:'CO₂', prod:2, excName:'O₂', exc:1});
-  console.log(all ? 'ALL LIMITING-REAGENT SELF-CHECKS PASSED' : 'SELF-CHECK FAILURE — see above');
+  console.log(all ? 'ALL LIMITING-REAGENT SELF-CHECKS PASSED' : 'SELF-CHECK FAILURE - see above');
 })();
 </script>
 </body>

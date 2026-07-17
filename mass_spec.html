@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mass Spectrometry — isotopes &amp; average atomic mass</title>
+<title>Mass Spectrometry - isotopes &amp; average atomic mass</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -88,9 +88,9 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Mass Spectrometry — isotopes &amp; the average atomic mass</h1>
+  <h1 class="viz-title">Mass Spectrometry - isotopes &amp; the average atomic mass</h1>
   <p class="viz-sub">A mass spectrometer sorts an element's atoms by <b>mass-to-charge ratio (m/z)</b> and reads out how
-    common each isotope is. The periodic-table mass is the <b>weighted average</b> of these isotopes — heavier on the
+    common each isotope is. The periodic-table mass is the <b>weighted average</b> of these isotopes - heavier on the
     abundant ones. <span class="pill">average mass = Σ (isotope mass × fractional abundance)</span></p>
 
   <!-- (1) Element picker + mode -->
@@ -114,7 +114,7 @@
   <div class="grid2">
     <!-- (2) The stick spectrum -->
     <div class="panel">
-      <div class="secLabel" id="specTitle">Mass spectrum — relative abundance vs m/z</div>
+      <div class="secLabel" id="specTitle">Mass spectrum - relative abundance vs m/z</div>
       <div class="spec-wrap"><svg id="spectrum" viewBox="0 0 420 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="mass spectrum stick chart"></svg></div>
       <div class="legend-note" id="baseNote"></div>
     </div>
@@ -124,14 +124,14 @@
       <div class="kpis">
         <div class="kpi hero">
           <div class="lab">Average atomic mass (computed live)</div>
-          <div class="num"><span id="kAvg">—</span> <small>u</small></div>
+          <div class="num"><span id="kAvg"> - </span> <small>u</small></div>
         </div>
       </div>
       <div class="secLabel" style="margin-top:12px">Per-isotope contribution = mass × abundance</div>
       <table class="iso">
         <thead><tr><th>Isotope</th><th>mass (u)</th><th>abund. %</th><th>contribution</th></tr></thead>
         <tbody id="isoBody"></tbody>
-        <tfoot><tr><td colspan="3">Σ contributions</td><td id="isoSum">—</td></tr></tfoot>
+        <tfoot><tr><td colspan="3">Σ contributions</td><td id="isoSum"> - </td></tr></tfoot>
       </table>
       <div class="selfcheck" id="selfcheck"></div>
     </div>
@@ -174,7 +174,7 @@ window.addEventListener('message', function(e){
 });
 
 /* =====================================================================
-   THE DATA — real isotope masses (u) + natural abundances (fractional).
+   THE DATA - real isotope masses (u) + natural abundances (fractional).
    Masses: CIAAW / NIST atomic mass evaluation (rounded to 4 dp).
    Abundances: IUPAC representative isotopic composition.
    Each element's weighted average is verified numerically against the
@@ -223,7 +223,7 @@ function averageMass(el){
    elements, e.g. Cl₂). For isotopes a (lighter) and b with abundances
    p and q (p+q=1), the two atoms combine independently:
      m=2a : p²        (both light)
-     m=a+b: 2pq       (one of each — two ways)
+     m=a+b: 2pq       (one of each - two ways)
      m=2b : q²        (both heavy)
    For Cl (p=.7577,q=.2423) → 70:72:74 in ≈ 0.574 : 0.367 : 0.0587,
    i.e. the classic ~9 : 6 : 1 ratio when normalised to the smallest.
@@ -373,7 +373,7 @@ function renderReadout(){
   } else {
     sc.className = 'selfcheck bad';
     sc.innerHTML = '✗ Self-check: computed '+avg.toFixed(3)+' u vs table '+el.known.toFixed(2)
-      + ' u (Δ = '+diff.toFixed(3)+' u) — exceeds tolerance.';
+      + ' u (Δ = '+diff.toFixed(3)+' u) - exceeds tolerance.';
   }
 }
 
@@ -399,12 +399,12 @@ function refresh(){
   var specT = document.getElementById('specTitle');
   var modeN = document.getElementById('modeNote');
   if (state.mode === 'diatomic'){
-    specT.textContent = el.sym+'₂ mass spectrum — molecular ion isotopologues';
+    specT.textContent = el.sym+'₂ mass spectrum - molecular ion isotopologues';
     modeN.innerHTML = 'A diatomic '+el.sym+'₂ molecule has two atoms, each independently '+supNum(el.iso[0].A)+' or '
       + supNum(el.iso[1].A)+'. The molecular-ion peaks appear at m/z = sum of the two atom masses, with intensities '
       + 'p², 2pq, q² (e.g. Cl₂ gives the classic 70 : 72 : 74 ≈ 9 : 6 : 1 pattern).';
   } else {
-    specT.textContent = 'Mass spectrum of '+el.name+' — relative abundance vs m/z';
+    specT.textContent = 'Mass spectrum of '+el.name+' - relative abundance vs m/z';
     modeN.innerHTML = 'Each peak is one isotope of '+el.name+'. '
       + (hasDi ? 'Switch to <b>Diatomic ('+el.sym+'₂)</b> to see how two atoms combine into a molecular-ion pattern.'
                : el.name+' has '+el.iso.length+' stable isotopes shown here.');
@@ -431,7 +431,7 @@ Array.prototype.forEach.call(document.getElementById('modeSeg').children, functi
 refresh();
 
 /* =====================================================================
-   CONSOLE SELF-TEST (logged for the numerical gate) — computed weighted
+   CONSOLE SELF-TEST (logged for the numerical gate) - computed weighted
    average vs accepted standard atomic weight for every element.
    ===================================================================== */
 (function(){

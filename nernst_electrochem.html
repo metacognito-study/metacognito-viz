@@ -94,7 +94,7 @@
         <div class="rxn" id="catRxn"></div>
       </div>
     </div>
-    <div class="notation" id="notation">—</div>
+    <div class="notation" id="notation"> - </div>
     <div class="controls">
       <div class="control">
         <label for="sAn">[anode ion] <b id="lAn">1.00</b> M</label>
@@ -110,10 +110,10 @@
 
   <div class="panel">
     <div class="kpis">
-      <div class="kpi"><div class="lab">E°<sub>cell</sub> = E°<sub>cat</sub> − E°<sub>an</sub></div><div class="num"><span id="kE0">—</span> <small>V</small></div></div>
-      <div class="kpi hero"><div class="lab">E<sub>cell</sub> (now)</div><div class="num"><span id="kE">—</span> <small>V</small></div></div>
-      <div class="kpi"><div class="lab">Reaction quotient Q</div><div class="num" id="kQ" style="font-size:.92rem">—</div></div>
-      <div class="kpi"><div class="lab">Spontaneous?</div><div class="num" id="kSpon" style="font-size:.92rem">—</div></div>
+      <div class="kpi"><div class="lab">E°<sub>cell</sub> = E°<sub>cat</sub> − E°<sub>an</sub></div><div class="num"><span id="kE0"> - </span> <small>V</small></div></div>
+      <div class="kpi hero"><div class="lab">E<sub>cell</sub> (now)</div><div class="num"><span id="kE"> - </span> <small>V</small></div></div>
+      <div class="kpi"><div class="lab">Reaction quotient Q</div><div class="num" id="kQ" style="font-size:.92rem"> - </div></div>
+      <div class="kpi"><div class="lab">Spontaneous?</div><div class="num" id="kSpon" style="font-size:.92rem"> - </div></div>
     </div>
   </div>
 
@@ -146,7 +146,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   ELECTROCHEM ENGINE — standard reduction potentials + Nernst (SPEC §6/#14).
+   ELECTROCHEM ENGINE - standard reduction potentials + Nernst (SPEC §6/#14).
    ---------------------------------------------------------------------
    Standard reduction potentials (V vs SHE), classic AP table. Each metal
    electrode: Mⁿ⁺ + n e⁻ → M(s), n = ion charge.
@@ -154,7 +154,7 @@ window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d
        cathode = the electrode with the MORE POSITIVE E°red (it is reduced)
        anode   = the other one (its reduction is reversed → oxidation)
        E°cell  = E°cathode − E°anode   (always; both pulled from the SAME
-                 reduction table — do NOT flip the anode's sign first)
+                 reduction table - do NOT flip the anode's sign first)
        spontaneous (galvanic) ⇔ E°cell > 0.
    Nernst (25 °C):  E = E°cell − (0.0592/n)·log Q
      n = electrons in the BALANCED overall reaction = lcm(n_an, n_cat).
@@ -199,7 +199,7 @@ function expFmt(v){ if(v===0) return '0'; var e=Math.floor(Math.log10(Math.abs(v
 function sup(n){ var s={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'}; return String(n).split('').map(function(c){return s[c]||c;}).join(''); }
 
 /* =====================================================================
-   CHARTS — Panel 1 bar (ion conc); Panel 2 line (E vs discharge progress).
+   CHARTS - Panel 1 bar (ion conc); Panel 2 line (E vs discharge progress).
    ===================================================================== */
 var barChart = new Chart(document.getElementById('barChart'), {
   type:'bar',
@@ -294,7 +294,7 @@ function refresh(){
   document.getElementById('kE').textContent   = E.toFixed(3);
   document.getElementById('kQ').textContent   = expFmt(Q);
   document.getElementById('kSpon').innerHTML  = (cell.E0cell>0)
-    ? '<span style="color:var(--correct)">Yes — galvanic</span>'
+    ? '<span style="color:var(--correct)">Yes - galvanic</span>'
     : '<span style="color:var(--rose)">No</span>';
 
   // bar chart
@@ -302,7 +302,7 @@ function refresh(){
   barChart.data.datasets[0].data = [state.cAn, state.cCat];
   barChart.options.scales.y.max = Math.max(2.2, state.cAn*1.1, state.cCat*1.1);
 
-  // decay chart — Nernst line E vs logQ, hitting 0 V exactly at logQ = logK
+  // decay chart - Nernst line E vs logQ, hitting 0 V exactly at logQ = logK
   var dc = dischargeCurve(cell);
   decayChart.data.datasets[0].data = dc.line;
   decayChart.data.datasets[1].data = [{x:dc.curLogQ, y:E}];   // current operating point
@@ -337,7 +337,7 @@ fillSelect(document.getElementById('selA'), state.a);
 fillSelect(document.getElementById('selB'), state.b);
 document.getElementById('selA').addEventListener('change', function(){ state.a=this.value; refresh(); });
 document.getElementById('selB').addEventListener('change', function(){ state.b=this.value; refresh(); });
-// sliders are log10(M) so 0.01–2.00 M spans evenly
+// sliders are log10(M) so 0.01-2.00 M spans evenly
 document.getElementById('sAn').addEventListener('input', function(){ state.cAn=Math.pow(10, +this.value); refresh(); });
 document.getElementById('sCat').addEventListener('input', function(){ state.cCat=Math.pow(10, +this.value); refresh(); });
 

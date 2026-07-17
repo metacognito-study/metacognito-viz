@@ -106,8 +106,8 @@ window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d
    in kJ/mol. order = bond order (for the AP trend narrative).
    ===================================================================== */
 var BONDS = [
-  { id:'HH',  label:'H–H',  r0:74,  D:436, order:1 },
-  { id:'CC',  label:'C–C',  r0:154, D:346, order:1 },
+  { id:'HH',  label:'H-H',  r0:74,  D:436, order:1 },
+  { id:'CC',  label:'C-C',  r0:154, D:346, order:1 },
   { id:'CCd', label:'C=C',  r0:134, D:614, order:2 },
   { id:'CCt', label:'C≡C',  r0:120, D:839, order:3 },
   { id:'OO',  label:'O=O',  r0:121, D:498, order:2 },
@@ -118,8 +118,8 @@ function bondById(id){ for(var i=0;i<BONDS.length;i++) if(BONDS[i].id===id) retu
 /* Morse potential: V(r) = D·(1 − e^(−a(r−r0)))² − D.
    V(r0) = −D (bottom of the well), V(∞) → 0 (separated atoms / dissociation).
    Width parameter `a` (per pm) controls steepness. We tie it loosely to D and r0
-   so stiffer (deeper, shorter) bonds also read as NARROWER wells — matching the
-   AP "deeper AND narrower" intuition — while staying a clean physical Morse form.
+   so stiffer (deeper, shorter) bonds also read as NARROWER wells - matching the
+   AP "deeper AND narrower" intuition - while staying a clean physical Morse form.
    a ≈ sqrt(k/(2D)); we approximate the relative force constant from D/r0 so the
    ordering is faithful without overstating curvature. */
 function morseA(b){
@@ -145,7 +145,7 @@ var plotW=W-padL-padR, plotH=Hh-padT-padB;
 
 // fixed plot window so curves are comparable on one set of axes
 var RMIN=60, RMAX=260;            // pm
-var EMAX=120;                     // top of y-axis (kJ/mol) — a little above the 0 line
+var EMAX=120;                     // top of y-axis (kJ/mol) - a little above the 0 line
 var EMIN=-1000;                   // bottom of y-axis (kJ/mol); deepest well (N≡N) is −945
 
 function draw(){
@@ -275,8 +275,8 @@ function refresh(){
   var A=bondById(state.a), B=bondById(state.b);
   var box=document.getElementById('kpiBox');
   function kpiPair(b,which){
-    return '<div class="kpi"><div class="lab">'+which+' — bond length r₀</div><div class="num">'+b.r0+' <small>pm</small></div></div>'+
-           '<div class="kpi"><div class="lab">'+which+' — bond energy D</div><div class="num">'+b.D+' <small>kJ/mol</small></div></div>';
+    return '<div class="kpi"><div class="lab">'+which+' - bond length r₀</div><div class="num">'+b.r0+' <small>pm</small></div></div>'+
+           '<div class="kpi"><div class="lab">'+which+' - bond energy D</div><div class="num">'+b.D+' <small>kJ/mol</small></div></div>';
   }
   box.innerHTML = kpiPair(A,'A '+A.label) + (state.cmp ? kpiPair(B,'B '+B.label) : '');
 
@@ -288,8 +288,8 @@ function refresh(){
     var consistent = (shorter.id===deeper.id);
     vd.innerHTML = '<b>'+shorter.label+'</b> is the shorter bond ('+shorter.r0+' pm) and '+
       (consistent
-        ? 'also the <b>deeper, narrower</b> well ('+deeper.D+' kJ/mol) — shorter ⇒ stronger ⇒ more energy to break.'
-        : 'yet '+deeper.label+' has the deeper well — an exception worth noting (compare bonds between different atoms).');
+        ? 'also the <b>deeper, narrower</b> well ('+deeper.D+' kJ/mol) - shorter ⇒ stronger ⇒ more energy to break.'
+        : 'yet '+deeper.label+' has the deeper well - an exception worth noting (compare bonds between different atoms).');
     if(A.label.replace(/[^A-Za-z]/g,'')===B.label.replace(/[^A-Za-z]/g,'') && A.order!==B.order){
       var hi=A.order>B.order?A:B, lo=A.order>B.order?B:A;
       vd.innerHTML += ' Same atoms, higher bond order ('+hi.label+', order '+hi.order+') ⇒ shorter & stronger than '+lo.label+'.';
@@ -301,7 +301,7 @@ function refresh(){
   }
 
   document.getElementById('caption').innerHTML =
-    'The bottom of the dip sits at the <b>bond length</b> (r₀, x-axis); how far that minimum drops below the “separated atoms” line is the <b>bond energy</b> (D, the depth) — the energy needed to pull the atoms apart.';
+    'The bottom of the dip sits at the <b>bond length</b> (r₀, x-axis); how far that minimum drops below the “separated atoms” line is the <b>bond energy</b> (D, the depth) - the energy needed to pull the atoms apart.';
 }
 window.__onVizTheme = function(){ refresh(); };
 

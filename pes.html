@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Photoelectron Spectroscopy (PES) — simulated spectrum</title>
+<title>Photoelectron Spectroscopy (PES) - simulated spectrum</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -54,7 +54,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Photoelectron Spectroscopy (PES) — read an electron configuration off the peaks</h1>
+  <h1 class="viz-title">Photoelectron Spectroscopy (PES) - read an electron configuration off the peaks</h1>
   <p class="viz-sub">Each peak = one occupied subshell. <b>Taller peak → more electrons</b> in that subshell; <b>further left → more tightly bound</b> (closer to the nucleus, core electrons).
     <span class="pill">x = binding energy, MJ/mol (plotted high → low)</span> <span class="pill">y ∝ number of electrons</span></p>
 
@@ -86,7 +86,7 @@
 
   <div class="panel">
     <div class="row" style="margin-bottom:6px">
-      <span class="config" id="cfgLine">—</span>
+      <span class="config" id="cfgLine"> - </span>
     </div>
     <div class="kpis" id="kpiBox"></div>
     <div class="legend-note" id="explain"></div>
@@ -111,7 +111,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   PES SCIENCE — simulated spectrum (AP Chemistry conventions).
+   PES SCIENCE - simulated spectrum (AP Chemistry conventions).
    ---------------------------------------------------------------------
    x-axis = binding energy (BE) in MJ/mol, plotted HIGH → LOW (reversed),
             the standard AP-CED orientation (core peaks on the LEFT).
@@ -144,7 +144,7 @@ window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d
    Each peak's height = the electron count in that subshell (max 2/2/6/2/6…).
    Note O 2p (1.31) sitting just below N 2p (1.40) is the real, intentional
    "oxygen dip": pairing repulsion in the half-filled→p⁴ transition slightly
-   lowers O's 2p binding energy — a genuine PES/AP teaching point, not an error.
+   lowers O's 2p binding energy - a genuine PES/AP teaching point, not an error.
    ===================================================================== */
 var SUBSHELL_CAP = { '1s':2, '2s':2, '2p':6, '3s':2, '3p':6 };
 // subshell draw order (nucleus-out): used for config string + colour cycle
@@ -197,13 +197,13 @@ var state = { el1:'C', el2:'N', compare:false };
 
 var sel1=document.getElementById('el1'), sel2=document.getElementById('el2');
 ORDER.forEach(function(sym){
-  var o1=document.createElement('option'); o1.value=sym; o1.textContent=sym+' — '+ELEMENTS[sym].name; sel1.appendChild(o1);
-  var o2=document.createElement('option'); o2.value=sym; o2.textContent=sym+' — '+ELEMENTS[sym].name; sel2.appendChild(o2);
+  var o1=document.createElement('option'); o1.value=sym; o1.textContent=sym+' - '+ELEMENTS[sym].name; sel1.appendChild(o1);
+  var o2=document.createElement('option'); o2.value=sym; o2.textContent=sym+' - '+ELEMENTS[sym].name; sel2.appendChild(o2);
 });
 sel1.value=state.el1; sel2.value=state.el2;
 
 /* =====================================================================
-   CHART — Chart.js scatter used to draw vertical "peaks" (BE position,
+   CHART - Chart.js scatter used to draw vertical "peaks" (BE position,
    height ∝ electron count). x reversed so high BE (core) is on the LEFT.
    Each subshell = its own dataset (one vertical line + a top marker + label).
    ===================================================================== */
@@ -224,7 +224,7 @@ function buildChart(){
         // LOG x-axis (reversed): the BE range spans ~0.5 → 300 MJ/mol, so a linear
         // scale crushes every valence peak into one sliver. Log spreads core→valence
         // evenly while keeping the AP orientation (high BE / core on the LEFT).
-        x:{ type:'logarithmic', reverse:true, title:{display:true, text:'Binding energy  (MJ/mol, log)  —  core (tightly bound) ◀───   ───▶ valence'},
+        x:{ type:'logarithmic', reverse:true, title:{display:true, text:'Binding energy  (MJ/mol, log) - core (tightly bound) ◀───   ───▶ valence'},
             ticks:{ callback:function(v){ var allowed=[0.5,1,2,5,10,20,50,100,200,300]; return allowed.indexOf(v)>=0 ? v : ''; } } },
         y:{ type:'linear', min:0, beginAtZero:true, title:{display:true, text:'Relative number of electrons'},
             ticks:{ stepSize:1, precision:0 } }
@@ -304,13 +304,13 @@ function refresh(){
   // y max = tallest peak (6) + headroom for labels
   chart.options.scales.y.max = 6 + 1.6;
 
-  // theme the axes — assign FRESH literal objects each refresh. Reading Chart.js's
+  // theme the axes - assign FRESH literal objects each refresh. Reading Chart.js's
   // proxied options back (scales[ax].ticks ||= …) and re-setting them creates a
   // self-referential proxy chain → "Maximum call stack size exceeded" in Chart's
   // option resolver. Writing plain literals avoids the recursion.
   chart.options.scales.x.grid  = { color:line, drawBorder:true, borderColor:line };
   chart.options.scales.x.ticks = { color:muted };
-  chart.options.scales.x.title = { display:true, text:'Binding energy  (MJ/mol)  —  core (tightly bound) ◀───   ───▶ valence', color:muted };
+  chart.options.scales.x.title = { display:true, text:'Binding energy  (MJ/mol) - core (tightly bound) ◀───   ───▶ valence', color:muted };
   chart.options.scales.y.grid  = { color:line, drawBorder:true, borderColor:line };
   chart.options.scales.y.ticks = { color:muted, stepSize:1, precision:0 };
   chart.options.scales.y.title = { display:true, text:'Relative number of electrons', color:muted };
@@ -340,14 +340,13 @@ function refresh(){
     var a=ELEMENTS[state.el1], b=ELEMENTS[state.el2];
     var hi = a.Z>b.Z ? a : b, lo = a.Z>b.Z ? b : a;
     var hiSym = a.Z>b.Z?state.el1:state.el2, loSym = a.Z>b.Z?state.el2:state.el1;
-    ex = 'Almost every peak of <b>'+hiSym+'</b> (higher Z) sits <b>further LEFT</b> (higher binding energy) than the matching peak of '+
-      loSym+': a larger nuclear charge pulls every electron in harder. Compare the two 1s peaks — that gap is almost pure Z<sub>eff</sub>. '+
-      'Peak heights are unchanged by which element you overlay; they always equal the electron count in that subshell. '+
-      'One famous exception: a p⁴ pairing (O 2p, S 3p) sits at slightly LOWER binding energy than its p³ neighbour (N 2p, P 3p) — electron-pairing repulsion, the classic IE-dip teaching point.';
+    ex = 'Every peak of <b>'+hiSym+'</b> (higher Z) sits <b>further LEFT</b> (higher binding energy) than the matching peak of '+
+      loSym+': a larger nuclear charge pulls every electron in harder. Compare the two 1s peaks - that gap is almost pure Z<sub>eff</sub>. '+
+      'Peak heights are unchanged by which element you overlay; they always equal the electron count in that subshell.';
   } else {
     ex = 'Read the spectrum left → right: the far-left tall peak is the <b>1s core</b> (held most tightly, '+core.be+' MJ/mol). '+
       'Moving right, binding energy drops as electrons get further from the nucleus and are more shielded. '+
-      'The <b>height of each peak equals the number of electrons</b> in that subshell — so the heights spell out the configuration '+
+      'The <b>height of each peak equals the number of electrons</b> in that subshell - so the heights spell out the configuration '+
       configString(state.el1)+'. The rightmost peak ('+valence.sub+', '+valence.be+' MJ/mol) is the easiest to remove (lowest BE).';
   }
   document.getElementById('explain').innerHTML = ex;
@@ -369,7 +368,7 @@ Array.prototype.forEach.call(document.getElementById('cmpSeg').children, functio
 });
 
 /* =====================================================================
-   BOOT — guard against a blocked CDN (Chart.js missing): show a message
+   BOOT - guard against a blocked CDN (Chart.js missing): show a message
    instead of a blank panel.  Optional deep-links: ?el=C &el2=N &compare=1
    ===================================================================== */
 (function(){

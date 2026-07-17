@@ -1,15 +1,15 @@
 /* ============================================================================
-   viz-theme.css — SINGLE SOURCE OF TRUTH for visualizer theming.
+   viz-theme.css - SINGLE SOURCE OF TRUTH for visualizer theming.
    ----------------------------------------------------------------------------
    Tokens extracted VERBATIM from the student app
    (_optimized_build/metacognito-app/Index.html, :root + every [data-theme] +
-   every [data-font] block). DO NOT hand-edit values here — re-extract from the
+   every [data-font] block). DO NOT hand-edit values here - re-extract from the
    app if the app's tokens change, so visualizers stay pixel-identical to the app.
 
    Every visualizer iframe links this file. It re-themes by toggling
    data-theme / data-font on its OWN <html> (the shell harness does this from
    ?theme=&font=&scale= + postMessage). Charts read these tokens via
-   getComputedStyle — never hardcode a color/font in a viz.
+   getComputedStyle - never hardcode a color/font in a viz.
 
    NOTE on the html-vs-body difference: the app sets data-theme/data-font on
    <body>. The selectors below are attribute selectors ([data-theme=...]) so
@@ -55,7 +55,7 @@
   --banner: linear-gradient(135deg, #2e287a, #181d3c);
 
   /* viz-only: font-scale token the shell drives from ?scale / postMessage.
-     App range is 0.85–1.4 (UI_SCALE_MIN..UI_SCALE_MAX). Visualizer bodies use
+     App range is 0.85-1.4 (UI_SCALE_MIN..UI_SCALE_MAX). Visualizer bodies use
      font-size: calc(1rem * var(--viz-scale)) so controls + chart text scale. */
   --viz-scale: 1;
 }

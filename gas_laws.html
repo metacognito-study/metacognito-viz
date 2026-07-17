@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gas Laws — PV = nRT</title>
+<title>Gas Laws - PV = nRT</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -64,7 +64,7 @@
     position: absolute; left: 0; right: 0; bottom: 0;
     background: color-mix(in srgb, var(--indigo) 26%, var(--surface));
     border-top: 3px solid var(--indigo);      /* the piston face */
-    transition: height .06s linear;            /* tiny, not the chart — keeps piston smooth on drag */
+    transition: height .06s linear;            /* tiny, not the chart - keeps piston smooth on drag */
   }
   .dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--indigo); opacity: .85; }
   .cyl .cap { position: absolute; top: 0; left: 0; right: 0; height: 8px; background: var(--line); }
@@ -114,17 +114,17 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Gas Laws — the ideal gas law PV = nRT</h1>
+  <h1 class="viz-title">Gas Laws - the ideal gas law PV = nRT</h1>
   <p class="viz-sub">Push the piston or change the temperature, moles, or pressure. The held quantities stay fixed; the law solves for the rest. <span class="pill">R = 0.08206 L·atm·mol⁻¹·K⁻¹</span></p>
 
   <!-- (1) Mode picker = which sub-law (what is held constant) -->
   <div class="panel">
     <div style="font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:8px">Choose a relationship</div>
     <div class="seg" id="modeSeg" role="group" aria-label="gas law mode">
-      <button data-mode="boyle"   class="on" type="button">Boyle&nbsp;P–V</button>
-      <button data-mode="charles" type="button">Charles&nbsp;V–T</button>
-      <button data-mode="gaylussac" type="button">Gay-Lussac&nbsp;P–T</button>
-      <button data-mode="avogadro" type="button">Avogadro&nbsp;V–n</button>
+      <button data-mode="boyle"   class="on" type="button">Boyle&nbsp;P-V</button>
+      <button data-mode="charles" type="button">Charles&nbsp;V-T</button>
+      <button data-mode="gaylussac" type="button">Gay-Lussac&nbsp;P-T</button>
+      <button data-mode="avogadro" type="button">Avogadro&nbsp;V-n</button>
       <button data-mode="combined" type="button">Combined PV=nRT</button>
     </div>
     <div class="legend-note" id="modeHint"></div>
@@ -138,16 +138,16 @@
         <div class="gas" id="gas"><div class="pistonLbl" style="top:-1px">piston</div></div>
       </div>
       <div class="kpis" id="kpis">
-        <div class="kpi" id="kpi-P"><div class="lab">Pressure P <span class="tag"></span></div><div class="num"><span id="vP">—</span> <small>atm</small></div></div>
-        <div class="kpi" id="kpi-V"><div class="lab">Volume V <span class="tag"></span></div><div class="num"><span id="vV">—</span> <small>L</small></div></div>
-        <div class="kpi" id="kpi-n"><div class="lab">Moles n <span class="tag"></span></div><div class="num"><span id="vn">—</span> <small>mol</small></div></div>
-        <div class="kpi" id="kpi-T"><div class="lab">Temp T <span class="tag"></span></div><div class="num"><span id="vT">—</span> <small>K</small></div></div>
+        <div class="kpi" id="kpi-P"><div class="lab">Pressure P <span class="tag"></span></div><div class="num"><span id="vP"> - </span> <small>atm</small></div></div>
+        <div class="kpi" id="kpi-V"><div class="lab">Volume V <span class="tag"></span></div><div class="num"><span id="vV"> - </span> <small>L</small></div></div>
+        <div class="kpi" id="kpi-n"><div class="lab">Moles n <span class="tag"></span></div><div class="num"><span id="vn"> - </span> <small>mol</small></div></div>
+        <div class="kpi" id="kpi-T"><div class="lab">Temp T <span class="tag"></span></div><div class="num"><span id="vT"> - </span> <small>K</small></div></div>
       </div>
     </div>
     <div class="law" id="lawLine"></div>
   </div>
 
-  <!-- (3) Controls — only the relevant levers per mode (others auto-disabled) -->
+  <!-- (3) Controls - only the relevant levers per mode (others auto-disabled) -->
   <div class="panel">
     <div class="controls" id="controls">
       <div class="control" id="c-P">
@@ -238,7 +238,7 @@ var S = { P: 1.00, V: 22.4, n: 1.00, T: 273 };
 var MODES = {
   boyle:    { driver:'V', solve:'P', hold:['n','T'],
               title:'Boyle’s Law', rel:'P · V = constant',
-              hint:'Hold n and T constant; push the piston (V) and watch P rise — they trade off so P·V stays fixed.',
+              hint:'Hold n and T constant; push the piston (V) and watch P rise - they trade off so P·V stays fixed.',
               xKey:'V', xLabel:'Volume V (L)', yKey:'P', yLabel:'Pressure P (atm)', xC:false },
   charles:  { driver:'T', solve:'V', hold:['n','P'],
               title:'Charles’s Law', rel:'V / T = constant',
@@ -349,7 +349,7 @@ function renderReadout(){
 }
 
 /* =====================================================================
-   CHART — sweep the driver across its range, plot the solved quantity.
+   CHART - sweep the driver across its range, plot the solved quantity.
    Token-driven (series = --indigo). Charles/Gay-Lussac x-axis in °C so the
    line is seen aiming at absolute zero; a dashed reference marks 0 L/atm.
    ===================================================================== */
@@ -463,12 +463,12 @@ function refresh(){
   var m = MODES[mode];
   var solvedTxt = m.solve + ' = ' + SL[m.solve].fmt(S[m.solve]) + ' ' + SL[m.solve].unit;
   document.getElementById('solveNote').innerHTML =
-    'Disabled slider = the <b>solved</b> quantity ('+solvedTxt+'), derived from PV=nRT — it can’t be set directly.';
+    'Disabled slider = the <b>solved</b> quantity ('+solvedTxt+'), derived from PV=nRT - it can’t be set directly.';
   document.getElementById('modeHint').textContent = m.hint;
 }
 
 /* =====================================================================
-   EVENTS — input-driven 60fps redraw (no animation).
+   EVENTS - input-driven 60fps redraw (no animation).
    ===================================================================== */
 ['P','V','n','T'].forEach(function(k){
   SL[k].el.addEventListener('input', function(){

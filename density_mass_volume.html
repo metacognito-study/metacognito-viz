@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Density — mass vs volume (slope = ρ)</title>
+<title>Density - mass vs volume (slope = ρ)</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -83,7 +83,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Density — mass vs. volume</h1>
+  <h1 class="viz-title">Density - mass vs. volume</h1>
   <p class="viz-sub">
     Plot mass (g) vs volume (cm³): the slope of the line through the origin = density (ρ).
     <span class="pill">ρ = m / V</span> <span class="pill">m = ρ · V</span>
@@ -92,7 +92,7 @@
 
   <!-- Chart panel -->
   <div class="panel">
-    <div class="secLabel">Mass (g) vs Volume (cm³) — both lines through the origin; slope = density</div>
+    <div class="secLabel">Mass (g) vs Volume (cm³) - both lines through the origin; slope = density</div>
     <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
     <div class="slope-legend" id="slopeLegend"></div>
   </div>
@@ -102,7 +102,7 @@
     <div class="secLabel">Substance A <span style="color:var(--indigo);font-weight:700">(blue line)</span></div>
     <div class="sub-grid" id="segA"></div>
 
-    <div class="secLabel" style="margin-top:12px">Substance B <span style="color:var(--correct);font-weight:700">(teal line)</span> — compare</div>
+    <div class="secLabel" style="margin-top:12px">Substance B <span style="color:var(--correct);font-weight:700">(teal line)</span> - compare</div>
     <div class="sub-grid" id="segB"></div>
   </div>
 
@@ -116,10 +116,10 @@
       </div>
     </div>
     <div class="kpis" id="kpiRow">
-      <div class="kpi hi1"><div class="lab">Substance A</div><div class="num" id="kSubA">—</div></div>
-      <div class="kpi hi1"><div class="lab">Mass A (m = ρ·V)</div><div class="num"><span id="kMA">—</span> <small>g</small></div></div>
-      <div class="kpi hi2"><div class="lab">Substance B</div><div class="num" id="kSubB">—</div></div>
-      <div class="kpi hi2"><div class="lab">Mass B (m = ρ·V)</div><div class="num"><span id="kMB">—</span> <small>g</small></div></div>
+      <div class="kpi hi1"><div class="lab">Substance A</div><div class="num" id="kSubA"> - </div></div>
+      <div class="kpi hi1"><div class="lab">Mass A (m = ρ·V)</div><div class="num"><span id="kMA"> - </span> <small>g</small></div></div>
+      <div class="kpi hi2"><div class="lab">Substance B</div><div class="num" id="kSubB"> - </div></div>
+      <div class="kpi hi2"><div class="lab">Mass B (m = ρ·V)</div><div class="num"><span id="kMB"> - </span> <small>g</small></div></div>
     </div>
     <div class="eq-box" id="equationBox">
       <span class="eq" id="eqA"></span>
@@ -147,7 +147,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   ENGINE — Density (SPEC §6).
+   ENGINE - Density (SPEC §6).
    ---------------------------------------------------------------------
    density ρ (g/cm³) = mass (g) / volume (cm³)
    → mass vs volume is a straight line through the ORIGIN: m = ρ·V
@@ -160,8 +160,8 @@ window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d
      iron    7.87   g/cm³   (solid, bulk)
      lead    11.34  g/cm³   (solid, bulk)
      gold    19.3   g/cm³   (solid, bulk)
-     cork    0.24   g/cm³   (approximate, ranges 0.12–0.24 → use 0.24)
-     ice     0.917  g/cm³   (0 °C, solid — less than water, floats)
+     cork    0.24   g/cm³   (approximate, ranges 0.12-0.24 → use 0.24)
+     ice     0.917  g/cm³   (0 °C, solid - less than water, floats)
 
    Self-checks (logged to console):
      50 cm³ × Al 2.70 g/cm³ = 135 g       ✓
@@ -196,7 +196,7 @@ var SUBSTANCES = [
   });
 })();
 
-var V_MAX = 100;  /* cm³ — slider + axis ceiling */
+var V_MAX = 100;  /* cm³ - slider + axis ceiling */
 
 var state = { A: 'al', B: 'water', V: 50 };
 
@@ -215,7 +215,7 @@ function parseColor(c){
 }
 
 /* =====================================================================
-   CHART — mass vs volume: two lines through origin
+   CHART - mass vs volume: two lines through origin
    ===================================================================== */
 
 /* Custom plugin: draws cross-hair / dashed drop-lines + volume marker */
@@ -277,7 +277,7 @@ var mainChart = new Chart(document.getElementById('mainChart'), {
 });
 
 /* =====================================================================
-   RESKIN — read tokens + push into chart
+   RESKIN - read tokens + push into chart
    ===================================================================== */
 function reskinChart(){
   var ink   = tok('--ink');
@@ -327,7 +327,7 @@ function buildData(){
     var s = pair[0], token = pair[1];
     var chip = document.createElement('div'); chip.className='slope-chip';
     chip.innerHTML = '<div class="slope-swatch" style="background:'+tok(token)+'"></div>'
-      + '<span><b>'+s.name+'</b> — slope = ρ = '+s.rho.toFixed(3)+' g/cm³</span>';
+      + '<span><b>'+s.name+'</b> - slope = ρ = '+s.rho.toFixed(3)+' g/cm³</span>';
     legend.appendChild(chip);
   });
 
@@ -348,7 +348,7 @@ function buildData(){
   /* hint */
   var denser = sA.rho > sB.rho ? sA : sB;
   var lighter = sA.rho > sB.rho ? sB : sA;
-  var hint = denser.name+' (ρ = '+denser.rho+' g/cm³) is denser than '+lighter.name+' (ρ = '+lighter.rho+' g/cm³), so the same volume of '+denser.name+' has more mass — the steeper line.';
+  var hint = denser.name+' (ρ = '+denser.rho+' g/cm³) is denser than '+lighter.name+' (ρ = '+lighter.rho+' g/cm³), so the same volume of '+denser.name+' has more mass - the steeper line.';
   if (sA.rho === sB.rho){
     hint = 'Both substances have the same density, so their lines overlap perfectly.';
   }

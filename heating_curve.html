@@ -51,7 +51,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Heating / Cooling curve — pure water</h1>
+  <h1 class="viz-title">Heating / Cooling curve - pure water</h1>
   <p class="viz-sub">Add (or remove) heat at a steady rate to 1.0 mol of pure H₂O and watch its temperature. On a <b>slope</b> the phase warms: q = mcΔT. On a <b>plateau</b> the phase changes at constant T: q = nΔH. <span class="pill">1 atm · pure substance</span></p>
 
   <div class="panel">
@@ -90,10 +90,10 @@
 
   <div class="panel">
     <div class="kpis">
-      <div class="kpi"><div class="lab">Total heat</div><div class="num"><span id="kTot">—</span> <small>kJ</small></div></div>
-      <div class="kpi"><div class="lab">Fusion plateau q = nΔH<sub>fus</sub></div><div class="num"><span id="kFus">—</span> <small>kJ</small></div></div>
-      <div class="kpi"><div class="lab">Vaporization plateau q = nΔH<sub>vap</sub></div><div class="num"><span id="kVap">—</span> <small>kJ</small></div></div>
-      <div class="kpi"><div class="lab">Longest step</div><div class="num" id="kLong" style="font-size:.84rem">—</div></div>
+      <div class="kpi"><div class="lab">Total heat</div><div class="num"><span id="kTot"> - </span> <small>kJ</small></div></div>
+      <div class="kpi"><div class="lab">Fusion plateau q = nΔH<sub>fus</sub></div><div class="num"><span id="kFus"> - </span> <small>kJ</small></div></div>
+      <div class="kpi"><div class="lab">Vaporization plateau q = nΔH<sub>vap</sub></div><div class="num"><span id="kVap"> - </span> <small>kJ</small></div></div>
+      <div class="kpi"><div class="lab">Longest step</div><div class="num" id="kLong" style="font-size:.84rem"> - </div></div>
     </div>
     <div class="legend-note" id="explain"></div>
   </div>
@@ -116,7 +116,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   HEATING / COOLING ENGINE — piecewise for 1.0 mol H2O (SPEC §6/#8).
+   HEATING / COOLING ENGINE - piecewise for 1.0 mol H2O (SPEC §6/#8).
    ---------------------------------------------------------------------
    Five segments, in heating order:
      1. solid (ice) warming  -25 -> 0 C     q = m·c_ice·ΔT     (slope)
@@ -176,7 +176,7 @@ function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c
 function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
 
 /* =====================================================================
-   CHART — temperature vs cumulative heat; plugin marks the two plateaus
+   CHART - temperature vs cumulative heat; plugin marks the two plateaus
    (constant-T phase changes) with dashed segment overlays + labels.
    ===================================================================== */
 var plateauPlugin = {
@@ -268,7 +268,7 @@ function refresh(){
   // hint + explanation
   document.getElementById('hint').innerHTML = state.mode==='cool'
     ? 'Cooling reverses the path: heat is <b>removed</b>. The substance gives up the same nΔH at each plateau as it condenses (100 °C) then freezes (0 °C).'
-    : 'The two plateaus are flat because all the added heat goes into breaking intermolecular forces — potential energy rises, but the temperature (average KE) stays fixed until the phase change finishes.';
+    : 'The two plateaus are flat because all the added heat goes into breaking intermolecular forces - potential energy rises, but the temperature (average KE) stays fixed until the phase change finishes.';
   document.getElementById('explain').innerHTML =
     'Vaporization needs <b>'+(s.q4/s.q2).toFixed(1)+'×</b> the heat of fusion '
     +'(ΔH<sub>vap</sub> ≫ ΔH<sub>fus</sub>: boiling fully separates the molecules, melting only loosens the lattice), '

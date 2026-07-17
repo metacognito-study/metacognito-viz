@@ -46,7 +46,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Reaction Coordinate — activation energy &amp; ΔH</h1>
+  <h1 class="viz-title">Reaction Coordinate - activation energy &amp; ΔH</h1>
   <p class="viz-sub">Potential energy along the reaction path: reactants climb over the transition state, then drop to products. <span class="pill" id="typePill">exothermic</span></p>
 
   <div class="panel">
@@ -219,8 +219,8 @@ function refresh(){
   var exo = state.type==='exo';
   document.getElementById('explain').innerHTML =
     '<b>'+(exo?'Exothermic':'Endothermic')+':</b> products are '+(exo?'lower':'higher')+' than reactants, so the reaction '+(exo?'releases':'absorbs')+' '+Math.abs(Hp).toFixed(0)+' kJ/mol. '+
-    'The forward barrier is '+EaF.toFixed(0)+' kJ/mol; the reverse barrier is '+EaR.toFixed(0)+' kJ/mol '+(exo?'(larger — the uphill direction)':'(smaller — the downhill direction)')+'. '+
-    (state.cat ? 'A catalyst provides a lower-energy path: E<sub>a</sub> drops to '+EaFcat.toFixed(0)+' kJ/mol, speeding BOTH directions — but ΔH is unchanged ('+(Hp>0?'+':'')+Hp.toFixed(0)+' kJ/mol). It can\'t shift the equilibrium position.'
+    'The forward barrier is '+EaF.toFixed(0)+' kJ/mol; the reverse barrier is '+EaR.toFixed(0)+' kJ/mol '+(exo?'(larger - the uphill direction)':'(smaller - the downhill direction)')+'. '+
+    (state.cat ? 'A catalyst provides a lower-energy path: E<sub>a</sub> drops to '+EaFcat.toFixed(0)+' kJ/mol, speeding BOTH directions - but ΔH is unchanged ('+(Hp>0?'+':'')+Hp.toFixed(0)+' kJ/mol). It can\'t shift the equilibrium position.'
                 : 'Add a catalyst to see the barrier drop while ΔH stays put.');
 }
 window.__onVizTheme = function(){ refresh(); };

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Real vs Ideal Gas — compressibility factor Z</title>
+<title>Real vs Ideal Gas - compressibility factor Z</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -61,7 +61,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Real vs Ideal Gas — the compressibility factor Z = PV / nRT</h1>
+  <h1 class="viz-title">Real vs Ideal Gas - the compressibility factor Z = PV / nRT</h1>
   <p class="viz-sub">For an <b>ideal</b> gas Z = 1 at every pressure (flat line). <b>Real</b> gases deviate: at low P, attractions pull molecules together → Z dips <b>below</b> 1; at high P, the finite size of the molecules dominates → Z rises <b>above</b> 1. Curves come from the van der Waals equation. <span class="pill">R = 0.08206 L·atm·mol⁻¹·K⁻¹</span></p>
 
   <!-- (1) Controls: gas multi-select + temperature -->
@@ -114,7 +114,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   REAL-GAS ENGINE — van der Waals, 1 mol.
+   REAL-GAS ENGINE - van der Waals, 1 mol.
    ---------------------------------------------------------------------
    vdW (n = 1):  (P + a/V²)(V − b) = R·T
    For each pressure P we solve this CUBIC-in-V for the gas-phase root V,
@@ -133,7 +133,7 @@ window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d
    roots and the single gas phase condenses, so the Z(P) curve is no longer one
    smooth branch. To keep every overlaid curve a clean single-phase real-gas
    curve we hold the temperature slider at/above the highest T_c here (CO₂,
-   T_c ≈ 308 K) — min 320 K. We also WARM-START Newton from the previous (lower)
+   T_c ≈ 308 K) - min 320 K. We also WARM-START Newton from the previous (lower)
    pressure's solution while sweeping P upward, which tracks the gas branch
    continuously near the critical point.
    ===================================================================== */
@@ -168,14 +168,14 @@ function solveV(P, T, a, b, guess){
   return V;
 }
 function Z(P, T, a, b, guess){ var V = solveV(P,T,a,b,guess); return P*V/(R*T); }
-// vdW critical temperature — below this the single gas phase no longer exists.
+// vdW critical temperature - below this the single gas phase no longer exists.
 function critT(a, b){ return 8*a / (27*R*b); }
 
 function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function gasColor(g){ return tok(g.tok); }
 
 /* =====================================================================
-   PRESSURE SWEEP — 0..PMAX atm. Start just above 0 so Z→1 limit is visible.
+   PRESSURE SWEEP - 0..PMAX atm. Start just above 0 so Z→1 limit is visible.
    ===================================================================== */
 var PMAX = 600;      // atm
 function pGrid(){
@@ -190,7 +190,7 @@ function pGrid(){
 }
 
 /* =====================================================================
-   CHART — one dataset per gas + a dashed Z = 1 ideal reference.
+   CHART - one dataset per gas + a dashed Z = 1 ideal reference.
    ===================================================================== */
 var chart = new Chart(document.getElementById('chart'), {
   type:'line',
@@ -212,7 +212,7 @@ var chart = new Chart(document.getElementById('chart'), {
 function buildDatasets(){
   var ds = [];
   var ps = pGrid();
-  // Z = 1 ideal reference (dashed, muted) — drawn first so gases sit on top.
+  // Z = 1 ideal reference (dashed, muted) - drawn first so gases sit on top.
   ds.push({
     label:'ideal (Z = 1)', borderColor: tok('--muted'), backgroundColor:'transparent',
     borderWidth:1.5, borderDash:[6,5], pointRadius:0, tension:0, parsing:false, order:99,
@@ -248,7 +248,7 @@ function reskinChart(){
 }
 
 /* =====================================================================
-   FULL REFRESH — rebuild series for current T + selection, render readouts.
+   FULL REFRESH - rebuild series for current T + selection, render readouts.
    ===================================================================== */
 function refresh(){
   document.getElementById('lT').textContent = state.T;
@@ -276,7 +276,7 @@ function refresh(){
 
   document.getElementById('explain').innerHTML =
     'At T = '+state.T+' K each real-gas curve <b>dips below Z = 1</b> first (intermolecular attractions make the real volume smaller than ideal), then <b>climbs above 1</b> at high pressure (the molecules’ own finite volume can’t be squeezed away, so PV exceeds nRT). '+
-    '<b>CO₂</b> (largest a) dips deepest; <b>He</b> and <b>H₂</b> (tiny a) barely dip and rise almost from the start — they behave most ideally. '+
+    '<b>CO₂</b> (largest a) dips deepest; <b>He</b> and <b>H₂</b> (tiny a) barely dip and rise almost from the start - they behave most ideally. '+
     'Lower the temperature and the dips deepen; raise it and every curve hugs Z = 1.';
 
   // numeric self-check shown to the student (and verifiable on screen)

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Atomic Emission — Bohr energy levels (H)</title>
+<title>Atomic Emission - Bohr energy levels (H)</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -83,7 +83,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Atomic Emission — Bohr model of hydrogen</h1>
+  <h1 class="viz-title">Atomic Emission - Bohr model of hydrogen</h1>
   <p class="viz-sub">An excited electron falls from <b>n<sub>i</sub></b> to a lower <b>n<sub>f</sub></b>; the lost energy leaves as one photon.
     <span class="pill">E<sub>n</sub> = −2.18×10⁻¹⁸ J / n²</span> <span class="pill">λ = hc / |ΔE|</span></p>
 
@@ -124,13 +124,13 @@
       <div class="secLabel">The emitted photon</div>
       <div class="kpis">
         <div class="kpi"><div class="lab">Transition</div><div class="num" id="kTrans">3 → 2</div></div>
-        <div class="kpi"><div class="lab">Photon energy |ΔE|</div><div class="num"><span id="kE">—</span> <small>×10⁻¹⁹ J</small></div></div>
-        <div class="kpi"><div class="lab">Wavelength λ</div><div class="num"><span id="kLam">—</span> <small>nm</small></div></div>
-        <div class="kpi"><div class="lab">Frequency ν</div><div class="num"><span id="kFreq">—</span> <small>×10¹⁴ Hz</small></div></div>
-        <div class="kpi"><div class="lab">Region</div><div class="num"><span id="kRegion">—</span></div></div>
-        <div class="kpi"><div class="lab">Visible colour</div><div class="num"><span class="colorChip" id="kChip"></span><span id="kColor">—</span></div></div>
+        <div class="kpi"><div class="lab">Photon energy |ΔE|</div><div class="num"><span id="kE"> - </span> <small>×10⁻¹⁹ J</small></div></div>
+        <div class="kpi"><div class="lab">Wavelength λ</div><div class="num"><span id="kLam"> - </span> <small>nm</small></div></div>
+        <div class="kpi"><div class="lab">Frequency ν</div><div class="num"><span id="kFreq"> - </span> <small>×10¹⁴ Hz</small></div></div>
+        <div class="kpi"><div class="lab">Region</div><div class="num"><span id="kRegion"> - </span></div></div>
+        <div class="kpi"><div class="lab">Visible colour</div><div class="num"><span class="colorChip" id="kChip"></span><span id="kColor"> - </span></div></div>
       </div>
-      <div class="secLabel" style="margin-top:12px">Visible line spectrum (380–750 nm)</div>
+      <div class="secLabel" style="margin-top:12px">Visible line spectrum (380-750 nm)</div>
       <div class="ladder-wrap"><svg id="spectrum" viewBox="0 0 320 90" preserveAspectRatio="none" role="img" aria-label="visible line spectrum"></svg></div>
       <div class="legend-note" id="specNote"></div>
     </div>
@@ -173,14 +173,14 @@ window.addEventListener('message', function(e){
 });
 
 /* =====================================================================
-   PHYSICS — Bohr model of hydrogen (AP-correct constants & conventions).
+   PHYSICS - Bohr model of hydrogen (AP-correct constants & conventions).
    ---------------------------------------------------------------------
      E_n   = -2.18e-18 J / n²              (ground state E1 = -2.18e-18 J)
      ΔE    = E_f - E_i  (emission: n_i > n_f ⇒ ΔE < 0, energy released)
      E_ph  = |ΔE| = 2.18e-18 (1/n_f² - 1/n_i²)   J   (positive)
      λ     = h c / E_ph                    (h=6.62607e-34, c=2.99792e8)
      ν     = c / λ = E_ph / h
-   Visible band 380–750 nm. Balmer (n_f=2) lands the famous Hα..Hδ lines
+   Visible band 380-750 nm. Balmer (n_f=2) lands the famous Hα..Hδ lines
    in the visible; Lyman (n_f=1) is UV, Paschen (n_f=3) is IR.
    ===================================================================== */
 var E1 = -2.18e-18;            // J, ground state
@@ -202,7 +202,7 @@ function regionOf(lam){
 }
 
 /* Approximate visible-wavelength → sRGB (Bruton/Dan Bruton algorithm, common
-   teaching approximation). Returns an rgb() string. Outside 380–750 nm there is
+   teaching approximation). Returns an rgb() string. Outside 380-750 nm there is
    no visible colour, so callers fall back to a muted token. This is PHYSICAL
    colour (a data property of the photon), independent of the app theme. */
 function wavelengthToRGB(lam){
@@ -269,7 +269,7 @@ function drawLadder(){
 
   // each level line + label. Lines sit at TRUE energy (so the convergence to 0
   // is honest); labels are drawn only where there is vertical room, plus always
-  // for the two active levels — so the crowded upper levels don't overprint.
+  // for the two active levels - so the crowded upper levels don't overprint.
   var lastLabelY = -1e9;   // iterate top→bottom (n high→low; y increasing)
   for (var n=NMAX; n>=1; n--){
     var y = yOf(En(n));
@@ -303,7 +303,7 @@ function drawLadder(){
 }
 
 /* =====================================================================
-   RENDER: visible line-spectrum strip (380–750 nm), token chrome.
+   RENDER: visible line-spectrum strip (380-750 nm), token chrome.
    Black/neutral background band with coloured emission lines at their λ.
    ===================================================================== */
 function drawSpectrum(){
@@ -346,8 +346,8 @@ function drawSpectrum(){
 
   // out-of-band note
   var note = document.getElementById('specNote');
-  if (clam < VIS_LO) note.textContent = 'This transition is ultraviolet (λ='+clam.toFixed(0)+' nm < 380 nm) — no visible colour. Lyman series lands in the UV.';
-  else if (clam > VIS_HI) note.textContent = 'This transition is infrared (λ='+clam.toFixed(0)+' nm > 750 nm) — no visible colour. Paschen series lands in the IR.';
+  if (clam < VIS_LO) note.textContent = 'This transition is ultraviolet (λ='+clam.toFixed(0)+' nm < 380 nm) - no visible colour. Lyman series lands in the UV.';
+  else if (clam > VIS_HI) note.textContent = 'This transition is infrared (λ='+clam.toFixed(0)+' nm > 750 nm) - no visible colour. Paschen series lands in the IR.';
   else note.textContent = 'Bright line = the current transition. Faint lines = the other Balmer (n→2) visible lines.';
 }
 
@@ -396,7 +396,7 @@ function refresh(){
 window.__onVizTheme = refresh;   // SVGs read tokens fresh on every theme change
 
 /* =====================================================================
-   EVENTS — input-driven redraw (no animation)
+   EVENTS - input-driven redraw (no animation)
    ===================================================================== */
 niEl.addEventListener('input', function(){ state.ni = +niEl.value; refresh(); });
 nfEl.addEventListener('input', function(){ state.nf = +nfEl.value; refresh(); });

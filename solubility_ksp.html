@@ -65,7 +65,7 @@
       <span class="lbl">Salt</span>
       <div class="seg" id="saltSeg" role="group" aria-label="salt"></div>
     </div>
-    <div class="expr" id="expr">—</div>
+    <div class="expr" id="expr"> - </div>
     <div class="controls">
       <div class="control">
         <span class="lbl" style="margin-bottom:2px">Common ion to add</span>
@@ -91,10 +91,10 @@
 
   <div class="panel">
     <div class="kpis">
-      <div class="kpi"><div class="lab">K<sub>sp</sub></div><div class="num" id="kKsp" style="font-size:.9rem">—</div></div>
-      <div class="kpi hero"><div class="lab">Molar solubility <i>s</i> (pure water)</div><div class="num" id="kS" style="font-size:.9rem">—</div></div>
-      <div class="kpi"><div class="lab">Solubility <i>s′</i> with common ion</div><div class="num" id="kSp" style="font-size:.9rem">—</div></div>
-      <div class="kpi"><div class="lab">Suppression <i>s</i>/<i>s′</i></div><div class="num" id="kSupp">—</div></div>
+      <div class="kpi"><div class="lab">K<sub>sp</sub></div><div class="num" id="kKsp" style="font-size:.9rem"> - </div></div>
+      <div class="kpi hero"><div class="lab">Molar solubility <i>s</i> (pure water)</div><div class="num" id="kS" style="font-size:.9rem"> - </div></div>
+      <div class="kpi"><div class="lab">Solubility <i>s′</i> with common ion</div><div class="num" id="kSp" style="font-size:.9rem"> - </div></div>
+      <div class="kpi"><div class="lab">Suppression <i>s</i>/<i>s′</i></div><div class="num" id="kSupp"> - </div></div>
     </div>
     <div class="legend-note" id="explain"></div>
   </div>
@@ -168,7 +168,7 @@ function sci(v){ if(v===0) return '0'; var e=Math.floor(Math.log10(Math.abs(v)))
 function sup(n){ var s={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'}; return String(n).split('').map(function(c){return s[c]||c;}).join(''); }
 
 /* =====================================================================
-   CHART — saturation curve [M] = (Ksp/[X]^b)^(1/a) over [X];
+   CHART - saturation curve [M] = (Ksp/[X]^b)^(1/a) over [X];
    region shading (precipitate above / unsaturated below) + the eq point.
    ===================================================================== */
 var regionPlugin = {
@@ -280,7 +280,7 @@ function refresh(){
   // precompute pixel polyline for the region plugin (after layout)
   chart.__sat = { curvePx: [] };
   reskinChart();
-  // now scales are laid out — convert curve to pixels for the shaded regions
+  // now scales are laid out - convert curve to pixels for the shaded regions
   var xA=chart.scales.x, yA=chart.scales.y;
   chart.__sat.curvePx = pts.map(function(p){ return { x:xA.getPixelForValue(p.x), y:yA.getPixelForValue(Math.min(p.y, yA.max)) }; });
   chart.update();
@@ -295,10 +295,10 @@ function refresh(){
   document.getElementById('hint').innerHTML =
     'Molar solubility <b>s</b> = how many moles of '+salt.name+' dissolve per litre. '
     +'Because every formula unit releases '+salt.a+' '+salt.cat+' and '+salt.b+' '+salt.an+', '
-    +'the exponents in K<sub>sp</sub> are '+salt.a+' and '+salt.b+' — and the coefficients ('+salt.a+', '+salt.b+') ride inside the powers, giving K<sub>sp</sub> = '
+    +'the exponents in K<sub>sp</sub> are '+salt.a+' and '+salt.b+' - and the coefficients ('+salt.a+', '+salt.b+') ride inside the powers, giving K<sub>sp</sub> = '
     +(salt.a===1&&salt.b===1?'s²':(Math.pow(salt.a,salt.a)*Math.pow(salt.b,salt.b))+'·s'+sup(salt.a+salt.b))+'.';
   document.getElementById('explain').innerHTML = state.C>0
-    ? 'Adding '+state.C.toFixed(3)+' M of a common '+(state.addTo==='cat'?salt.cat:salt.an)+' ion (Le Châtelier) pushes the equilibrium back toward the solid: solubility drops from '+sci(s)+' M to <b>'+sci(sp)+' M</b> ('+(s/sp).toFixed(0)+'× less). K<sub>sp</sub> itself is unchanged — only the position on the curve moves.'
+    ? 'Adding '+state.C.toFixed(3)+' M of a common '+(state.addTo==='cat'?salt.cat:salt.an)+' ion (Le Châtelier) pushes the equilibrium back toward the solid: solubility drops from '+sci(s)+' M to <b>'+sci(sp)+' M</b> ('+(s/sp).toFixed(0)+'× less). K<sub>sp</sub> itself is unchanged - only the position on the curve moves.'
     : 'In pure water the dissolved ions sit exactly on the curve (Q = K<sub>sp</sub>). Add a common ion to slide the point along the curve and suppress s.';
 
   // active salt button + common-ion options

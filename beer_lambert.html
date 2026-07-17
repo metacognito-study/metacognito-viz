@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Beer–Lambert absorbance (A = εbc)</title>
+<title>Beer-Lambert absorbance (A = εbc)</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -53,8 +53,8 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Beer–Lambert law — absorbance A = εbc</h1>
-  <p class="viz-sub">More concentrated (or a longer path) absorbs more light. Absorbance is proportional to concentration — the basis of a calibration curve.
+  <h1 class="viz-title">Beer-Lambert law - absorbance A = εbc</h1>
+  <p class="viz-sub">More concentrated (or a longer path) absorbs more light. Absorbance is proportional to concentration - the basis of a calibration curve.
     <span class="pill">A = ε·b·c</span> <span class="pill">%T = 100·10<sup>−A</sup></span></p>
 
   <div class="panel">
@@ -77,11 +77,11 @@
 
   <div class="grid2">
     <div class="panel">
-      <div class="secLabel">Absorption spectrum — peak height grows with c (A = εbc at λ<sub>max</sub>)</div>
+      <div class="secLabel">Absorption spectrum - peak height grows with c (A = εbc at λ<sub>max</sub>)</div>
       <div class="chart-wrap"><canvas id="specChart"></canvas></div>
     </div>
     <div class="panel">
-      <div class="secLabel">Calibration line — A vs c (drag the dot, or use the slider)</div>
+      <div class="secLabel">Calibration line - A vs c (drag the dot, or use the slider)</div>
       <div class="chart-wrap"><canvas id="calChart"></canvas></div>
     </div>
   </div>
@@ -93,9 +93,9 @@
         <span class="secLabel" style="margin:0">sample</span>
       </div>
       <div class="kpis" style="flex:1;margin:0">
-        <div class="kpi"><div class="lab">Absorbance A</div><div class="num" id="kA">—</div></div>
-        <div class="kpi"><div class="lab">Transmittance %T</div><div class="num"><span id="kT">—</span> <small>%</small></div></div>
-        <div class="kpi"><div class="lab">Molar absorptivity ε</div><div class="num"><span id="kEps">—</span> <small>M⁻¹cm⁻¹</small></div></div>
+        <div class="kpi"><div class="lab">Absorbance A</div><div class="num" id="kA"> - </div></div>
+        <div class="kpi"><div class="lab">Transmittance %T</div><div class="num"><span id="kT"> - </span> <small>%</small></div></div>
+        <div class="kpi"><div class="lab">Molar absorptivity ε</div><div class="num"><span id="kEps"> - </span> <small>M⁻¹cm⁻¹</small></div></div>
       </div>
     </div>
     <div class="legend-note" id="explain"></div>
@@ -119,12 +119,12 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   ENGINE — Beer–Lambert (SPEC §6/#9).
+   ENGINE - Beer-Lambert (SPEC §6/#9).
    ---------------------------------------------------------------------
      A      = ε·b·c                 (dimensionless absorbance)
      %T     = 100·10^(−A)           (percent transmittance)
      A(λ)   = A_peak·exp(−(λ−λmax)²/2σ²)   Gaussian band; A_peak = εbc
-   Calibration line: A vs c is straight, slope = εb, through the origin —
+   Calibration line: A vs c is straight, slope = εb, through the origin - 
    that linearity is what lets you read an unknown concentration off the line.
    ε is a fixed property of the species at λmax (hardcoded, AP-stylised).
    ===================================================================== */
@@ -252,7 +252,7 @@ function refresh(){
 window.__onVizTheme = reskinAll;
 
 /* =====================================================================
-   EVENTS — sliders + drag the calibration dot
+   EVENTS - sliders + drag the calibration dot
    ===================================================================== */
 document.getElementById('sC').addEventListener('input', function(){ state.c=+this.value; refresh(); });
 document.getElementById('sB').addEventListener('input', function(){ state.b=+this.value; refresh(); });

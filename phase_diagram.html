@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Phase Diagram (P–T) — water &amp; CO₂</title>
+<title>Phase Diagram (P-T) - water &amp; CO₂</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -78,9 +78,9 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Phase Diagram — pressure vs temperature</h1>
+  <h1 class="viz-title">Phase Diagram - pressure vs temperature</h1>
   <p class="viz-sub">Every point is one phase. Drag the marker, or step along the dashed <b>1 atm</b> line to see melting &amp; boiling. Note water's
-    backward-leaning solid–liquid line. <span class="pill">log pressure axis</span></p>
+    backward-leaning solid-liquid line. <span class="pill">log pressure axis</span></p>
 
   <div class="panel">
     <div class="row">
@@ -97,9 +97,9 @@
   <div class="panel">
     <div class="canvas-wrap"><canvas id="pd" width="660" height="400" aria-label="phase diagram"></canvas></div>
     <div class="kpis">
-      <div class="kpi"><div class="lab">Temperature</div><div class="num"><span id="kT">—</span> <small>°C</small></div></div>
-      <div class="kpi"><div class="lab">Pressure</div><div class="num"><span id="kP">—</span> <small>atm</small></div></div>
-      <div class="kpi phase"><div class="lab">Phase here</div><div class="num" id="kPhase">—</div></div>
+      <div class="kpi"><div class="lab">Temperature</div><div class="num"><span id="kT"> - </span> <small>°C</small></div></div>
+      <div class="kpi"><div class="lab">Pressure</div><div class="num"><span id="kP"> - </span> <small>atm</small></div></div>
+      <div class="kpi phase"><div class="lab">Phase here</div><div class="num" id="kPhase"> - </div></div>
     </div>
     <div class="legendrow" id="legend"></div>
     <div class="legend-note" id="factNote"></div>
@@ -144,10 +144,10 @@ window.addEventListener('message', function(e){
 /* =====================================================================
    SUBSTANCE DATA (AP-defensible). Temps °C, pressures atm.
    Boundary curves are built from real anchor points:
-     - sublimation (solid–gas)  : Clausius–Clapeyron through the relevant anchors
-     - vaporization (liquid–gas): C–C piecewise through triple → (normal bp) → critical
-     - fusion (solid–liquid)    : through triple + the high-P trend; water's slope is
-       NEGATIVE (anomalous) — drawn clearly negative (exaggerated for visibility, as
+     - sublimation (solid-gas)  : Clausius-Clapeyron through the relevant anchors
+     - vaporization (liquid-gas): C-C piecewise through triple → (normal bp) → critical
+     - fusion (solid-liquid)    : through triple + the high-P trend; water's slope is
+       NEGATIVE (anomalous) - drawn clearly negative (exaggerated for visibility, as
        textbooks do, since the true slope is ~vertical), CO₂'s is positive.
    Triple/critical/normal points are exact AP values.
    ===================================================================== */
@@ -163,7 +163,7 @@ var SUBS = {
     // fusion: (P_atm → T_°C); negative slope (leans LEFT as P rises)
     fusAnchors:[[0.00604,0.01],[1.0,0.0],[1000,-14]],
     labels:[ {ph:'solid',T:-30,P:8}, {ph:'liquid',T:70,P:3}, {ph:'gas',T:260,P:0.02} ],
-    fact:'Water is the famous exception: its solid–liquid line tilts <b>backward</b> (negative slope), so squeezing ice can melt it. Triple point 0.01 °C / 0.006 atm; critical 374 °C / 218 atm.'
+    fact:'Water is the famous exception: its solid-liquid line tilts <b>backward</b> (negative slope), so squeezing ice can melt it. Triple point 0.01 °C / 0.006 atm; critical 374 °C / 218 atm.'
   },
   co2: {
     name: 'CO₂', triple:{T:-56.6, P:5.11}, critical:{T:31.0, P:72.9},
@@ -174,11 +174,11 @@ var SUBS = {
     subAnchors:[[194.65,1.0],[216.55,5.11]],            // normal sublimation (1 atm) → triple
     fusAnchors:[[5.11,-56.6],[1000,-20]],               // positive slope (leans RIGHT)
     labels:[ {ph:'solid',T:-100,P:10}, {ph:'liquid',T:5,P:60}, {ph:'gas',T:-20,P:0.4} ],
-    fact:'CO₂\'s solid–liquid line tilts the normal way (positive slope). At 1 atm there is <b>no liquid</b> — dry ice sublimes straight to gas at −78.5 °C. Triple point −56.6 °C / 5.11 atm; critical 31 °C / 72.9 atm.'
+    fact:'CO₂\'s solid-liquid line tilts the normal way (positive slope). At 1 atm there is <b>no liquid</b> - dry ice sublimes straight to gas at −78.5 °C. Triple point −56.6 °C / 5.11 atm; critical 31 °C / 72.9 atm.'
   }
 };
 
-/* ---- Clausius–Clapeyron-style interpolation in (1/T, ln P) over anchors ---- */
+/* ---- Clausius-Clapeyron-style interpolation in (1/T, ln P) over anchors ---- */
 function lnP_at(anchors, TK){
   // anchors sorted ascending by T_K. Linear interp/extrapolate in (1/T, lnP).
   var n=anchors.length;
@@ -414,7 +414,7 @@ function renderLegend(){
 }
 
 /* =====================================================================
-   INTERACTION — drag the marker (pointer), and 1-atm trace button
+   INTERACTION - drag the marker (pointer), and 1-atm trace button
    ===================================================================== */
 function clampMarker(){
   var s=S();
@@ -434,7 +434,7 @@ cv.addEventListener('pointermove', function(ev){ if(dragging) pointerToData(ev);
 cv.addEventListener('pointerup',   function(ev){ dragging=false; });
 cv.addEventListener('pointercancel', function(){ dragging=false; });
 
-// "Trace 1 atm path" — animate the marker along the 1 atm isobar (left→right)
+// "Trace 1 atm path" - animate the marker along the 1 atm isobar (left→right)
 var isobarTimer=null;
 document.getElementById('isobarBtn').addEventListener('click', function(){
   var s=S();

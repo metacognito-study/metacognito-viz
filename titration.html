@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Acid–Base Titration curve</title>
+<title>Acid-Base Titration curve</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -51,7 +51,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Acid–Base Titration curve</h1>
+  <h1 class="viz-title">Acid-Base Titration curve</h1>
   <p class="viz-sub">50.0 mL of analyte in the flask, titrant from the burette. The volume is solved from a full charge balance (never pH from V), so the curve stays smooth at the extremes. <span class="pill">25 °C, K_w = 1.0×10⁻¹⁴</span></p>
 
   <div class="panel">
@@ -91,9 +91,9 @@
 
   <div class="panel">
     <div class="kpis">
-      <div class="kpi"><div class="lab">Equivalence volume</div><div class="num"><span id="kVeq">—</span> <small>mL</small></div></div>
-      <div class="kpi"><div class="lab">Equivalence pH</div><div class="num" id="kpHeq">—</div></div>
-      <div class="kpi"><div class="lab">Best indicator</div><div class="num" id="kInd" style="font-size:.86rem">—</div></div>
+      <div class="kpi"><div class="lab">Equivalence volume</div><div class="num"><span id="kVeq"> - </span> <small>mL</small></div></div>
+      <div class="kpi"><div class="lab">Equivalence pH</div><div class="num" id="kpHeq"> - </div></div>
+      <div class="kpi"><div class="lab">Best indicator</div><div class="num" id="kInd" style="font-size:.86rem"> - </div></div>
     </div>
     <div class="legend-note" id="explain"></div>
   </div>
@@ -116,7 +116,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   TITRATION ENGINE — solve VOLUME from pH via charge balance (SPEC §6/#1).
+   TITRATION ENGINE - solve VOLUME from pH via charge balance (SPEC §6/#1).
    ---------------------------------------------------------------------
    Weak acid HA (Ca, Va) titrated with strong base (Cb):
      Vb = Va·( Ca·Ka/([H+]+Ka) + Kw/[H+] − [H+] ) / ( Cb + [H+] − Kw/[H+] )
@@ -125,7 +125,7 @@ window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d
      Vacid = Va·( Ca·Kb/([OH-]+Kb) + Kw/[OH-] − [OH-] ) / ( Cb + [OH-] − Kw/[OH-] )
    loop pOH, pH = 14 − pOH. Equivalence volume Veq = Ca·Va/Cb (stoichiometric).
    Loop the driving variable 1.00→13.00 step 0.05, discard V<0 or V>100, drop
-   non-finite — this never blows up at the asymptotes (the reason we solve V, not pH).
+   non-finite - this never blows up at the asymptotes (the reason we solve V, not pH).
    ===================================================================== */
 var Kw = 1e-14, Va = 50.0;        // mL analyte
 var SA_K = 1e3;                    // "infinite" Ka/Kb for strong species
@@ -162,7 +162,7 @@ function pHatV(pts, V){
   return pts[pts.length-1].y;
 }
 
-/* indicator transition ranges (low→high pH) — classic AP set */
+/* indicator transition ranges (low→high pH) - classic AP set */
 var INDICATORS = [
   { name:'Methyl orange',   lo:3.1, hi:4.4 },
   { name:'Methyl red',      lo:4.4, hi:6.2 },
@@ -183,7 +183,7 @@ function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c
 function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
 
 /* =====================================================================
-   CHART — pH (0–14) vs titrant volume; custom plugin shades indicator
+   CHART - pH (0-14) vs titrant volume; custom plugin shades indicator
    bands + buffer region + draws equivalence / half-equivalence lines.
    ===================================================================== */
 var bandPlugin = {
@@ -284,8 +284,8 @@ function refresh(){
 
   // KPIs
   document.getElementById('kVeq').textContent = veq.toFixed(1);
-  document.getElementById('kpHeq').textContent = pHeq!=null ? pHeq.toFixed(2) : '—';
-  document.getElementById('kInd').textContent = best.name+' ('+best.lo.toFixed(1)+'–'+best.hi.toFixed(1)+')';
+  document.getElementById('kpHeq').textContent = pHeq!=null ? pHeq.toFixed(2) : ' - ';
+  document.getElementById('kInd').textContent = best.name+' ('+best.lo.toFixed(1)+'-'+best.hi.toFixed(1)+')';
 
   // explanation
   var pKa = (-Math.log10(state.K)).toFixed(1);
@@ -303,7 +303,7 @@ function refresh(){
   Array.prototype.forEach.call(document.getElementById('modeSeg').children, function(b){ b.classList.toggle('on', b.dataset.mode===state.mode); });
   document.getElementById('kHint').innerHTML = weak
     ? 'Drag '+(baseMode?'K<sub>b</sub>':'K<sub>a</sub>')+' to change the strength: a weaker '+(baseMode?'base':'acid')+' makes the buffer flatter and the jump at equivalence smaller.'
-    : 'Strong acid &amp; strong base are fully ionised — no K needed.';
+    : 'Strong acid &amp; strong base are fully ionised - no K needed.';
 }
 window.__onVizTheme = reskinChart;
 

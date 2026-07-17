@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>VSEPR — molecular geometry (3D)</title>
+<title>VSEPR - molecular geometry (3D)</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -82,7 +82,7 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">VSEPR — electron domains set the 3D shape</h1>
+  <h1 class="viz-title">VSEPR - electron domains set the 3D shape</h1>
   <p class="viz-sub">Electron domains (bonds + lone pairs) repel to get as far apart as possible. Lone pairs are invisible in the final shape but still push the bonds. Drag the model to rotate.</p>
 
   <div class="panel">
@@ -107,11 +107,11 @@
 
     <div class="panel">
       <div class="kpis">
-        <div class="kpi"><div class="lab">Molecule</div><div class="num" id="kMol">—</div></div>
-        <div class="kpi"><div class="lab">AXₘEₙ notation</div><div class="num"><span class="axe" id="kAxe">—</span></div></div>
-        <div class="kpi"><div class="lab">Electron-domain geometry</div><div class="num" id="kEgeom">—</div></div>
-        <div class="kpi"><div class="lab">Molecular shape</div><div class="num" id="kMgeom">—</div></div>
-        <div class="kpi"><div class="lab">Bond angle(s)</div><div class="num" id="kAngle">—</div></div>
+        <div class="kpi"><div class="lab">Molecule</div><div class="num" id="kMol"> - </div></div>
+        <div class="kpi"><div class="lab">AXₘEₙ notation</div><div class="num"><span class="axe" id="kAxe"> - </span></div></div>
+        <div class="kpi"><div class="lab">Electron-domain geometry</div><div class="num" id="kEgeom"> - </div></div>
+        <div class="kpi"><div class="lab">Molecular shape</div><div class="num" id="kMgeom"> - </div></div>
+        <div class="kpi"><div class="lab">Bond angle(s)</div><div class="num" id="kAngle"> - </div></div>
       </div>
       <div class="legend-note" id="noteLine"></div>
     </div>
@@ -157,7 +157,7 @@ window.addEventListener('message', function(e){
    VSEPR DATA (AP-correct). Electron-domain geometries provide the ideal
    domain directions; lone pairs occupy specific domains (equatorial first
    for SN5; trans for SN6 square planar). The molecular SHAPE is the bonded
-   atoms only — but lone pairs still set their positions (shown faintly).
+   atoms only - but lone pairs still set their positions (shown faintly).
    Ideal angles are the electron-geometry angles; where lone-pair repulsion
    compresses the real angle (NH₃ 107°, H₂O 104.5°), the real value is given.
    ===================================================================== */
@@ -171,7 +171,7 @@ var GEOM = {
 };
 // each case: sn, lpIdx (indices in GEOM[sn] that are lone pairs)
 var CASES = [
-  {id:'CO2',  formula:'CO₂',  sn:2, lpIdx:[],     X:2,E:0, eGeom:'Linear',               mGeom:'Linear',              angle:'180°',          note:'2 domains push to opposite ends — a straight line.'},
+  {id:'CO2',  formula:'CO₂',  sn:2, lpIdx:[],     X:2,E:0, eGeom:'Linear',               mGeom:'Linear',              angle:'180°',          note:'2 domains push to opposite ends - a straight line.'},
   {id:'BF3',  formula:'BF₃',  sn:3, lpIdx:[],     X:3,E:0, eGeom:'Trigonal planar',       mGeom:'Trigonal planar',     angle:'120°',          note:'3 bonding domains spread 120° apart in one flat plane.'},
   {id:'SO2',  formula:'SO₂',  sn:3, lpIdx:[1],    X:2,E:1, eGeom:'Trigonal planar',       mGeom:'Bent',                angle:'≈119° (<120°)', note:'One domain is a lone pair → only 2 atoms show → bent. The lone pair squeezes the angle just under 120°.'},
   {id:'CH4',  formula:'CH₄',  sn:4, lpIdx:[],     X:4,E:0, eGeom:'Tetrahedral',           mGeom:'Tetrahedral',         angle:'109.5°',        note:'4 bonding domains point to the corners of a tetrahedron.'},
@@ -188,13 +188,13 @@ var CASES = [
 function caseById(id){ for (var i=0;i<CASES.length;i++) if (CASES[i].id===id) return CASES[i]; return CASES[0]; }
 
 /* =====================================================================
-   CANVAS 3D — rotate domain vectors, project with perspective, painter's sort.
+   CANVAS 3D - rotate domain vectors, project with perspective, painter's sort.
    All colours pulled from CSS tokens each frame (theme-native).
    ===================================================================== */
 function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 var cv = document.getElementById('mol'), ctx = cv.getContext('2d');
 var W = cv.width, Hh = cv.height;
-var ax = -0.45, ay = 0.6;            // view rotation (radians) — isometric-ish start
+var ax = -0.45, ay = 0.6;            // view rotation (radians) - isometric-ish start
 var cur = CASES[0];
 var spinning = false, spinRAF = null;
 
@@ -318,7 +318,7 @@ CASES.forEach(function(c){
 });
 
 /* =====================================================================
-   INTERACTION — drag to rotate; spin toggle; reset
+   INTERACTION - drag to rotate; spin toggle; reset
    ===================================================================== */
 var dragging=false, lastX=0, lastY=0;
 cv.addEventListener('pointerdown', function(e){ dragging=true; lastX=e.clientX; lastY=e.clientY; cv.setPointerCapture(e.pointerId); });

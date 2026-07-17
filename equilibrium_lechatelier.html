@@ -84,17 +84,17 @@
     <div class="chart-wrap"><canvas id="chart"></canvas></div>
     <div class="legendrow">
       <span style="color:var(--indigo)"><span class="sw"></span><b>[A]</b></span>
-      <span style="color:var(--correct)"><span class="sw" style="border-top-style:dashed"></span><b>[B]</b> (tracks [A] exactly — equal &amp; symmetric)</span>
+      <span style="color:var(--correct)"><span class="sw" style="border-top-style:dashed"></span><b>[B]</b> (tracks [A] exactly - equal &amp; symmetric)</span>
       <span style="color:var(--rose)"><span class="sw"></span><b>[C]</b></span>
     </div>
   </div>
 
   <div class="panel">
     <div class="kpis">
-      <div class="kpi"><div class="lab">K<sub>c</sub> (at this T)</div><div class="num" id="kK">—</div></div>
-      <div class="kpi"><div class="lab">Q<sub>c</sub> (right now)</div><div class="num" id="kQ">—</div></div>
-      <div class="kpi"><div class="lab">Temperature</div><div class="num"><span id="kTemp">—</span> <small>K</small></div></div>
-      <div class="kpi"><div class="lab">Last shift</div><div class="num shiftbadge" id="kShift" style="font-size:.9rem">—</div></div>
+      <div class="kpi"><div class="lab">K<sub>c</sub> (at this T)</div><div class="num" id="kK"> - </div></div>
+      <div class="kpi"><div class="lab">Q<sub>c</sub> (right now)</div><div class="num" id="kQ"> - </div></div>
+      <div class="kpi"><div class="lab">Temperature</div><div class="num"><span id="kTemp"> - </span> <small>K</small></div></div>
+      <div class="kpi"><div class="lab">Last shift</div><div class="num shiftbadge" id="kShift" style="font-size:.9rem"> - </div></div>
     </div>
     <div class="legend-note" id="explain">Stress the system with a button above to see the shift.</div>
   </div>
@@ -117,7 +117,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   ENGINE — A(g) + B(g) ⇌ C(g)  (SPEC §6/#6).  Δn_gas = 1 − 2 = −1.
+   ENGINE - A(g) + B(g) ⇌ C(g)  (SPEC §6/#6).  Δn_gas = 1 − 2 = −1.
    ---------------------------------------------------------------------
    Forward-marching Euler relaxation toward Kc:
      d[A] = (−kf[A][B] + kr[C])·Δt   (same for B);  d[C] = (+kf[A][B] − kr[C])·Δt
@@ -133,7 +133,7 @@ window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d
        same factor s>1, so Q → Q/s^Δn... but more simply, with the rate law above
        the relaxation AUTOMATICALLY moves toward the side with FEWER gas moles.
        Here products = 1 gas mol < reactants = 2, so COMPRESSION shifts RIGHT,
-       EXPANSION shifts LEFT. (Kc is unchanged — only T changes Kc.)
+       EXPANSION shifts LEFT. (Kc is unchanged - only T changes Kc.)
    • CATALYST does NOT shift equilibrium (speeds both directions equally; same Q,
        same K, no concentration change). It is a deliberate no-op on position.
    ===================================================================== */
@@ -217,7 +217,7 @@ function reskinChart(){
 }
 
 /* =====================================================================
-   INIT — start AT equilibrium from Kc
+   INIT - start AT equilibrium from Kc
    ===================================================================== */
 function initSeries(){
   series = { A:[], B:[], C:[] }; tIndex = 0;
@@ -229,7 +229,7 @@ function resetAll(){
   state = freshState();
   state.therm = (new URLSearchParams(location.search).get('therm')==='endo') ? 'endo' : state.therm;
   initSeries();
-  lastShift = '—';
+  lastShift = ' - ';
   syncTherm();
   draw('Reset to equilibrium. Q = K.');
 }
@@ -289,7 +289,7 @@ function explainFor(act, dir){
     case 'addA': return 'Added A → Q drops below K (more reactant in the denominator) → shift '+arrow+' to consume the added A.';
     case 'addC': return 'Added product C → Q rises above K → shift '+arrow+' to consume the added C.';
     case 'remC': return 'Removed product C → Q drops below K → shift '+arrow+' to replace C.';
-    case 'compress': return 'Halved the volume → all concentrations double. With <b>2 gas mol on the left vs 1 on the right</b>, the system relieves the pressure by favouring the side with <b>fewer</b> gas molecules → shift '+arrow+'. (K<sub>c</sub> is unchanged — only T changes K.)';
+    case 'compress': return 'Halved the volume → all concentrations double. With <b>2 gas mol on the left vs 1 on the right</b>, the system relieves the pressure by favouring the side with <b>fewer</b> gas molecules → shift '+arrow+'. (K<sub>c</sub> is unchanged - only T changes K.)';
     case 'expand': return 'Doubled the volume → all concentrations halve. The system counteracts the drop in pressure by favouring the side with <b>more</b> gas molecules → shift '+arrow+'. (K<sub>c</sub> unchanged.)';
     case 'heat':   return (state.therm==='exo'
         ? 'Heated an <b>exothermic</b> reaction (heat is a product): added heat is consumed by the <b>reverse</b> reaction → shift '+arrow+', and <b>K<sub>c</sub> decreases</b>.'
@@ -347,7 +347,7 @@ state = freshState();
   if (q.get('therm')==='endo') state.therm='endo';
 })();
 initSeries();
-lastShift='—';
+lastShift=' - ';
 syncTherm();
 draw('At equilibrium: Q = K. Apply a stress to see Le Châtelier’s principle restore the balance.');
 (function(){

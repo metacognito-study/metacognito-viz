@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Maxwell–Boltzmann speed distribution</title>
+<title>Maxwell-Boltzmann speed distribution</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -48,8 +48,8 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Maxwell–Boltzmann speed distribution</h1>
-  <p class="viz-sub">The fraction of gas molecules at each speed. Heat the gas and the peak <b>moves right and flattens</b> — but the total area always stays exactly 1 (every molecule has some speed). <span class="pill">R = 8.314 J·mol⁻¹·K⁻¹</span></p>
+  <h1 class="viz-title">Maxwell-Boltzmann speed distribution</h1>
+  <p class="viz-sub">The fraction of gas molecules at each speed. Heat the gas and the peak <b>moves right and flattens</b> - but the total area always stays exactly 1 (every molecule has some speed). <span class="pill">R = 8.314 J·mol⁻¹·K⁻¹</span></p>
 
   <div class="panel">
     <div class="controls">
@@ -97,7 +97,7 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   MAXWELL–BOLTZMANN ENGINE (SPEC §6/#4).
+   MAXWELL-BOLTZMANN ENGINE (SPEC §6/#4).
      f(v) = 4π (M/2πRT)^(3/2) · v² · exp(−M v² / 2RT)     [normalised: ∫=1]
    M in kg/mol, R = 8.314 J/mol·K. Characteristic speeds:
      v_p   = √(2RT/M)   (peak)        v_avg = √(8RT/πM)
@@ -116,7 +116,7 @@ function f(v, M, T){ var a = M/(2*Math.PI*R*T); return 4*Math.PI*Math.pow(a,1.5)
 function vP(M,T){ return Math.sqrt(2*R*T/M); }
 function vAvg(M,T){ return Math.sqrt(8*R*T/(Math.PI*M)); }
 function vRms(M,T){ return Math.sqrt(3*R*T/M); }
-// numeric ∫ f dv over [0,vmax] (trapezoid) — used for the area readout
+// numeric ∫ f dv over [0,vmax] (trapezoid) - used for the area readout
 function integral(M,T,vmax,n){ n=n||2000; var h=vmax/n, s=0; for(var i=0;i<=n;i++){ var v=i*h, w=(i===0||i===n)?0.5:1; s+=w*f(v,M,T); } return s*h; }
 
 var state = { T:300, gasIdx:4 /*O₂*/, cmp:false };
@@ -206,7 +206,7 @@ function refresh(){
   document.getElementById('explain').innerHTML =
     'For '+gas().sym+' (M = '+(M*1000).toFixed(0)+' g/mol) at '+T+' K: the curve is skewed right (a long high-speed tail). '+
     'Raising T shifts the peak to higher speed AND lowers it, because the area under the curve is conserved at exactly 1. '+
-    'Lighter gases (smaller M) sit further right — they move faster at the same temperature. '+
+    'Lighter gases (smaller M) sit further right - they move faster at the same temperature. '+
     'Always v<sub>p</sub> &lt; v<sub>avg</sub> &lt; v<sub>rms</sub>.';
 }
 window.__onVizTheme = function(){ refresh(); };

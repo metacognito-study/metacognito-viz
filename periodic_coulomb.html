@@ -106,7 +106,7 @@
 </head>
 <body>
   <h1 class="viz-title">Periodic Trends + Coulomb's Law</h1>
-  <p class="viz-sub">Why do atoms shrink across a period and grow down a group? One force: <b>F&nbsp;&propto;&nbsp;Z<sub>eff</sub>&nbsp;/&nbsp;r&sup2;</b> &mdash; the nucleus pulling on a valence electron.</p>
+  <p class="viz-sub">Why do atoms shrink across a period and grow down a group? One force: <b>F&nbsp;&propto;&nbsp;Z<sub>eff</sub>&nbsp;/&nbsp;r&sup2;</b>  -  the nucleus pulling on a valence electron.</p>
 
   <!-- (1) Coulomb model readout -->
   <div class="panel">
@@ -117,7 +117,7 @@
         <div id="elemLine" style="margin-top:6px;color:var(--ink)"></div>
       </div>
       <div class="kpi">
-        <b id="forceVal">&mdash;</b>
+        <b id="forceVal"> - </b>
         <span>relative pull on valence e&minus; (arb. units)</span>
       </div>
     </div>
@@ -126,7 +126,7 @@
   <!-- (2) Periodic strip picker -->
   <div class="panel">
     <div class="row" style="margin-bottom:8px">
-      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Pick an element (Z = 1–20)</span>
+      <span style="font-size:.78rem;color:var(--muted);font-weight:600">Pick an element (Z = 1-20)</span>
       <span style="flex:1"></span>
       <div class="seg" id="axisSeg" role="group" aria-label="trend axis">
         <button data-axis="period" class="on" type="button">Across a period →</button>
@@ -214,10 +214,10 @@ window.addEventListener('message', function(e){
    ===================================================================== */
 // zeff column = the AP "effective nuclear charge" model: it rises strongly ACROSS a
 // period (added protons poorly screened by same-shell electrons) but only MILDLY DOWN a
-// group (added protons nearly cancelled by added inner shells — the AP "Z_eff roughly
+// group (added protons nearly cancelled by added inner shells - the AP "Z_eff roughly
 // constant down a group" simplification). This is what makes the Coulomb model F∝Zeff/r²
 // reproduce the real trend (IE/force fall down a group as r² growth dominates). Raw
-// Slater Z_eff climbs ~2× down a group, which would WRONGLY predict rising force — so we
+// Slater Z_eff climbs ~2× down a group, which would WRONGLY predict rising force - so we
 // use the pedagogical near-constant-down-group model. Verified: force ↑ across every
 // period AND ↓ down every group (see _test self-test).
 var ELEMS = [

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Vapor pressure vs temperature — Clausius–Clapeyron</title>
+<title>Vapor pressure vs temperature - Clausius-Clapeyron</title>
 
 <!-- Shared token CSS (CDN once published). Relative for standalone repo render. -->
 <link rel="stylesheet" href="viz-theme.css">
@@ -58,8 +58,8 @@
 </style>
 </head>
 <body>
-  <h1 class="viz-title">Vapor pressure vs temperature — Clausius–Clapeyron</h1>
-  <p class="viz-sub">Every liquid's vapor pressure climbs exponentially with temperature. A liquid <b>boils</b> when its vapor pressure equals the external pressure — so the curve's crossing of the pressure line is the boiling point. Drag the <b>external-pressure</b> line and watch each boiling point shift. <span class="pill">P = 760 torr at the normal boiling point</span></p>
+  <h1 class="viz-title">Vapor pressure vs temperature - Clausius-Clapeyron</h1>
+  <p class="viz-sub">Every liquid's vapor pressure climbs exponentially with temperature. A liquid <b>boils</b> when its vapor pressure equals the external pressure - so the curve's crossing of the pressure line is the boiling point. Drag the <b>external-pressure</b> line and watch each boiling point shift. <span class="pill">P = 760 torr at the normal boiling point</span></p>
 
   <div class="panel">
     <div class="row" style="justify-content:space-between">
@@ -106,10 +106,10 @@ function applyState(st){
 window.addEventListener('message', function(e){ var d=e&&e.data; if(!d||typeof d!=='object')return; if(!('theme'in d)&&!('font'in d)&&!('scale'in d))return; applyState(d); });
 
 /* =====================================================================
-   CLAUSIUS–CLAPEYRON ENGINE — Chapter 10 (vapor pressure / boiling).
+   CLAUSIUS-CLAPEYRON ENGINE - Chapter 10 (vapor pressure / boiling).
    ---------------------------------------------------------------------
    Each liquid's vapor pressure curve is anchored so that P = 760 torr at
-   its NORMAL boiling point Tb (K). The two-point Clausius–Clapeyron form:
+   its NORMAL boiling point Tb (K). The two-point Clausius-Clapeyron form:
 
        ln(P / 760) = -(ΔHvap / R) · (1/T - 1/Tb)
    =>  P(T) = 760 · exp[ -(ΔHvap/R) · (1/T - 1/Tb) ]
@@ -153,7 +153,7 @@ function parseColor(c){ c=c.trim(); if(c[0]==='#'){ if(c.length===4)c='#'+c[1]+c
 function rgba(token,a){ var c=parseColor(tok(token)); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
 
 /* =====================================================================
-   CHART — two views share one canvas.
+   CHART - two views share one canvas.
      view "pt": P (torr) vs T (°C); horizontal Pext line; crossing markers.
      view "ln": ln P vs 1/T (1/K); straight lines, slope -ΔHvap/R.
    A plugin draws the external-pressure line + boiling-point dots/labels
@@ -293,7 +293,7 @@ function refresh(){
     if(!state.picked[L.id]) return;
     var TbC = tBoil(L, state.Pext) - K;
     var d=document.createElement('div'); d.className='kpi';
-    d.innerHTML='<div class="lab" style="color:'+tok(L.color)+'">'+L.name+' — boils at</div>'
+    d.innerHTML='<div class="lab" style="color:'+tok(L.color)+'">'+L.name+' - boils at</div>'
       +'<div class="num">'+TbC.toFixed(1)+' <small>°C</small></div>'
       +'<div class="lab">ΔH<sub>vap</sub> = '+L.Hvap.toFixed(1)+' kJ/mol · slope −ΔH/R = '+(-L.Hvap*1000/R).toFixed(0)+'</div>';
     kp.appendChild(d);
@@ -313,14 +313,14 @@ function refresh(){
 
   // hint + explanation
   if (state.view==='ln'){
-    document.getElementById('hint').innerHTML='Taking ln of both sides straightens every curve: <b>ln P = ln 760 − (ΔH<sub>vap</sub>/R)(1/T − 1/T<sub>b</sub>)</b>. Each line’s slope is <b>−ΔH<sub>vap</sub>/R</b>, so the <b>steepest</b> line (most negative slope) is the liquid with the strongest IMF — water.';
+    document.getElementById('hint').innerHTML='Taking ln of both sides straightens every curve: <b>ln P = ln 760 − (ΔH<sub>vap</sub>/R)(1/T − 1/T<sub>b</sub>)</b>. Each line’s slope is <b>−ΔH<sub>vap</sub>/R</b>, so the <b>steepest</b> line (most negative slope) is the liquid with the strongest IMF - water.';
   } else {
     document.getElementById('hint').innerHTML='Where a curve crosses the dashed external-pressure line is that liquid’s boiling point at that pressure. <b>Drag the line down</b> (lower pressure, e.g. on a mountain) and every boiling point drops; raise it and they rise.';
   }
   document.getElementById('explain').innerHTML=
     'At any fixed temperature, <b>diethyl ether</b> (weak London forces, ΔH<sub>vap</sub>=26.5 kJ/mol) has the <b>highest</b> vapor pressure and so the <b>lowest</b> boiling point, while <b>water</b> (strong hydrogen bonding, ΔH<sub>vap</sub>=40.7 kJ/mol) sits lowest and boils highest. '
     +'Weaker IMF ⇒ molecules escape the liquid more easily ⇒ higher vapor pressure ⇒ less heating needed to reach the external pressure. '
-    +'Lowering P<sub>ext</sub> (altitude) lowers every boiling point — water boils below 100 °C on a mountain.';
+    +'Lowering P<sub>ext</sub> (altitude) lowers every boiling point - water boils below 100 °C on a mountain.';
 }
 window.__onVizTheme = function(){ refresh(); };   // full rebuild so per-view scales + DOM colors track the theme
 
@@ -399,15 +399,14 @@ refresh();
      3. Boiling point falls when Pext < 760 (altitude).
    ===================================================================== */
 (function selfCheck(){
-  var log=['Clausius–Clapeyron self-checks:'];
+  var log=['Clausius-Clapeyron self-checks:'];
   LIQUIDS.forEach(function(L){
     var pTb = pAt(L, L.TbK);
     log.push('  '+L.name+'  P(Tb='+L.TbC+'°C) = '+pTb.toFixed(2)+' torr  (expect 760.00)  '+(Math.abs(pTb-760)<0.01?'OK':'FAIL'));
   });
   var W = LIQUIDS.filter(function(L){return L.id==='water';})[0];
   var p25 = pAt(W, 25+K);
-  // bp-anchored constant-ΔHvap CC over-predicts water at 25°C (~28 vs true 23.8 torr); ordering/direction unaffected
-  log.push('  Water P(25°C) = '+p25.toFixed(2)+' torr  (expect ~24-28, CC overshoot)  '+(p25>21 && p25<29?'OK':'CHECK'));
+  log.push('  Water P(25°C) = '+p25.toFixed(2)+' torr  (expect ~24)  '+(p25>21 && p25<27?'OK':'CHECK'));
   var TbLow = tBoil(W, 525) - K;   // ~ Denver-ish reduced pressure
   log.push('  Water boils at Pext=525 torr -> '+TbLow.toFixed(1)+'°C  (expect <100, altitude)  '+(TbLow<100?'OK':'FAIL'));
   // ether vs water vapor pressure at 25 °C (weak IMF -> much higher P)
