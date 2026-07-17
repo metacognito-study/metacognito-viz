@@ -95,15 +95,22 @@
     caveat:"'Caveat',ui-rounded,cursive", gaegu:"'Gaegu',ui-rounded,cursive",
     system:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif",
     serif:"Georgia,'Times New Roman',serif" };
-  function applyTheme(t,f,s,bg){ var d=document.documentElement;
+  // AR_ON mirrors the host's Arabic-features master toggle (cgArabicOn_), delivered as ?ar=0|1 on
+  // first paint and {__viz,arabicOn} live. Default ON so a standalone open still shows Arabic.
+  var AR_ON = true;
+  function applyTheme(t,f,s,bg,ar){ var d=document.documentElement;
     if(t) d.dataset.theme=t;
     if(f){ d.dataset.font=f; d.style.setProperty('--app-font', FONTS[f.toLowerCase()]||f); }
     if(s) d.style.setProperty('--fz', s);
-    if(bg){ d.style.setProperty('--surface', bg); document.body.style.background=bg; } }
+    if(bg){ d.style.setProperty('--surface', bg); document.body.style.background=bg; }
+    if(ar!==undefined && ar!==null && ar!==''){
+      AR_ON = !(ar===false || ar==='0' || ar===0 || ar==='false');
+      if(!AR_ON && typeof hideVocab==='function') hideVocab();   // don't leave stale Arabic on screen
+    } }
   (function(){ var q=new URLSearchParams(location.search);
-    applyTheme(q.get('theme'), q.get('font'), q.get('scale'), q.get('bg')); })();
+    applyTheme(q.get('theme'), q.get('font'), q.get('scale'), q.get('bg'), q.get('ar')); })();
   window.addEventListener('message', function(e){ var m=e.data||{};
-    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale, m.bg); } });
+    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale, m.bg, m.arabicOn); } });
 
   // render slides stacked; index each slide's reveal units. One unit = one SENTENCE
   // (all of a sentence's wrapped lines share a data-g and reveal together, so a
@@ -196,14 +203,19 @@
   // tapping one pops up its Arabic + brief English gloss. Tap again / tap away closes. ──
   var VOCAB = {"surplus":{"t":"Surplus","ar":"فائض / عرض زائد: الكمية المعروضة أكبر من المطلوبة.","def":"A surplus, or excess supply, occurs when the quantity supplied is greater than the quantity demanded at a given price."},"minimum wage":{"t":"Minimum wage","ar":"الحد الأدنى للأجور: أقل أجر قانوني يمكن دفعه للعامل","def":"The minimum wage is the lowest legal hourly wage that employers can pay their workers."},"equilibrium":{"t":"Equilibrium","ar":"التوازن: النقطة التي تتساوى فيها الكمية المطلوبة والمعروضة.","def":"Equilibrium is the state where the quantity demanded equals the quantity supplied, with no tendency for change."},"quantity supplied":{"t":"Quantity supplied","ar":"الكمية المعروضة: مقدار ما يبيعه المنتجون بسعر معين","def":"The specific amount of a good that producers are willing and able to sell at a particular price."},"quantity demanded":{"t":"Quantity demanded","ar":"الكمية المطلوبة: مقدار ما يشتريه المستهلكون بسعر معين","def":"The specific amount of a good that consumers are willing and able to buy at a particular price."},"firms":{"t":"Firms","ar":"الشركات: المنظمات التي تنتج وتبيع السلع والخدمات.","def":"Firms are organizations that produce and sell goods and services."},"cost":{"t":"Cost","ar":"تكلفة البائع: أقل سعر يقبل البائع البيع به","def":"The minimum price a seller is willing to accept for a good or service, which often reflects their cost."},"supply":{"t":"Supply","ar":"العرض: كمية المنتجات التي يرغب ويقدر المنتجون على بيعها.","def":"Supply is the quantity of a good or service that producers are willing and able to offer for sale at various prices."},"demand":{"t":"Demand","ar":"الطلب: رغبة المستهلك وقدرته على الشراء","def":"The willingness and ability of consumers to purchase a good or service at various prices during a specific period."},"shortage":{"t":"Shortage","ar":"نقص/عجز: الكمية المطلوبة أكثر من المعروضة.","def":"A market situation where the quantity demanded for a good or service is greater than the quantity supplied at a given price."},"buyers":{"t":"Buyers","ar":"المشترون: الناس أو الشركات التي تشتري السلع والخدمات.","def":"Individuals or entities who purchase goods and services in a market."},"demand curve":{"t":"Demand curve","ar":"منحنى الطلب: رسم بياني للسعر والكمية المطلوبة","def":"A graph showing the relationship between the price of a good and the quantity consumers are willing and able to buy."},"price floor":{"t":"Price floor","ar":"حد أدنى للسعر: أقل سعر قانوني يمكن بيع سلعة به","def":"A price floor is a legal minimum price at which a good or service can be sold."},"unemployment":{"t":"Unemployment","ar":"البطالة: عدم توفر عمل لمن يقدر على العمل ويرغب فيه ويبحث عنه","def":"When people who are willing and able to work cannot find a job."}};
   var vpop = document.getElementById('vocabPopup'), vKey = '';
-  function hideVocab(){ vpop.classList.add('hidden'); vKey=''; }
+  function hideVocab(){ if(!vpop) return; vpop.classList.add('hidden'); vKey=''; }   // null-safe: applyTheme(?ar=0) can fire before vpop is assigned
   function showVocab(el){ var key=el.getAttribute('data-vocab-key'), e=VOCAB[key];
     if(!e){ return; }
     if(!vpop.classList.contains('hidden') && vKey===key){ hideVocab(); return; }  // tap same term toggles off
     vKey=key;
     vpop.querySelector('.vocab-term-title').textContent=e.t||key;                 // exact term casing (pH, pOH, NaCl)
-    var ar=vpop.querySelector('.vocab-arabic'); ar.textContent=e.ar||''; ar.style.display=e.ar?'':'none';
+    // AR_ON mirrors the host app's Arabic-features master toggle (?ar= / {__viz,arabicOn}):
+    // a student who switched Arabic OFF must not see Arabic here either.
+    var ar=vpop.querySelector('.vocab-arabic'); ar.textContent=(e.ar&&AR_ON)?e.ar:''; ar.style.display=(e.ar&&AR_ON)?'':'none';
     vpop.querySelector('.vocab-def').textContent=e.def||'';
+    // report the tap up so the host feeds its Encountered Vocab self-test (parity with a flashcard tap)
+    if(AR_ON && e.ar && window.parent && window.parent!==window){
+      try{ window.parent.postMessage({ __vocabTap:true, key:key, term:e.t||key, ar:e.ar }, '*'); }catch(err){} }
     vpop.classList.remove('hidden'); vpop.style.visibility='hidden';              // measure off-screen, then place
     var r=el.getBoundingClientRect(), pw=vpop.offsetWidth, ph=vpop.offsetHeight;
     var left=Math.max(8, Math.min(r.left+r.width/2-pw/2, window.innerWidth-pw-8));
