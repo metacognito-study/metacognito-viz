@@ -188,6 +188,14 @@ emit("u_econ_monopoly__labeled.svg", mono
      +txt(sx(9),sy(94),"D",13,"#1d4ed8","start")+txtQP(45,13,"MR",13,"#60a5fa")+txtQP(84,60,"MC",13,"#b91c1c")
      +txt(sx(Qm),296,"Qm",12)+txt(52,sy(Pm)+4,"Pm",12,"#333","end")
      +txt(sx(Qm)+8,sy(Prc)+4,"MR=MC",10,"#666","start"))
+# WAVE R #2/#3: labor market + forex — pure S&D structure, exact QP model (supply through origin)
+def sd_relabel(xl,yl,dlab,slab,plab,qlab):
+    a=axes(xl,yl)+_demandQP(100)+_supplyQP(0); Q,P=eqQP()
+    return a+dotQP(Q,P)+guideQP(Q,P)+clabel('D',100,dlab,"#1d4ed8")+clabel('S',0,slab,"#b91c1c")+txt(52,sy(P)+4,plab,12,"#333","end")+txt(sx(Q),296,qlab,12)
+emit("u_econ_labor_market__labeled.svg", sd_relabel("Quantity of Labour","Wage","D = MRP","S","W*","L*"))
+emit("u_econ_labor_market__plain.svg", axes("Quantity of Labour","Wage")+_demandQP(100)+_supplyQP(0))
+emit("u_econ_forex_market__labeled.svg", sd_relabel("Quantity of $","Exchange rate","D $","S $","e*","Q*"))
+emit("u_econ_forex_market__plain.svg", axes("Quantity of $","Exchange rate")+_demandQP(100)+_supplyQP(0))
 # write + validate
 os.makedirs(".",exist_ok=True); n=0
 for name,svg in OUT.items():
