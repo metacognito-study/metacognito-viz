@@ -1839,7 +1839,7 @@
       ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(-10, -8); ctx.lineTo(-5, 0); ctx.lineTo(-10, 8); ctx.closePath(); ctx.stroke();
       ctx.restore();
       ctx.save();
-      ctx.globalAlpha = 0.8; ctx.fillStyle = col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.8; ctx.fillStyle = (rp && rp.acHex) || col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';   // peer's own accent hex on the label when they have one equipped; else the existing per-index palette color
       ctx.fillText(String((rp && rp.nm) || 'Player').slice(0, 12), x, y - 14);
       ctx.restore();
       i++;

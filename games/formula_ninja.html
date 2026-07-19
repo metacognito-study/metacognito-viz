@@ -1881,7 +1881,7 @@
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 0.95; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 3.2, 0, 6.2832); ctx.fill();
       }
-      ctx.globalAlpha = 0.8; ctx.fillStyle = col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.8; ctx.fillStyle = (rp && rp.acHex) || col; ctx.font = '700 10px -apple-system, sans-serif'; ctx.textAlign = 'center';   // peer's own accent hex on the label when they have one equipped; else the existing per-index palette color
       ctx.fillText(String((rp && rp.nm) || 'Player').slice(0, 12), x, y - 12);
       ctx.restore();
       i++;
