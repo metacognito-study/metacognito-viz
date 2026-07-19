@@ -1814,6 +1814,105 @@
    "what": "WB-SA titration 4-panel particulate: initial (NH3 + one OH-), buffer (NH3 + NH4+ mixture + Cl-), equivalence (NH4+ + Cl- only), past equivalence (+ excess H3O+) - verbatim stages",
    "answer_leak_check": "PASS: no dominant-species writeups and no pH-relative-to-7 verdicts per panel (both ARE the task)",
    "serves": []
+  },
+  {
+   "sheet": "econ",
+   "row": 130,
+   "exIdx": null,
+   "asset": "u_econ_demand_shift_right__labeled.svg",
+   "mode": "example-image",
+   "what": "Demand shift D1->D2: equilibrium P and Q both rise",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 141,
+   "exIdx": null,
+   "asset": "u_econ_supply_shift_right__labeled.svg",
+   "mode": "example-image",
+   "what": "Supply shift S1->S2: P falls, Q rises",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 143,
+   "exIdx": null,
+   "asset": "u_econ_sd_equilibrium__labeled.svg",
+   "mode": "example-image",
+   "what": "Supply-demand equilibrium with Pe/Qe marked",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 74,
+   "exIdx": null,
+   "asset": "u_econ_circular_flow_2sector__labeled.svg",
+   "mode": "example-image",
+   "what": "Circular flow (money circuit): households-firms via product+factor markets",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 83,
+   "exIdx": null,
+   "asset": "u_econ_ppc_bowed__labeled.svg",
+   "mode": "example-image",
+   "what": "Bowed-out PPC with efficient/inefficient/unattainable points",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 119,
+   "exIdx": null,
+   "asset": "u_econ_sd_numeric_grid__labeled.svg",
+   "mode": "example-image",
+   "what": "Numeric gridded S&D: read Pe=$6, Qe=60 off the grid",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 197,
+   "exIdx": null,
+   "asset": "u_econ_sd_numeric_grid__labeled.svg",
+   "mode": "example-image",
+   "what": "Numeric gridded S&D for step-demand practice",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 124,
+   "exIdx": null,
+   "asset": "u_econ_demand_schedule_table__labeled.svg",
+   "mode": "example-image",
+   "what": "Demand schedule table (P vs Qd)",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
+  },
+  {
+   "sheet": "econ",
+   "row": 103,
+   "exIdx": null,
+   "asset": "u_econ_comparative_advantage_table__labeled.svg",
+   "mode": "example-image",
+   "what": "Output-per-worker table for opportunity-cost/comparative advantage",
+   "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
+   "serves": [],
+   "batch": "factory_batchA_20260719"
   }
  ]
 }
