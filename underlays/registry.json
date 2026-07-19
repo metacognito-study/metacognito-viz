@@ -2969,6 +2969,127 @@
    "serves": [],
    "batch": "structural_ch1-3+13-14_groq_20260719",
    "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 343,
+   "exIdx": null,
+   "asset": "u_econ_value_added_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 361,
+   "exIdx": null,
+   "asset": "u_econ_gdp_nominal_real_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 362,
+   "exIdx": null,
+   "asset": "u_econ_gdp_nominal_real_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 363,
+   "exIdx": null,
+   "asset": "u_econ_gdp_nominal_real_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 364,
+   "exIdx": null,
+   "asset": "u_econ_gdp_nominal_real_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 366,
+   "exIdx": null,
+   "asset": "u_econ_gdp_nominal_real_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 368,
+   "exIdx": null,
+   "asset": "u_econ_real_gdp_per_capita_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 372,
+   "exIdx": null,
+   "asset": "u_econ_national_income_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 406,
+   "exIdx": null,
+   "asset": "u_econ_cpi_basket_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 407,
+   "exIdx": null,
+   "asset": "u_econ_cpi_basket_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 408,
+   "exIdx": null,
+   "asset": "u_econ_cpi_basket_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_tables_ch23-24_20260720",
+   "stem_verified": true
   }
  ]
 }
