@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Metacognito · Avogadro's Number</title>
+<!-- user-selectable UI fonts (match Index.core.html) so the clip's narrative text follows the app font; degrades to system fallback offline -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Quicksand:wght@400;500;600;700&family=Comfortaa:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Shantell+Sans:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap">
 <style>
   /* SELF-HOSTED Space Grotesk (the diagram-label font) - no external dependency, no CSP allowlist, works offline.
      One variable woff2 (latin subset, weights 300-700) at out/fonts/, referenced relative to the card HTML. */
@@ -48,11 +52,11 @@
   @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } .pp:active{ transform:none; } .slide .ln{ opacity:1; transform:none; transition:none; } }
   /* clickable keyword glossary - dotted underline + tap popup, mirroring the flashcards */
   .vocab-term{ text-decoration:underline dotted; text-decoration-color:color-mix(in srgb, var(--indigo) 55%, var(--muted)); text-decoration-thickness:1.4px; text-underline-offset:2px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-  .vocab-popup{ position:fixed; z-index:50; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px; box-shadow:0 8px 28px rgba(0,0,0,.24); max-width:260px; min-width:150px; max-height:72vh; overflow-y:auto; overscroll-behavior:contain; }
+  .vocab-popup{ position:fixed; z-index:50; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px; box-shadow:0 8px 28px rgba(0,0,0,.24); max-width:260px; min-width:150px; max-height:72vh; overflow-y:auto; overscroll-behavior:contain; cursor:grab; touch-action:none; }
   .vocab-popup.hidden{ display:none; }
   .vocab-term-title{ font-weight:800; font-size:14px; color:var(--ink); margin-bottom:5px; }
   .vocab-arabic{ font-size:19px; color:var(--indigo); direction:rtl; text-align:right; margin-bottom:5px; font-weight:600; line-height:1.5; }
-  .vocab-def{ font-size:12.5px; color:var(--muted); line-height:1.45; overflow-wrap:break-word; }
+  .vocab-def{ font-size:12.5px; color:var(--muted); line-height:1.45; overflow-wrap:break-word; touch-action:pan-y; }   /* allow scrolling a long def while the box stays draggable, mirrors the main app's .vocab-popup.draggable .vocab-def rule */
 </style>
 </head>
 <body>
@@ -79,20 +83,34 @@
   // The clip wears the host app's colour theme, FONT family, and BACKGROUND so it
   // looks native wherever it is embedded. font can be a known key or any CSS family;
   // bg sets the clip surface to the app's chosen background colour.
-  var FONTS={ inter:"Inter,ui-sans-serif,system-ui,sans-serif",
+  // Keys mirror the app's [data-font] map (Index.core.html) 1:1 so the clip's
+  // narrative font follows the user's UI choice. The families are loaded via the
+  // Google Fonts <link> in <head>; offline they degrade to the system fallback.
+  var FONTS={ lexend:"'Lexend',ui-sans-serif,system-ui,sans-serif",
+    inter:"'Inter',ui-sans-serif,system-ui,sans-serif",
+    quicksand:"'Quicksand',ui-rounded,system-ui,sans-serif",
+    comfortaa:"'Comfortaa',ui-rounded,system-ui,sans-serif",
+    lora:"'Lora',Georgia,'Times New Roman',serif",
+    shantell:"'Shantell Sans',ui-rounded,system-ui,sans-serif",
+    caveat:"'Caveat',ui-rounded,cursive", gaegu:"'Gaegu',ui-rounded,cursive",
     system:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif",
-    serif:"Georgia,'Times New Roman',serif", mono:"ui-monospace,Menlo,monospace",
-    rounded:"'Nunito','Quicksand',ui-rounded,sans-serif", manrope:"Manrope,sans-serif",
-    poppins:"Poppins,sans-serif", lexend:"Lexend,sans-serif" };
-  function applyTheme(t,f,s,bg){ var d=document.documentElement;
+    serif:"Georgia,'Times New Roman',serif" };
+  // AR_ON mirrors the host's Arabic-features master toggle (cgArabicOn_), delivered as ?ar=0|1 on
+  // first paint and {__viz,arabicOn} live. Default ON so a standalone open still shows Arabic.
+  var AR_ON = true;
+  function applyTheme(t,f,s,bg,ar){ var d=document.documentElement;
     if(t) d.dataset.theme=t;
     if(f){ d.dataset.font=f; d.style.setProperty('--app-font', FONTS[f.toLowerCase()]||f); }
     if(s) d.style.setProperty('--fz', s);
-    if(bg){ d.style.setProperty('--surface', bg); document.body.style.background=bg; } }
+    if(bg){ d.style.setProperty('--surface', bg); document.body.style.background=bg; }
+    if(ar!==undefined && ar!==null && ar!==''){
+      AR_ON = !(ar===false || ar==='0' || ar===0 || ar==='false');
+      if(!AR_ON && typeof hideVocab==='function') hideVocab();   // don't leave stale Arabic on screen
+    } }
   (function(){ var q=new URLSearchParams(location.search);
-    applyTheme(q.get('theme'), q.get('font'), q.get('scale'), q.get('bg')); })();
+    applyTheme(q.get('theme'), q.get('font'), q.get('scale'), q.get('bg'), q.get('ar')); })();
   window.addEventListener('message', function(e){ var m=e.data||{};
-    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale, m.bg); } });
+    if(m && m.__viz){ applyTheme(m.theme, m.font, m.scale, m.bg, m.arabicOn); } });
 
   // render slides stacked; index each slide's reveal units. One unit = one SENTENCE
   // (all of a sentence's wrapped lines share a data-g and reveal together, so a
@@ -137,6 +155,14 @@
   au.addEventListener('timeupdate', tick);
   au.addEventListener('loadedmetadata', function(){ computeLineTimes(); tick(); });
   au.addEventListener('durationchange', computeLineTimes);
+  // FALLBACK so text is never blank: the lines reveal on audio time, so a failed or
+  // stalled <audio> would otherwise leave a slide with no visible text (a regression
+  // vs the old static build). If the audio errors, or after 3s nothing has loaded,
+  // reveal the current slide's lines outright.
+  function revealAllCurrent(){ var L=LN[cur]; if(!L) return;
+    for(var k=0;k<L.length;k++){ var es=L[k].els; for(var j=0;j<es.length;j++) es[j].classList.add('show'); } }
+  au.addEventListener('error', revealAllCurrent);
+  setTimeout(function(){ if(au.error || au.readyState===0) revealAllCurrent(); }, 3000);
   au.addEventListener('ended', function(){ cur=0; SLIDES.forEach(function(_,i){
     document.getElementById('sl'+i).classList.toggle('on', i===0); resetLines(i); }); });
   track.onclick=function(e){ var r=track.getBoundingClientRect();
@@ -177,14 +203,19 @@
   // tapping one pops up its Arabic + brief English gloss. Tap again / tap away closes. ──
   var VOCAB = {"avogadro's number":{"t":"Avogadro's Number","ar":"رقم أفوجادرو","def":"The number of entities (atoms, molecules, ions, etc.) in one mole of a substance, equal to 6.022 x 10^23."},"mole":{"t":"Mole","ar":"المول","def":"The unit of measurement in chemistry that represents a quantity of 6.022 x 10^23 entities (atoms, molecules, ions, etc.), known as Avogadro's number."},"mass":{"t":"Mass","ar":"الكتلة","def":"The amount of matter in an object. SI unit: kilogram (kg). Measured with a balance. Mass is a scalar quantity that does not change with location (unlike weight, which depends on gravitational field strength). In chemistry, g and kg are most common."}};
   var vpop = document.getElementById('vocabPopup'), vKey = '';
-  function hideVocab(){ vpop.classList.add('hidden'); vKey=''; }
+  function hideVocab(){ if(!vpop) return; vpop.classList.add('hidden'); vKey=''; }   // null-safe: applyTheme(?ar=0) can fire before vpop is assigned
   function showVocab(el){ var key=el.getAttribute('data-vocab-key'), e=VOCAB[key];
     if(!e){ return; }
     if(!vpop.classList.contains('hidden') && vKey===key){ hideVocab(); return; }  // tap same term toggles off
     vKey=key;
     vpop.querySelector('.vocab-term-title').textContent=e.t||key;                 // exact term casing (pH, pOH, NaCl)
-    var ar=vpop.querySelector('.vocab-arabic'); ar.textContent=e.ar||''; ar.style.display=e.ar?'':'none';
+    // AR_ON mirrors the host app's Arabic-features master toggle (?ar= / {__viz,arabicOn}):
+    // a student who switched Arabic OFF must not see Arabic here either.
+    var ar=vpop.querySelector('.vocab-arabic'); ar.textContent=(e.ar&&AR_ON)?e.ar:''; ar.style.display=(e.ar&&AR_ON)?'':'none';
     vpop.querySelector('.vocab-def').textContent=e.def||'';
+    // report the tap up so the host feeds its Encountered Vocab self-test (parity with a flashcard tap)
+    if(AR_ON && e.ar && window.parent && window.parent!==window){
+      try{ window.parent.postMessage({ __vocabTap:true, key:key, term:e.t||key, ar:e.ar }, '*'); }catch(err){} }
     vpop.classList.remove('hidden'); vpop.style.visibility='hidden';              // measure off-screen, then place
     var r=el.getBoundingClientRect(), pw=vpop.offsetWidth, ph=vpop.offsetHeight;
     var left=Math.max(8, Math.min(r.left+r.width/2-pw/2, window.innerWidth-pw-8));
@@ -195,6 +226,34 @@
   document.addEventListener('click', function(e){ if(vpop.classList.contains('hidden')) return;
     if(e.target.closest && (e.target.closest('.vocab-term') || e.target.closest('.vocab-popup'))) return; hideVocab(); });
   window.addEventListener('resize', hideVocab);
+
+  // ── Draggable popup (mirrors the main app's vocab popup - pointerdown/move/up + a moved-threshold
+  // that tells a TAP from a DRAG apart). The outside-close listener above deliberately exempts a click
+  // on .vocab-popup (so it never fights a drag-in-progress); this is what makes a plain TAP on the
+  // popup close it instead - the "was not a drag" branch of pointerup below. A real drag (moved past
+  // the threshold) repositions the box and leaves it open. ──
+  var vDrag = { down:false, moved:false, sx:0, sy:0, sl:0, st:0 };
+  vpop.addEventListener('pointerdown', function(e){
+    vDrag.down = true; vDrag.moved = false;
+    vDrag.sx = e.clientX; vDrag.sy = e.clientY;
+    vDrag.sl = parseFloat(vpop.style.left) || 0; vDrag.st = parseFloat(vpop.style.top) || 0;
+    try{ vpop.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  document.addEventListener('pointermove', function(e){
+    if(!vDrag.down) return;
+    var dx=e.clientX-vDrag.sx, dy=e.clientY-vDrag.sy;
+    if(!vDrag.moved && Math.hypot(dx,dy)>5) vDrag.moved=true;
+    if(!vDrag.moved) return;
+    e.preventDefault();                                        // dragging: don't let the page scroll under the finger
+    var pw=vpop.offsetWidth, ph=vpop.offsetHeight;
+    var left=Math.max(8, Math.min(vDrag.sl+dx, window.innerWidth-pw-8));
+    var top=Math.max(8, Math.min(vDrag.st+dy, window.innerHeight-ph-8));
+    vpop.style.left=left+'px'; vpop.style.top=top+'px';
+  }, { passive:false });
+  function vDragEnd(){ if(!vDrag.down) return; vDrag.down=false;
+    if(!vDrag.moved) hideVocab(); }                              // a tap (no drag) on the popup closes it
+  document.addEventListener('pointerup', vDragEnd);
+  document.addEventListener('pointercancel', vDragEnd);
 })();
 </script>
 </body>

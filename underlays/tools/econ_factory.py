@@ -8,7 +8,7 @@ W,H=480,320; X0,Y0,X1,Y1=60,280,440,40   # axes frame: origin bottom-left
 def head(): return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}"><rect width="{W}" height="{H}" fill="#ffffff"/>'
 def axes(xl="Q",yl="P"):
     s=f'<line x1="{X0}" y1="{Y0}" x2="{X0}" y2="{Y1}" stroke="#333" stroke-width="2"/><line x1="{X0}" y1="{Y0}" x2="{X1}" y2="{Y0}" stroke="#333" stroke-width="2"/>'
-    s+=f'<text x="{(X0+X1)//2}" y="306" font-family="sans-serif" font-size="13" fill="#555" text-anchor="middle">{xl}</text>'
+    s+=f'<text x="{X1}" y="298" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end">{xl}</text>'
     s+=f'<text x="24" y="{(Y0+Y1)//2}" font-family="sans-serif" font-size="13" fill="#555" text-anchor="middle" transform="rotate(-90 24 {(Y0+Y1)//2})">{yl}</text>'
     return s
 def txt(x,y,t,size=14,fill="#333",anchor="middle",bold=False):
@@ -208,7 +208,8 @@ emit("u_econ_price_floor__labeled.svg", axes() + _demandQP(100) + _supplyQP(0) +
 dwl_poly = f'<polygon points="{sx(40)},{sy(60)} {sx(40)},{sy(40)} {sx(50)},{sy(50)}" fill="#6b7280" opacity="0.25"/>'
 tax_guides = ln(sx(40),Y0,sx(40),sy(60),"#999",1,"4 4") + ln(X0,sy(60),sx(40),sy(60),"#999",1,"4 4") + ln(X0,sy(40),sx(40),sy(40),"#999",1,"4 4")
 emit("u_econ_per_unit_tax__plain.svg", axes() + _demandQP(100) + _supplyQP(0) + _supplyQP(-20,"7 5"))
-emit("u_econ_per_unit_tax__labeled.svg", axes() + dwl_poly + _demandQP(100) + _supplyQP(0) + _supplyQP(-20,"7 5") + tax_guides + dotQP(40,60) + dotQP(40,40) + txtQP(12,96,"S+tax",13,"#b91c1c") + txtQP(90,90,"S",13,"#b91c1c") + txtQP(8,92,"D",13,"#1d4ed8") + txt(52,sy(60)+4,"Pb",12,"#333","end") + txt(52,sy(40)+4,"Ps",12,"#333","end") + txtQP(46,50,"DWL",12) + txt(sx(40),296,"Qt",12))
+dwl_leader = ln(sx(76),sy(15),sx(47),sy(49),"#999",1)   # leader from the open-space DWL label to the small triangle
+emit("u_econ_per_unit_tax__labeled.svg", axes() + dwl_poly + _demandQP(100) + _supplyQP(0) + _supplyQP(-20,"7 5") + tax_guides + dwl_leader + dotQP(40,60) + dotQP(40,40) + txtQP(52,80,"S+tax",12,"#b91c1c") + txtQP(90,90,"S",13,"#b91c1c") + txtQP(9,90,"D",13,"#1d4ed8") + txt(52,sy(60)+4,"Pb",12,"#333","end") + txt(52,sy(40)+4,"Ps",12,"#333","end") + txtQP(80,12,"DWL",11,"#555") + txt(sx(40),296,"Qt",12))
 
 # WAVE T: data-table family (compute-from-table; the corpus's biggest under-served category)
 emit("u_econ_marginal_utility_table__labeled.svg", table("Marginal Utility",["Units","Total Utility","Marginal Utility"],[["1","10","10"],["2","18","8"],["3","24","6"],["4","28","4"],["5","30","2"]]))
