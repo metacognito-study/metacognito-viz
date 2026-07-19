@@ -52,11 +52,11 @@
   @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } .pp:active{ transform:none; } .slide .ln{ opacity:1; transform:none; transition:none; } }
   /* clickable keyword glossary - dotted underline + tap popup, mirroring the flashcards */
   .vocab-term{ text-decoration:underline dotted; text-decoration-color:color-mix(in srgb, var(--indigo) 55%, var(--muted)); text-decoration-thickness:1.4px; text-underline-offset:2px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-  .vocab-popup{ position:fixed; z-index:50; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px; box-shadow:0 8px 28px rgba(0,0,0,.24); max-width:260px; min-width:150px; max-height:72vh; overflow-y:auto; overscroll-behavior:contain; }
+  .vocab-popup{ position:fixed; z-index:50; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px; box-shadow:0 8px 28px rgba(0,0,0,.24); max-width:260px; min-width:150px; max-height:72vh; overflow-y:auto; overscroll-behavior:contain; cursor:grab; touch-action:none; }
   .vocab-popup.hidden{ display:none; }
   .vocab-term-title{ font-weight:800; font-size:14px; color:var(--ink); margin-bottom:5px; }
   .vocab-arabic{ font-size:19px; color:var(--indigo); direction:rtl; text-align:right; margin-bottom:5px; font-weight:600; line-height:1.5; }
-  .vocab-def{ font-size:12.5px; color:var(--muted); line-height:1.45; overflow-wrap:break-word; }
+  .vocab-def{ font-size:12.5px; color:var(--muted); line-height:1.45; overflow-wrap:break-word; touch-action:pan-y; }   /* allow scrolling a long def while the box stays draggable, mirrors the main app's .vocab-popup.draggable .vocab-def rule */
 </style>
 </head>
 <body>
@@ -226,6 +226,34 @@
   document.addEventListener('click', function(e){ if(vpop.classList.contains('hidden')) return;
     if(e.target.closest && (e.target.closest('.vocab-term') || e.target.closest('.vocab-popup'))) return; hideVocab(); });
   window.addEventListener('resize', hideVocab);
+
+  // ── Draggable popup (mirrors the main app's vocab popup - pointerdown/move/up + a moved-threshold
+  // that tells a TAP from a DRAG apart). The outside-close listener above deliberately exempts a click
+  // on .vocab-popup (so it never fights a drag-in-progress); this is what makes a plain TAP on the
+  // popup close it instead - the "was not a drag" branch of pointerup below. A real drag (moved past
+  // the threshold) repositions the box and leaves it open. ──
+  var vDrag = { down:false, moved:false, sx:0, sy:0, sl:0, st:0 };
+  vpop.addEventListener('pointerdown', function(e){
+    vDrag.down = true; vDrag.moved = false;
+    vDrag.sx = e.clientX; vDrag.sy = e.clientY;
+    vDrag.sl = parseFloat(vpop.style.left) || 0; vDrag.st = parseFloat(vpop.style.top) || 0;
+    try{ vpop.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  document.addEventListener('pointermove', function(e){
+    if(!vDrag.down) return;
+    var dx=e.clientX-vDrag.sx, dy=e.clientY-vDrag.sy;
+    if(!vDrag.moved && Math.hypot(dx,dy)>5) vDrag.moved=true;
+    if(!vDrag.moved) return;
+    e.preventDefault();                                        // dragging: don't let the page scroll under the finger
+    var pw=vpop.offsetWidth, ph=vpop.offsetHeight;
+    var left=Math.max(8, Math.min(vDrag.sl+dx, window.innerWidth-pw-8));
+    var top=Math.max(8, Math.min(vDrag.st+dy, window.innerHeight-ph-8));
+    vpop.style.left=left+'px'; vpop.style.top=top+'px';
+  }, { passive:false });
+  function vDragEnd(){ if(!vDrag.down) return; vDrag.down=false;
+    if(!vDrag.moved) hideVocab(); }                              // a tap (no drag) on the popup closes it
+  document.addEventListener('pointerup', vDragEnd);
+  document.addEventListener('pointercancel', vDragEnd);
 })();
 </script>
 </body>
