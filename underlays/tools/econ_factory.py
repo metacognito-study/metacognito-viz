@@ -275,6 +275,51 @@ def firm_market(labeled=True):
     return b
 OUT["u_econ_perfect_comp_firm_market__labeled.svg"]=firm_market(True)
 OUT["u_econ_perfect_comp_firm_market__plain.svg"]=firm_market(False)
+# WAVE O: cost curves standalone. Consistent model: AVC=18+0.3(q-8)^2 (min q=8), AFC=130/q (hyperbola),
+# ATC=AVC+AFC (min ~q=10.4, RIGHT of AVC min), MC=18+0.3(q-8)^2+0.6q(q-8) crosses AVC & ATC at their minima.
+def cost_curves(labeled=True):
+    qx=lambda q:sx(q*5)   # q 0..20 -> Q 0..100
+    AVC=lambda q:18+0.3*(q-8)**2; AFC=lambda q:130.0/q; ATC=lambda q:AVC(q)+AFC(q)
+    MC=lambda q:18+0.3*(q-8)**2+0.6*q*(q-8)
+    def cv(fn,color,q0,q1):
+        pts=[]; q=q0
+        while q<=q1+1e-6:
+            p=fn(q)
+            if 2<=p<=99: pts.append(f"{qx(q)},{sy(p)}")
+            q+=0.5
+        return f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" stroke-width="2.2"/>'
+    b=axes("Q","$")+cv(AFC,"#94a3b8",3,20)+cv(AVC,"#f59e0b",3,20)+cv(ATC,"#0f766e",3,20)+cv(MC,"#b91c1c",4,15)
+    if labeled:
+        b+=dot(qx(8),sy(AVC(8)))+dot(qx(10.4),sy(ATC(10.4)))
+        b+=txt(qx(14.5)+3,sy(MC(14.5)),"MC",11,"#b91c1c","start")+txt(qx(19)+2,sy(ATC(19)),"ATC",11,"#0f766e","start")+txt(qx(19)+2,sy(AVC(19))+4,"AVC",11,"#f59e0b","start")+txt(qx(18)+2,sy(AFC(18))+4,"AFC",11,"#94a3b8","start")
+    return b
+OUT["u_econ_cost_curves__labeled.svg"]=head()+cost_curves(True)+tail()
+OUT["u_econ_cost_curves__plain.svg"]=head()+cost_curves(False)+tail()
+# WAVE O: monopolistic competition LONG-RUN (tangency). D tangent to ATC at q*=7 -> P=ATC=zero profit;
+# MR=MC at that same q*. ATC=40+0.4(q-10)^2 (min q=10); D=60.4-2.4q (tangent at (7,43.6)); MR=60.4-4.8q;
+# MC=4.4q-4 (through the tangency's MR=MC point (7,26.8) and the ATC min (10,40)).
+def monop_comp(labeled=True):
+    qx=lambda q:sx(q*4)   # q 0..25 -> Q 0..100
+    ATC=lambda q:40+0.4*(q-10)**2; D=lambda q:60.4-2.4*q; MR=lambda q:60.4-4.8*q; MC=lambda q:4.4*q-4
+    def cv(fn,color,q0,q1,w=2.4):
+        pts=[]; q=q0
+        while q<=q1+1e-6:
+            p=fn(q)
+            if 1<=p<=99: pts.append(f"{qx(q)},{sy(p)}")
+            q+=0.5
+        return f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" stroke-width="{w}"/>'
+    b=axes("Q","$")+cv(ATC,"#0f766e",3,17)
+    b+=f'<line x1="{qx(0)}" y1="{sy(D(0))}" x2="{qx(24)}" y2="{sy(D(24))}" stroke="#1d4ed8" stroke-width="2.4"/>'
+    b+=f'<line x1="{qx(0)}" y1="{sy(MR(0))}" x2="{qx(12)}" y2="{sy(MR(12))}" stroke="#60a5fa" stroke-width="2"/>'
+    b+=cv(MC,"#b91c1c",2,16)
+    if labeled:
+        b+=ln(qx(7),Y0,qx(7),sy(43.6),"#999",1,"4 4")+dot(qx(7),sy(43.6))+dot(qx(7),sy(26.8))
+        b+=txt(48,sy(43.6)+4,"P=ATC",10,"#333","end")+txt(qx(7),296,"q*",11)
+        b+=txt(qx(20)+3,sy(D(20)),"D",11,"#1d4ed8","start")+txt(qx(9.7)+2,sy(MR(9.7)),"MR",11,"#60a5fa","start")+txt(qx(14.5)+3,sy(MC(14.5)),"MC",11,"#b91c1c","start")+txt(qx(15.5)+3,sy(ATC(15.5)),"ATC",11,"#0f766e","start")
+        b+=txt(qx(1.5),sy(93),"LR equilibrium: P = ATC (zero profit)",10,"#0f766e","start")
+    return b
+OUT["u_econ_monopolistic_comp__labeled.svg"]=head()+monop_comp(True)+tail()
+OUT["u_econ_monopolistic_comp__plain.svg"]=head()+monop_comp(False)+tail()
 # write + validate
 os.makedirs(".",exist_ok=True); n=0
 for name,svg in OUT.items():
