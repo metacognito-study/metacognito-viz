@@ -3735,6 +3735,54 @@
       "serves": [],
       "batch": "finalbind_20260720",
       "stem_verified": true
+    },
+    {
+      "sheet": "chem",
+      "row": 268,
+      "exIdx": null,
+      "asset": "u_chem_mass_spectrum__labeled.svg",
+      "mode": "both",
+      "what": "mass spectrum bar chart (Cl: m/z 35 ≈75%, m/z 37 ≈25%); axes m/z vs relative abundance",
+      "answer_leak_check": "labeled ref; plain pad-underlay for axis-draw",
+      "serves": [],
+      "batch": "chem_graphs4_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "chem",
+      "row": 973,
+      "exIdx": null,
+      "asset": "u_chem_arrhenius__labeled.svg",
+      "mode": "example-image",
+      "what": "Arrhenius plot ln k vs 1/T: slope=-Ea/R, intercept=ln A (steeper = higher Ea)",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "chem_graphs4_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "chem",
+      "row": 923,
+      "exIdx": null,
+      "asset": "u_chem_solubility_curve__labeled.svg",
+      "mode": "example-image",
+      "what": "solubility vs temperature: KNO3 steep-up (endo), NaCl flat, Ca(OH)2 down (exo)",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "chem_graphs4_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "chem",
+      "row": 1615,
+      "exIdx": null,
+      "asset": "u_chem_galvanic_cell__labeled.svg",
+      "mode": "example-image",
+      "what": "Zn-Cu galvanic cell: Zn anode(-)/oxidation, Cu cathode(+)/reduction, salt bridge, e- anode→cathode",
+      "answer_leak_check": "labeled reference schematic",
+      "serves": [],
+      "batch": "chem_graphs4_20260720",
+      "stem_verified": true
     }
   ]
 }
