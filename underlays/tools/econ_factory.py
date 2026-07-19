@@ -161,15 +161,16 @@ emit("u_econ_phillips_sr_lr__plain.svg", axes("Unemployment","Inflation")+f'<pat
 def table(title,heads,rows,blanks=()):
     oy,ch=70,34
     n=len(heads); cw=min(130,(440-40)//n); ox=(W-n*cw)//2   # 07-19 fix: center + size to column count so wide (3-col) tables never overflow the 480 viewBox
+    fs=lambda t:(13 if len(str(t))*7<=cw-12 else max(9,int((cw-12)/(len(str(t))*0.6))))   # auto-shrink long cells to fit
     s=txt(240,48,title,14,bold=True)
     for c,htxt in enumerate(heads):
-        s+=f'<rect x="{ox+c*cw}" y="{oy}" width="{cw}" height="{ch}" fill="#f1f5f9" stroke="#333" stroke-width="1.2"/>'+txt(ox+c*cw+cw//2,oy+22,htxt,13,bold=True)
+        s+=f'<rect x="{ox+c*cw}" y="{oy}" width="{cw}" height="{ch}" fill="#f1f5f9" stroke="#333" stroke-width="1.2"/>'+txt(ox+c*cw+cw//2,oy+22,htxt,fs(htxt),bold=True)
     for r,row in enumerate(rows):
         for c,cell in enumerate(row):
             yy=oy+(r+1)*ch
             s+=f'<rect x="{ox+c*cw}" y="{yy}" width="{cw}" height="{ch}" fill="none" stroke="#333" stroke-width="1.2"/>'
             if (r,c) in blanks: s+=f'<rect x="{ox+c*cw+35}" y="{yy+7}" width="60" height="20" fill="none" stroke="#94a3b8" stroke-dasharray="5 4"/>'
-            else: s+=txt(ox+c*cw+cw//2,yy+22,cell,13)
+            else: s+=txt(ox+c*cw+cw//2,yy+22,cell,fs(cell))
     return s
 rows=[("$10","20"),("$8","40"),("$6","60"),("$4","80"),("$2","100")]
 emit("u_econ_demand_schedule_table__labeled.svg", table("Demand Schedule",("Price","Qd"),rows))
@@ -229,6 +230,51 @@ emit("u_econ_labor_market__labeled.svg", sd_relabel("Quantity of Labour","Wage",
 emit("u_econ_labor_market__plain.svg", axes("Quantity of Labour","Wage")+_demandQP(100)+_supplyQP(0))
 emit("u_econ_forex_market__labeled.svg", sd_relabel("Quantity of $","Exchange rate","D $","S $","e*","Q*"))
 emit("u_econ_forex_market__plain.svg", axes("Quantity of $","Exchange rate")+_demandQP(100)+_supplyQP(0))
+# WAVE R #1: perfect-competition FIRM + MARKET side-by-side (720-wide). Cost curves pass through the
+# AVC min (q=8) and ATC min (q=10); MC = 7q-20 runs through BOTH minima. Long-run: P = ATC min = 50 →
+# firm produces q*=10 where MC=P=ATC → ZERO economic profit. The #1 AP-Micro FRQ graph.
+def firm_market(labeled=True):
+    W2,H2,PT,PB=720,300,40,250
+    def py(P): return round(PT+(PB-PT)*(100-P)/100.0,1)
+    def frame(x0,x1,title):
+        s=f'<line x1="{x0}" y1="{PT}" x2="{x0}" y2="{PB}" stroke="#333" stroke-width="2"/><line x1="{x0}" y1="{PB}" x2="{x1}" y2="{PB}" stroke="#333" stroke-width="2"/>'
+        s+=f'<text x="{(x0+x1)/2}" y="28" font-family="sans-serif" font-size="13" font-weight="700" fill="#333" text-anchor="middle">{title}</text>'
+        s+=f'<text x="{x1}" y="{PB+15}" font-family="sans-serif" font-size="11" fill="#555" text-anchor="end">Q</text>'
+        s+=f'<text x="{x0-6}" y="{PT+2}" font-family="sans-serif" font-size="11" fill="#555" text-anchor="end">$</text>'
+        return s
+    def dash(x1,y1,x2,y2,col="#999",w=1): return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{col}" stroke-width="{w}" stroke-dasharray="4 4"/>'
+    def T(x,y,t,fill="#333",anc="middle",sz=11): return f'<text x="{x}" y="{y}" font-family="sans-serif" font-size="{sz}" fill="{fill}" text-anchor="{anc}">{t}</text>'
+    b=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W2} {H2}"><rect width="{W2}" height="{H2}" fill="#fff"/>'
+    # LEFT market panel
+    mx0,mx1=60,300
+    def mfx(Q): return round(mx0+(mx1-mx0)*Q/100.0,1)
+    b+=frame(mx0,mx1,"Market")
+    b+=f'<line x1="{mfx(2)}" y1="{py(98)}" x2="{mfx(97)}" y2="{py(3)}" stroke="#1d4ed8" stroke-width="2.5"/>'
+    b+=f'<line x1="{mfx(0)}" y1="{py(0)}" x2="{mfx(97)}" y2="{py(97)}" stroke="#b91c1c" stroke-width="2.5"/>'
+    if labeled:
+        b+=dash(mx0,py(50),mfx(50),py(50))+dash(mfx(50),py(50),mfx(50),PB)+f'<circle cx="{mfx(50)}" cy="{py(50)}" r="4" fill="#333"/>'
+        b+=T(mfx(9),py(93),"D","#1d4ed8")+T(mfx(90),py(93),"S","#b91c1c","end")+T(mx0-5,py(50)+4,"Pe","#333","end")+T(mfx(50),PB+15,"Qe")
+    # RIGHT firm panel
+    fx0,fx1=420,680
+    def ffx(q): return round(fx0+(fx1-fx0)*q/20.0,1)
+    b+=frame(fx0,fx1,"Firm")
+    AVC=lambda q:36+0.9*(q-8)**2; ATC=lambda q:50+0.9*(q-10)**2; MC=lambda q:7*q-20
+    def curve(fn,color,q0=3.5,q1=18.5):
+        pts=[]; q=q0
+        while q<=q1+1e-6: pts.append(f"{ffx(q)},{py(fn(q))}"); q+=0.5
+        return f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" stroke-width="2.2"/>'
+    b+=curve(AVC,"#f59e0b")+curve(ATC,"#0f766e")
+    b+=f'<line x1="{ffx(5)}" y1="{py(MC(5))}" x2="{ffx(16.5)}" y2="{py(MC(16.5))}" stroke="#b91c1c" stroke-width="2.2"/>'   # MC = 7q-20
+    b+=f'<line x1="{fx0}" y1="{py(50)}" x2="{fx1}" y2="{py(50)}" stroke="#1d4ed8" stroke-width="2"/>'   # P=MR=D at 50
+    if labeled:
+        b+=f'<circle cx="{ffx(10)}" cy="{py(50)}" r="4" fill="#333"/>'+dash(ffx(10),py(50),ffx(10),PB)
+        b+=T(ffx(10),PB+15,"q*")+T(fx1-2,py(50)-5,"P = MR = D","#1d4ed8","end")
+        b+=T(ffx(16.3)+4,py(MC(16.3)),"MC","#b91c1c","start")+T(ffx(15)+6,py(ATC(15)),"ATC","#0f766e","start")+T(ffx(12.5)+6,py(AVC(12.5))+2,"AVC","#f59e0b","start")
+    b+=dash(mfx(50),py(50),fx0,py(50),"#cbd5e1",1)   # "firm takes the market price" connector
+    b+='</svg>'
+    return b
+OUT["u_econ_perfect_comp_firm_market__labeled.svg"]=firm_market(True)
+OUT["u_econ_perfect_comp_firm_market__plain.svg"]=firm_market(False)
 # write + validate
 os.makedirs(".",exist_ok=True); n=0
 for name,svg in OUT.items():

@@ -46,15 +46,16 @@ def clabel(kind,ab,name,color):
     Q,P=supply_top(ab); return txt(sx(Q)-14,sy(P)+3,name,13,color,"end")
 def table(title,heads,rows,blanks=()):
     oy,ch=70,34; n=len(heads); cw=min(130,(440-40)//n); ox=(W-n*cw)//2
+    fs=lambda t:(13 if len(str(t))*7<=cw-12 else max(9,int((cw-12)/(len(str(t))*0.6))))   # auto-shrink long cells to fit
     s=txt(240,48,title,14,bold=True)
     for c,htxt in enumerate(heads):
-        s+=f'<rect x="{ox+c*cw}" y="{oy}" width="{cw}" height="{ch}" fill="#f1f5f9" stroke="#333" stroke-width="1.2"/>'+txt(ox+c*cw+cw//2,oy+22,htxt,13,bold=True)
+        s+=f'<rect x="{ox+c*cw}" y="{oy}" width="{cw}" height="{ch}" fill="#f1f5f9" stroke="#333" stroke-width="1.2"/>'+txt(ox+c*cw+cw//2,oy+22,htxt,fs(htxt),bold=True)
     for r,row in enumerate(rows):
         for c,cell in enumerate(row):
             yy=oy+(r+1)*ch
             s+=f'<rect x="{ox+c*cw}" y="{yy}" width="{cw}" height="{ch}" fill="none" stroke="#333" stroke-width="1.2"/>'
             if (r,c) in blanks: s+=f'<rect x="{ox+c*cw+35}" y="{yy+7}" width="60" height="20" fill="none" stroke="#94a3b8" stroke-dasharray="5 4"/>'
-            else: s+=txt(ox+c*cw+cw//2,yy+22,cell,13)
+            else: s+=txt(ox+c*cw+cw//2,yy+22,cell,fs(cell))
     return s
 def save(name,body):
     """Wrap body in the SVG frame, validate XML, write to underlays/. Raises on malformed XML."""
