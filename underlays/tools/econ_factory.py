@@ -26,8 +26,29 @@ D=(80,80,400,260); S=(80,260,400,80)   # demand: high-left->low-right (x1,y1,x2,
 def demand(off=0,dash=None,color="#1d4ed8"): return ln(D[0]+off,D[1],D[2]+off,D[3],color,2.5,dash)
 def supply(off=0,dash=None,color="#b91c1c"): return ln(S[0]+off,S[1],S[2]+off,S[3],color,2.5,dash)
 def eq(off_d=0,off_s=0):
-    x=(240+(off_d+off_s)/2); y=170+(off_s-off_d)/2   # midpoint eq of the two lines given symmetric slopes
+    x=(240+(off_d+off_s)/2); y=170+(off_s-off_d)/2   # LEGACY approximation; superseded by the QP model below
     return x,y
+# ── Economic-coordinate model (07-19 fix, Ibrahim feedback): Q,P in [0,100]; SUPPLY PASSES THROUGH
+# THE ORIGIN (60,280); every equilibrium dot is the EXACT algebraic line intersection, no guess. ──
+QX0,QX1,PY0,PY1 = 60,430,280,54            # screen anchors: (Q=0,P=0) == axis origin corner
+def sx(Q): return round(QX0+(QX1-QX0)*Q/100.0,1)
+def sy(P): return round(PY0+(PY1-PY0)*P/100.0,1)
+def lnQP(Q1,P1,Q2,P2,color,w=2.5,dash=None): return ln(sx(Q1),sy(P1),sx(Q2),sy(P2),color,w,dash)
+def dotQP(Q,P): return dot(sx(Q),sy(P))
+def guideQP(Q,P): return ln(QX0,sy(P),sx(Q),sy(P),"#999",1,"4 4")+ln(sx(Q),sy(P),sx(Q),PY0,"#999",1,"4 4")
+def txtQP(Q,P,t,size=13,fill="#333",anchor="middle",bold=False): return txt(sx(Q),sy(P),t,size,fill,anchor,bold)
+BOX=(0,97,0,98)                            # visible clip window (Qmin,Qmax,Pmin,Pmax)
+def _demandQP(a,dash=None,color="#1d4ed8"):   # P = a - Q  (a=100+shift). Downward.
+    qlo=max(BOX[0],a-BOX[3]); qhi=min(BOX[1],a-BOX[2]); return lnQP(qlo,a-qlo,qhi,a-qhi,color,2.5,dash)
+def _supplyQP(b,dash=None,color="#b91c1c"):   # P = Q - b  (b=shift; b=0 => through origin). Upward.
+    qlo=max(BOX[0],BOX[2]+b); qhi=min(BOX[1],BOX[3]+b); return lnQP(qlo,qlo-b,qhi,qhi-b,color,2.5,dash)
+def eqQP(dsh=0,ssh=0):                      # D:P=100+dsh-Q  S:P=Q-ssh  -> exact intersection
+    Q=(100+dsh+ssh)/2.0; return Q, Q-ssh
+def demand_top(a): qlo=max(BOX[0],a-BOX[3]); return qlo, a-qlo   # top (high-P) end of a demand curve
+def supply_top(b): qhi=min(BOX[1],BOX[3]+b); return qhi, qhi-b   # top end of a supply curve
+def clabel(kind,ab,name,color):            # place a curve label just past its top endpoint
+    if kind=='D': Q,P=demand_top(ab); return txt(sx(Q)+14,sy(P)+3,name,13,color,"start")
+    Q,P=supply_top(ab); return txt(sx(Q)-14,sy(P)+3,name,13,color,"end")
 def grid():
     s=''
     for gx in range(X0+38,X1,38): s+=ln(gx,Y1,gx,Y0,"#e2e8f0",1)
@@ -37,28 +58,38 @@ def tail(): return '</svg>'
 OUT={}
 def emit(name,body): OUT[name]=head()+body+tail()
 
-# F1 supply-demand core
-b=axes()+demand()+supply(); x,y=eq()
-emit("u_econ_sd_equilibrium__plain.svg", b)
-emit("u_econ_sd_equilibrium__labeled.svg", b+dot(x,y)+guide(x,y)+txt(90,75,"D",14,"#1d4ed8")+txt(90,275,"S",14,"#b91c1c")+txt(52,y+4,"Pe",12,"#333","end")+txt(x,296,"Qe",12))
-g=axes()+grid()+ln(80,70,400,250,"#1d4ed8",2.5)+ln(80,250,400,70,"#b91c1c",2.5)
-emit("u_econ_sd_numeric_grid__plain.svg", g)
-lab=g+dot(240,160)+guide(240,160)
-for i,p in enumerate(range(12,0,-2)): lab+=txt(50,Y0-(i+0)*40+4 if False else Y0-((i)*40)+4,"",1)   # skip fancy ticks
-prices=[("$12",40),("$9",100),("$6",160),("$3",220)]
-for t,yy in prices: lab+=txt(50,yy+4,t,11,"#333","end")
-qs=[("30",150),("60",240),("90",330)]
-for t,xx in qs: lab+=txt(xx,296,t,11)
-emit("u_econ_sd_numeric_grid__labeled.svg", lab+txt(90,75,"D",14,"#1d4ed8")+txt(90,275,"S",14,"#b91c1c"))
-for slug,dd,ss,dl in [("demand_shift_right",55,0,"D1→D2 right"),("demand_shift_left",-55,0,"D1→D2 left"),("supply_shift_right",0,55,"S1→S2 right"),("supply_shift_left",0,-55,"S1→S2 left")]:
-    base=axes()+demand()+supply()
-    shifted = demand(dd,"7 5") if dd else supply(ss,"7 5")
-    x2,y2=eq(dd,ss); x1,y1=eq()
-    ar = arrow(240+(15 if (dd>0 or ss>0) else -15),165,240+(45 if (dd>0 or ss>0) else -45),165)
-    emit(f"u_econ_{slug}__plain.svg", base)   # plain = curves only, student draws the shift
-    labl=("D1" if dd else "S1", "D2" if dd else "S2")
-    col="#1d4ed8" if dd else "#b91c1c"
-    emit(f"u_econ_{slug}__labeled.svg", base+shifted+ar+dot(x1,y1)+dot(x2,y2)+guide(x2,y2)+txt(90,75 if dd else 275,labl[0],13,col)+txt(90+(dd or ss),(75 if dd else 275),labl[1],13,col))
+# F1 supply-demand core (supply through origin; exact equilibrium dot)
+def sd_base(): return axes()+_demandQP(100)+_supplyQP(0)
+Qe,Pe=eqQP()
+emit("u_econ_sd_equilibrium__plain.svg", sd_base())
+emit("u_econ_sd_equilibrium__labeled.svg", sd_base()+dotQP(Qe,Pe)+guideQP(Qe,Pe)
+     +clabel('D',100,"D","#1d4ed8")+clabel('S',0,"S","#b91c1c")
+     +txt(52,sy(Pe)+4,"Pe",12,"#333","end")+txt(sx(Qe)+15,294,"Qe",12,"#333","start"))
+# numeric gridded S&D: read exact values off the grid ($=P/5, Q 1:1); eq (50,50) -> $10, 50 units
+def num_grid():
+    s=''
+    for Q in (25,50,75): s+=ln(sx(Q),PY1,sx(Q),PY0,"#e2e8f0",1)
+    for P in (25,50,75): s+=ln(QX0,sy(P),QX1,sy(P),"#e2e8f0",1)
+    return s
+gp=axes()+num_grid()+_demandQP(100)+_supplyQP(0)
+emit("u_econ_sd_numeric_grid__plain.svg", gp)
+labg=gp+dotQP(50,50)+guideQP(50,50)
+for P,t in ((25,"$5"),(50,"$10"),(75,"$15")): labg+=txt(52,sy(P)+4,t,11,"#333","end")
+for Q,t in ((25,"25"),(50,"50"),(75,"75")): labg+=txt(sx(Q),296,t,11)
+emit("u_econ_sd_numeric_grid__labeled.svg", labg+clabel('D',100,"D","#1d4ed8")+clabel('S',0,"S","#b91c1c"))
+# shifts: EXACT new-eq dot at the true intersection; dashed shifted curve + direction arrow
+for slug,dsh,ssh in [("demand_shift_right",15,0),("demand_shift_left",-15,0),("supply_shift_right",0,15),("supply_shift_left",0,-15)]:
+    base=sd_base()
+    if dsh: shifted=_demandQP(100+dsh,"7 5"); c="#1d4ed8"; names=("D1","D2"); labs=clabel('D',100,"D1",c)+clabel('D',100+dsh,"D2",c)
+    else:   shifted=_supplyQP(ssh,"7 5");     c="#b91c1c"; names=("S1","S2"); labs=clabel('S',0,"S1",c)+clabel('S',ssh,"S2",c)
+    Q1,P1=eqQP(); Q2,P2=eqQP(dsh,ssh)
+    Pa=75 if dsh else 25                       # arrow band: upper for D, lower for S
+    qb=(100-Pa) if dsh else Pa                 # base-curve Q at Pa
+    qs=(100+dsh-Pa) if dsh else (Pa+ssh)       # shifted-curve Q at Pa
+    d=1 if (dsh>0 or ssh>0) else -1
+    ar=arrow(sx(qb)+d*4,sy(Pa),sx(qs)-d*4,sy(Pa))
+    emit(f"u_econ_{slug}__plain.svg", base)     # plain = original curves only; student draws the shift + new eq
+    emit(f"u_econ_{slug}__labeled.svg", base+shifted+ar+dotQP(Q1,P1)+dotQP(Q2,P2)+guideQP(Q2,P2)+labs)
 # F4 payoff matrix
 def payoff(blank=False):
     ox,oy,cw,ch=150,90,120,70
@@ -115,8 +146,9 @@ emit("u_econ_inflationary_gap__labeled.svg", adas("inflationary",True))
 mm=axes("Q of Money","Nominal r")+ln(240,Y0,240,Y1,"#b91c1c",2.5)+ln(80,80,400,260,"#1d4ed8",2.5)
 emit("u_econ_money_market__plain.svg", axes("Q of Money","Nominal r")+ln(240,Y0,240,Y1,"#b91c1c",2.5)+ln(80,80,400,260,"#1d4ed8",2.5))
 emit("u_econ_money_market__labeled.svg", mm+txt(240,34,"MS",12,"#b91c1c")+txt(90,75,"MD",13,"#1d4ed8")+dot(240,170)+ln(X0,170,240,170,"#999",1,"4 4")+txt(52,174,"r*",12,"#333","end"))
-lf=axes("Q of Loanable Funds","Real r")+demand()+supply()
-emit("u_econ_loanable_funds__labeled.svg", lf+txt(90,75,"D (borrowers)",11,"#1d4ed8","start")+txt(90,275,"S (savers)",11,"#b91c1c","start")+dot(240,170)+guide(240,170)+txt(52,174,"r*",12,"#333","end"))
+lf=axes("Q of Loanable Funds","Real r")+_demandQP(100)+_supplyQP(0)
+Qlf,Plf=eqQP()
+emit("u_econ_loanable_funds__labeled.svg", lf+dotQP(Qlf,Plf)+guideQP(Qlf,Plf)+clabel('D',100,"D (borrowers)","#1d4ed8")+clabel('S',0,"S (savers)","#b91c1c")+txt(52,sy(Plf)+4,"r*",12,"#333","end"))
 ph=axes("Unemployment","Inflation")+f'<path d="M 100 70 Q 170 220 400 250" fill="none" stroke="#1d4ed8" stroke-width="2.5"/>'+ln(220,Y0,220,Y1,"#7c3aed",2.5)
 emit("u_econ_phillips_sr_lr__labeled.svg", ph+txt(120,80,"SRPC",12,"#1d4ed8")+txt(220,34,"LRPC",12,"#7c3aed")+txt(220,296,"NRU",11))
 emit("u_econ_phillips_sr_lr__plain.svg", axes("Unemployment","Inflation")+f'<path d="M 100 70 Q 170 220 400 250" fill="none" stroke="#1d4ed8" stroke-width="2.5"/>'+ln(220,Y0,220,Y1,"#7c3aed",2.5))
