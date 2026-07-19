@@ -113,7 +113,12 @@ emit("u_econ_payoff_matrix_2x2__plain.svg", payoff(True))
 # F6 PPC bowed + linear
 ppc=f'<path d="M {X0} {Y1+30} Q {X0+240} {Y1+60} {X1-20} {Y0}" fill="none" stroke="#0f766e" stroke-width="2.5"/>'
 emit("u_econ_ppc_bowed__plain.svg", axes("Good X","Good Y")+ppc)
-emit("u_econ_ppc_bowed__labeled.svg", axes("Good X","Good Y")+ppc+dot(250,108)+txt(262,100,"A",13)+dot(360,190)+txt(372,182,"B",13)+dot(180,200)+txt(180,218,"C (inefficient)",12)+dot(390,90)+txt(392,78,"D (unattainable)",12))
+# A,B must sit EXACTLY ON the frontier (Bezier M60,70 Q300,100 420,280): points computed at t=0.35, 0.68.
+def _bz(t,p0,p1,p2): return (round((1-t)**2*p0[0]+2*t*(1-t)*p1[0]+t*t*p2[0],1),round((1-t)**2*p0[1]+2*t*(1-t)*p1[1]+t*t*p2[1],1))
+_A=_bz(0.35,(60,70),(300,100),(420,280)); _B=_bz(0.68,(60,70),(300,100),(420,280))
+emit("u_econ_ppc_bowed__labeled.svg", axes("Good X","Good Y")+ppc
+     +dot(*_A)+txt(_A[0]+12,_A[1]-6,"A",13)+dot(*_B)+txt(_B[0]+12,_B[1]-6,"B",13)
+     +dot(180,200)+txt(180,218,"C (inefficient)",12)+dot(390,90)+txt(392,78,"D (unattainable)",12))
 emit("u_econ_ppc_linear__plain.svg", axes("Good X","Good Y")+ln(X0,Y1+30,X1-20,Y0,"#0f766e",2.5))
 # F8 circular flow 2-sector
 def cflow(labeled):
