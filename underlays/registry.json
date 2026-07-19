@@ -3603,6 +3603,138 @@
       "serves": [],
       "batch": "chem_graphs3_20260720",
       "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 129,
+      "exIdx": null,
+      "asset": "u_econ_demand_shift_left__labeled.svg",
+      "mode": "both",
+      "what": "leftward demand shift (decrease in demand)",
+      "answer_leak_check": "labeled ref; plain pad-underlay for draw",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 140,
+      "exIdx": null,
+      "asset": "u_econ_supply_shift_left__labeled.svg",
+      "mode": "both",
+      "what": "leftward supply shift (decrease in supply / higher tax)",
+      "answer_leak_check": "labeled ref; plain pad-underlay for draw",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 255,
+      "exIdx": null,
+      "asset": "u_econ_tariff_trade__labeled.svg",
+      "mode": "example-image",
+      "what": "tariff on imports: Pw, Pw+tariff, domestic prod/consump, imports, DWL",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 518,
+      "exIdx": null,
+      "asset": "u_econ_natural_monopoly__labeled.svg",
+      "mode": "example-image",
+      "what": "natural monopoly: declining ATC over market range + regulated price",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 557,
+      "exIdx": null,
+      "asset": "u_econ_monopolistic_comp__labeled.svg",
+      "mode": "example-image",
+      "what": "monopolistic competition LR tangency (P=ATC, zero profit, excess capacity)",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 578,
+      "exIdx": null,
+      "asset": "u_econ_labor_market__labeled.svg",
+      "mode": "example-image",
+      "what": "labor market: MRP/labor demand vs labor supply → equilibrium wage",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 593,
+      "exIdx": null,
+      "asset": "u_econ_monopsony__labeled.svg",
+      "mode": "example-image",
+      "what": "monopsony: MCL above labor supply, hires where MRP=MCL, wage read off supply",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 617,
+      "exIdx": null,
+      "asset": "u_econ_bank_t_account__labeled.svg",
+      "mode": "example-image",
+      "what": "bank T-account: assets (reserves+loans) = liabilities (deposits)",
+      "answer_leak_check": "labeled reference table",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 666,
+      "exIdx": null,
+      "asset": "u_econ_consumption_saving_table__labeled.svg",
+      "mode": "example-image",
+      "what": "consumption/saving schedule illustrating MPC/MPS",
+      "answer_leak_check": "labeled reference table",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 672,
+      "exIdx": null,
+      "asset": "u_econ_inflationary_gap__labeled.svg",
+      "mode": "both",
+      "what": "AD/AS inflationary gap (Y>Yn) closed by contractionary AD-left",
+      "answer_leak_check": "labeled ref; plain pad-underlay for draw",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
+    },
+    {
+      "sheet": "chem",
+      "row": 996,
+      "exIdx": null,
+      "asset": "u_chem_concentration_time__labeled.svg",
+      "mode": "example-image",
+      "what": "concentration-vs-time decay; linear-plot/constant-half-life → reaction order",
+      "answer_leak_check": "labeled reference diagram",
+      "serves": [],
+      "batch": "finalbind_20260720",
+      "stem_verified": true
     }
   ]
 }
