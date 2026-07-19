@@ -154,7 +154,8 @@ emit("u_econ_phillips_sr_lr__labeled.svg", ph+txt(120,80,"SRPC",12,"#1d4ed8")+tx
 emit("u_econ_phillips_sr_lr__plain.svg", axes("Unemployment","Inflation")+f'<path d="M 100 70 Q 170 220 400 250" fill="none" stroke="#1d4ed8" stroke-width="2.5"/>'+ln(220,Y0,220,Y1,"#7c3aed",2.5))
 # F7 demand schedule table
 def table(title,heads,rows,blanks=()):
-    ox,oy,cw,ch=110,70,130,34
+    oy,ch=70,34
+    n=len(heads); cw=min(130,(440-40)//n); ox=(W-n*cw)//2   # 07-19 fix: center + size to column count so wide (3-col) tables never overflow the 480 viewBox
     s=txt(240,48,title,14,bold=True)
     for c,htxt in enumerate(heads):
         s+=f'<rect x="{ox+c*cw}" y="{oy}" width="{cw}" height="{ch}" fill="#f1f5f9" stroke="#333" stroke-width="1.2"/>'+txt(ox+c*cw+cw//2,oy+22,htxt,13,bold=True)
