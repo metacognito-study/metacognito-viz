@@ -188,6 +188,28 @@ emit("u_econ_monopoly__labeled.svg", mono
      +txt(sx(9),sy(94),"D",13,"#1d4ed8","start")+txtQP(45,13,"MR",13,"#60a5fa")+txtQP(84,60,"MC",13,"#b91c1c")
      +txt(sx(Qm),296,"Qm",12)+txt(52,sy(Pm)+4,"Pm",12,"#333","end")
      +txt(sx(Qm)+8,sy(Prc)+4,"MR=MC",10,"#666","start"))
+
+# CS & PS, Price Ceiling, Price Floor, Per-unit Tax
+cs_poly = f'<polygon points="{sx(0)},{sy(50)} {sx(0)},{sy(100)} {sx(50)},{sy(50)}" fill="#1d4ed8" opacity="0.18"/>'
+ps_poly = f'<polygon points="{sx(0)},{sy(0)} {sx(50)},{sy(50)} {sx(0)},{sy(50)}" fill="#b91c1c" opacity="0.18"/>'
+emit("u_econ_consumer_producer_surplus__plain.svg", axes() + _demandQP(100) + _supplyQP(0))
+emit("u_econ_consumer_producer_surplus__labeled.svg", axes() + cs_poly + ps_poly + _demandQP(100) + _supplyQP(0) + dotQP(50,50) + guideQP(50,50) + txtQP(18,72,"CS",13,"#1d4ed8") + txtQP(18,30,"PS",13,"#b91c1c") + txtQP(8,92,"D",13,"#1d4ed8") + txtQP(90,92,"S",13,"#b91c1c"))
+
+ceiling_line = lnQP(0,30,100,30,"#0f766e",2,"6 4")
+ceiling_guides = ln(sx(30),sy(30),sx(30),Y0,"#999",1,"4 4") + ln(sx(70),sy(30),sx(70),Y0,"#999",1,"4 4")
+emit("u_econ_price_ceiling__plain.svg", axes() + _demandQP(100) + _supplyQP(0) + ceiling_line)
+emit("u_econ_price_ceiling__labeled.svg", axes() + _demandQP(100) + _supplyQP(0) + ceiling_line + ceiling_guides + dotQP(30,30) + dotQP(70,30) + txtQP(85,34,"Price ceiling",12,"#0f766e") + txt(sx(30),296,"Qs",12) + txt(sx(70),296,"Qd",12) + txtQP(50,20,"Shortage",12) + txtQP(8,92,"D",13,"#1d4ed8") + txtQP(90,92,"S",13,"#b91c1c"))
+
+floor_line = lnQP(0,70,100,70,"#0f766e",2,"6 4")
+floor_guides = ln(sx(30),sy(70),sx(30),Y0,"#999",1,"4 4") + ln(sx(70),sy(70),sx(70),Y0,"#999",1,"4 4")
+emit("u_econ_price_floor__plain.svg", axes() + _demandQP(100) + _supplyQP(0) + floor_line)
+emit("u_econ_price_floor__labeled.svg", axes() + _demandQP(100) + _supplyQP(0) + floor_line + floor_guides + dotQP(30,70) + dotQP(70,70) + txtQP(85,74,"Price floor",12,"#0f766e") + txt(sx(30),296,"Qd",12) + txt(sx(70),296,"Qs",12) + txtQP(50,84,"Surplus",12) + txtQP(8,92,"D",13,"#1d4ed8") + txtQP(90,92,"S",13,"#b91c1c"))
+
+dwl_poly = f'<polygon points="{sx(40)},{sy(60)} {sx(40)},{sy(40)} {sx(50)},{sy(50)}" fill="#6b7280" opacity="0.25"/>'
+tax_guides = ln(sx(40),Y0,sx(40),sy(60),"#999",1,"4 4") + ln(X0,sy(60),sx(40),sy(60),"#999",1,"4 4") + ln(X0,sy(40),sx(40),sy(40),"#999",1,"4 4")
+emit("u_econ_per_unit_tax__plain.svg", axes() + _demandQP(100) + _supplyQP(0) + _supplyQP(-20,"7 5"))
+emit("u_econ_per_unit_tax__labeled.svg", axes() + dwl_poly + _demandQP(100) + _supplyQP(0) + _supplyQP(-20,"7 5") + tax_guides + dotQP(40,60) + dotQP(40,40) + txtQP(12,96,"S+tax",13,"#b91c1c") + txtQP(90,90,"S",13,"#b91c1c") + txtQP(8,92,"D",13,"#1d4ed8") + txt(52,sy(60)+4,"Pb",12,"#333","end") + txt(52,sy(40)+4,"Ps",12,"#333","end") + txtQP(46,50,"DWL",12) + txt(sx(40),296,"Qt",12))
+
 # WAVE T: data-table family (compute-from-table; the corpus's biggest under-served category)
 emit("u_econ_marginal_utility_table__labeled.svg", table("Marginal Utility",["Units","Total Utility","Marginal Utility"],[["1","10","10"],["2","18","8"],["3","24","6"],["4","28","4"],["5","30","2"]]))
 emit("u_econ_marginal_utility_table__plain.svg", table("Marginal Utility",["Units","Total Utility","Marginal Utility"],[["1","10","10"],["2","18","8"],["3","24","6"],["4","28","4"],["5","30","2"]],blanks=[(1,2),(2,2),(3,2)]))
