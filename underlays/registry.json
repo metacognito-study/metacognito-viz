@@ -3090,6 +3090,171 @@
    "serves": [],
    "batch": "macro_tables_ch23-24_20260720",
    "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 595,
+   "exIdx": null,
+   "asset": "u_econ_lorenz_curve__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 596,
+   "exIdx": null,
+   "asset": "u_econ_lorenz_curve__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 607,
+   "exIdx": null,
+   "asset": "u_econ_money_supply_components_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 612,
+   "exIdx": null,
+   "asset": "u_econ_bank_t_account__plain.svg",
+   "mode": "pad-underlay",
+   "answer_leak_check": "plain construct task",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 620,
+   "exIdx": null,
+   "asset": "u_econ_reserve_market__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 621,
+   "exIdx": null,
+   "asset": "u_econ_reserve_market__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 632,
+   "exIdx": null,
+   "asset": "u_econ_business_cycle__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 633,
+   "exIdx": null,
+   "asset": "u_econ_business_cycle__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 664,
+   "exIdx": null,
+   "asset": "u_econ_spending_multiplier_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 665,
+   "exIdx": null,
+   "asset": "u_econ_spending_multiplier_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 666,
+   "exIdx": null,
+   "asset": "u_econ_spending_multiplier_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 692,
+   "exIdx": null,
+   "asset": "u_econ_balance_of_payments_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 693,
+   "exIdx": null,
+   "asset": "u_econ_balance_of_payments_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 694,
+   "exIdx": null,
+   "asset": "u_econ_balance_of_payments_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
+  },
+  {
+   "sheet": "econ",
+   "row": 697,
+   "exIdx": null,
+   "asset": "u_econ_balance_of_payments_table__labeled.svg",
+   "mode": "example-image",
+   "answer_leak_check": "labeled view",
+   "serves": [],
+   "batch": "macro_ch20-35_20260720",
+   "stem_verified": true
   }
  ]
 }
