@@ -170,10 +170,18 @@ emit("u_econ_demand_schedule_table__labeled.svg", table("Demand Schedule",("Pric
 emit("u_econ_demand_schedule_table__plain.svg", table("Demand Schedule",("Price","Qd"),rows,blanks=((2,1),(4,1))))
 ca=[("Country A","4","2"),("Country B","1","1")]
 emit("u_econ_comparative_advantage_table__labeled.svg", table("Output per worker-hour",("","Wheat","Cloth"),ca))
-# monopoly (labeled only tonight — geometry needs care)
-mono=axes("Q","$")+ln(80,80,400,260,"#1d4ed8",2.5)+ln(80,80,300,300-20,"#60a5fa",2)+f'<path d="M 100 240 Q 200 150 380 60" fill="none" stroke="#b91c1c" stroke-width="2.5"/>'
-qm_x=205; mono+=ln(qm_x,Y0,qm_x,163,"#999",1,"4 4")+ln(X0,163,qm_x,163,"#999",1,"4 4")+dot(qm_x,163)
-emit("u_econ_monopoly__labeled.svg", mono+txt(90,75,"D",13,"#1d4ed8")+txt(255,268,"MR",12,"#60a5fa")+txt(360,66,"MC",12,"#b91c1c")+txt(qm_x,296,"Qm",12)+txt(52,167,"Pm",12,"#333","end"))
+# monopoly (QP model, exact construction): D:P=100-Q ; MR:P=100-2Q (twice the slope, same intercept,
+# hits x-axis at HALF demand's Q) ; MC:P=10+0.5Q upward. Qm at MR=MC (Q=36); PRICE READ UP TO DEMAND
+# (Pm=64), not to the MR=MC point (P=28) — the single most-tested monopoly idea.
+Qm,Pm,Prc = 36,64,28
+mono = axes("Q","$")+_demandQP(100)+lnQP(0,100,50,0,"#60a5fa",2)+lnQP(0,10,95,57.5,"#b91c1c",2.5)
+mono += ln(sx(Qm),PY0,sx(Qm),sy(Pm),"#999",1,"4 4")          # Qm vertical: x-axis -> MR=MC -> up to demand
+mono += ln(QX0,sy(Pm),sx(Qm),sy(Pm),"#999",1,"4 4")          # Pm horizontal to the $ axis
+mono += dot(sx(Qm),sy(Prc))+dotQP(Qm,Pm)                     # MR=MC point (lower) + price point ON demand (upper)
+emit("u_econ_monopoly__labeled.svg", mono
+     +txt(sx(9),sy(94),"D",13,"#1d4ed8","start")+txtQP(45,13,"MR",13,"#60a5fa")+txtQP(84,60,"MC",13,"#b91c1c")
+     +txt(sx(Qm),296,"Qm",12)+txt(52,sy(Pm)+4,"Pm",12,"#333","end")
+     +txt(sx(Qm)+8,sy(Prc)+4,"MR=MC",10,"#666","start"))
 # write + validate
 os.makedirs(".",exist_ok=True); n=0
 for name,svg in OUT.items():
