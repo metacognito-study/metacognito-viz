@@ -269,12 +269,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1070,
+      "row": 1059,
       "exIdx": 1,
       "asset": "u_1070_e1_mb_axes_blank.svg",
       "mode": "both",
       "what": "Blank M-B axes: x = molecular energy, y = fraction of molecules (labels given in cell text)",
-      "answer_leak_check": "PASS: no curves; T1/T2 peak positions not hinted",
+      "answer_leak_check": "blank M-B axes for 'draw a Maxwell-Boltzmann diagram' (1059); re-keyed from 1070 (enzymes - drift)",
       "serves": [
         {
           "sheet": "chem",
@@ -585,12 +585,12 @@
     },
     {
       "sheet": "econ",
-      "row": 79,
+      "row": 80,
       "exIdx": 4,
       "asset": "u_79_e4_econ_5sector_flow_skeleton.svg",
       "mode": "both",
       "what": "Five-sector circular-flow skeleton: u_74 core (Households/Firms/Product market/Factor market, paired connector lines) + Government/Financial sector/Foreign sector centre boxes with bare dashed connector stubs",
-      "answer_leak_check": "PASS: no arrowheads, no flow labels, no leakage/injection markings (savings/taxes/imports vs borrowing/G-spending/exports = the M80/M81 exercises), no colour coding; sector names are given in the cues",
+      "answer_leak_check": "PASS: no arrowheads, no flow labels, no leakage/injection markings (savings/taxes/imports vs borrowing/G-spending/exports = the M80/M81 exercises), no colour coding; sector names are given in the cues | re-keyed 79->80 (was on a section header)",
       "serves": [
         {
           "sheet": "econ",
@@ -719,12 +719,12 @@
     },
     {
       "sheet": "econ",
-      "row": 229,
+      "row": 230,
       "exIdx": 4,
       "asset": "u_229_e4_econ_laffer_axes.svg",
       "mode": "both",
       "what": "Blank Laffer axes: tax rate (0%-100% anchors) vs tax revenue, labels given in cue",
-      "answer_leak_check": "PASS: no curve, no peak marker, no rising/falling-portion labels, no Point A (drawing the inverted-U and placing A are the exercises)",
+      "answer_leak_check": "PASS: no curve, no peak marker, no rising/falling-portion labels, no Point A (drawing the inverted-U and placing A are the exercises) | re-keyed 229->230 (was on a section header)",
       "serves": [
         {
           "sheet": "econ",
@@ -849,12 +849,12 @@
     },
     {
       "sheet": "econ",
-      "row": 239,
+      "row": 243,
       "exIdx": 4,
       "asset": "u_239_e4_econ_world_price_import.svg",
       "mode": "both",
       "what": "Import-side world-price underlay: S+D named, dashed P_w line below equilibrium (P_w label only); family asset for the import/tariff/quota cluster; multi-panel cues (243/245/258) use it as the import panel and pair with u_241 for the export panel",
-      "answer_leak_check": "PASS: no Qs/Qd droplines, no import bracket, no equilibrium marks, no P_w+T tariff line, no surplus shading - every one of those is a cue exercise; P_w-below-equilibrium is the given import premise",
+      "answer_leak_check": "PASS: no Qs/Qd droplines, no import bracket, no equilibrium marks, no P_w+T tariff line, no surplus shading - every one of those is a cue exercise; P_w-below-equilibrium is the given import premise | re-keyed 239->243 (was on a section header)",
       "serves": [
         {
           "sheet": "econ",
