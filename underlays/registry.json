@@ -38,12 +38,12 @@
     },
     {
       "sheet": "chem",
-      "row": 334,
+      "row": 332,
       "exIdx": 1,
       "asset": "u_334_e1_nh3_yield_before_after.svg",
       "mode": "both",
       "what": "Before/After particulate panels for N2+3H2->2NH3: Before drawn with 4 N2 + 12 H2; After panel empty dashed (student draws the 50/75/100%-yield state)",
-      "answer_leak_check": "PASS: After panel contains zero particles; no NH3 drawn anywhere; no leftover counts hinted",
+      "answer_leak_check": "PASS: After panel contains zero particles; no NH3 drawn anywhere; no leftover counts hinted | re-keyed 334->332 (row drift)",
       "serves": [
         {
           "sheet": "chem",
@@ -59,22 +59,22 @@
     },
     {
       "sheet": "chem",
-      "row": 331,
+      "row": 333,
       "exIdx": 1,
       "asset": "u_331_e1_h2_o2_limiting_before_after.svg",
       "mode": "both",
       "what": "Before/After particulate panels for 2H2+O2->2H2O: Before drawn with 3 H2 + 2 O2; After empty dashed (student identifies limiting reactant and draws products + leftover)",
-      "answer_leak_check": "PASS: After panel empty; limiting reactant not marked; no H2O drawn",
+      "answer_leak_check": "PASS: After panel empty; limiting reactant not marked; no H2O drawn | re-keyed 331->333 (row drift)",
       "serves": []
     },
     {
       "sheet": "chem",
-      "row": 336,
+      "row": 335,
       "exIdx": 1,
       "asset": "u_336_e1_nh3_workback_after.svg",
       "mode": "both",
       "what": "Before/After panels: After drawn with 2 NH3 + 2 leftover H2 (as given in cell); Before empty dashed (student works backwards to initial N2/H2 counts)",
-      "answer_leak_check": "PASS: Before panel empty; initial counts (the answer) appear nowhere; After contents are verbatim the given state",
+      "answer_leak_check": "PASS: Before panel empty; initial counts (the answer) appear nowhere; After contents are verbatim the given state | re-keyed 336->335 (row drift)",
       "serves": []
     },
     {
@@ -115,32 +115,32 @@
     },
     {
       "sheet": "chem",
-      "row": 268,
+      "row": 269,
       "exIdx": null,
       "asset": "u_268_e1_mass_spec_cl_axes_unlabeled.svg",
       "mode": "pad-underlay",
       "what": "Cl mass spectrum: peaks at m/z 35 (75%) and 37 (25%), y scale 0-100, tick numbers shown; axis-label positions are blank '?' boxes",
-      "answer_leak_check": "PASS: no 'm/z' / 'relative abundance' axis text (that IS the task); peaks carry no isotope labels",
+      "answer_leak_check": "PASS: no 'm/z' / 'relative abundance' axis text (that IS the task); peaks carry no isotope labels | re-keyed 268->269 (row drift)",
       "serves": []
     },
     {
       "sheet": "chem",
-      "row": 275,
+      "row": 274,
       "exIdx": 1,
       "asset": "u_275_e1_mass_spec_br_missing_peak.svg",
       "mode": "both",
       "what": "Partial Br mass spectrum: peak at m/z 79 (~50%) drawn, axes labeled (given), tick mark at 81 with empty space",
-      "answer_leak_check": "PASS: no peak, ghost, or height hint at m/z 81 (drawing it is the exercise)",
+      "answer_leak_check": "PASS: no peak, ghost, or height hint at m/z 81 (drawing it is the exercise) | re-keyed 275->274 (row drift)",
       "serves": []
     },
     {
       "sheet": "chem",
-      "row": 278,
+      "row": 277,
       "exIdx": 1,
       "asset": "u_278_e1_mass_spec_blank_axes.svg",
       "mode": "both",
       "what": "Blank mass-spectrum axes (m/z vs relative abundance 0-100) with ticks at 35 and 37",
-      "answer_leak_check": "PASS: no peaks drawn; 3:1 ratio appears nowhere",
+      "answer_leak_check": "PASS: no peaks drawn; 3:1 ratio appears nowhere | re-keyed 278->277 (row drift)",
       "serves": []
     },
     {
@@ -575,12 +575,12 @@
     },
     {
       "sheet": "chem",
-      "row": 335,
+      "row": 334,
       "exIdx": 1,
       "asset": "u_335_e1_nh3_workback_4nh3.svg",
       "mode": "both",
       "what": "Before/After panels: After drawn with 4 NH3 and 0 leftover reactants (verbatim cell state); Before empty dashed (student works backwards to 2 N2 + 6 H2)",
-      "answer_leak_check": "PASS: Before panel empty; initial N2/H2 counts (the answer) appear nowhere; After contents verbatim the given state",
+      "answer_leak_check": "PASS: Before panel empty; initial N2/H2 counts (the answer) appear nowhere; After contents verbatim the given state | re-keyed 335->334 (row drift)",
       "serves": []
     },
     {
