@@ -207,12 +207,12 @@
     },
     {
       "sheet": "chem",
-      "row": 561,
+      "row": 555,
       "exIdx": 1,
       "asset": "u_561_e1_pe_axes_blank.svg",
       "mode": "both",
       "what": "Blank potential-energy vs reaction-coordinate axes",
-      "answer_leak_check": "PASS: no levels, humps, or dH arrows; endo/exo direction not hinted",
+      "answer_leak_check": "PASS: no levels, humps, or dH arrows; endo/exo direction not hinted | re-keyed 561->555 (drift; 2-lane consensus)",
       "serves": [
         {
           "sheet": "chem",
@@ -259,12 +259,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1132,
+      "row": 1081,
       "exIdx": 1,
       "asset": "u_1132_e1_equilib_approach_axes.svg",
       "mode": "both",
       "what": "Concentration-time axes with given starting points [N2]0=1.00, [H2]0=3.00, [NH3]0=0 and dashed guide at [NH3]eq=0.40 M; no curves",
-      "answer_leak_check": "PASS: consumed amounts (0.20/0.60 M) and final [N2]/[H2] guides NOT drawn - computing/drawing them is the task",
+      "answer_leak_check": "PASS: consumed amounts (0.20/0.60 M) and final [N2]/[H2] guides NOT drawn - computing/drawing them is the task | re-keyed 1132->1081 (drift; 2-lane consensus)",
       "serves": []
     },
     {
@@ -515,12 +515,12 @@
     },
     {
       "sheet": "chem",
-      "row": 635,
+      "row": 633,
       "exIdx": 1,
       "asset": "u_635_e1_pes_spectrum_label.svg",
       "mode": "both",
       "what": "PES spectrum with 3 unlabeled peaks (heights 2:2:3, decreasing-binding-energy layout); dashed '?' boxes at both axis-label positions and above each peak",
-      "answer_leak_check": "PASS: no subshell labels, no binding-energy numbers, no axis text ('label each peak with its subshell... label the axes' IS the task); left=high-BE ordering is convention the student must apply, not printed",
+      "answer_leak_check": "PASS: no subshell labels, no binding-energy numbers, no axis text ('label each peak with its subshell... label the axes' IS the task); left=high-BE ordering is convention the student must apply, not printed | re-keyed 635->633 (drift; 2-lane consensus)",
       "serves": []
     },
     {
@@ -637,12 +637,12 @@
     },
     {
       "sheet": "chem",
-      "row": 152,
+      "row": 154,
       "exIdx": 1,
       "asset": "u_152_e1_distillation_label.svg",
       "mode": "both",
       "what": "Distillation apparatus: heated round-bottom flask with liquid, thermometer in vapour path, sloped condenser with water jacket, conical collection flask with liquid; 5 dashed '?' boxes with leader lines (flask, heat source, thermometer, condenser, collection flask)",
-      "answer_leak_check": "PASS: no equipment names (row 154 name-the-5-pieces stays intact), no distillate/residue text, no boiling points, no which-component-first hint",
+      "answer_leak_check": "PASS: no equipment names (row 154 name-the-5-pieces stays intact), no distillate/residue text, no boiling points, no which-component-first hint | re-keyed 152->154 (drift; 2-lane consensus)",
       "serves": [
         {
           "sheet": "chem",
@@ -689,12 +689,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1529,
+      "row": 1520,
       "exIdx": 1,
       "asset": "u_1529_e1_heating_curve_axes.svg",
       "mode": "pad-underlay",
       "what": "Bare heating-curve axes with dashed '?' boxes at both axis-label slots (cell asks the student to label heat-added / temperature)",
-      "answer_leak_check": "PASS: no plateaus drawn, no temperature ticks (0/100 marks would leak plateau heights), no segment count hinted",
+      "answer_leak_check": "PASS: no plateaus drawn, no temperature ticks (0/100 marks would leak plateau heights), no segment count hinted | re-keyed 1529->1520 (drift; 2-lane consensus)",
       "serves": []
     },
     {
@@ -709,12 +709,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1086,
+      "row": 1080,
       "exIdx": 1,
       "asset": "u_1086_e1_conc_time_axes.svg",
       "mode": "pad-underlay",
       "what": "Blank [A]-vs-time axes, labels given verbatim from the cell hook",
-      "answer_leak_check": "PASS: no curves; which curve drops faster (the answer) not hinted",
+      "answer_leak_check": "PASS: no curves; which curve drops faster (the answer) not hinted | re-keyed 1086->1080 (drift; 2-lane consensus)",
       "serves": []
     },
     {
@@ -1331,12 +1331,12 @@
     },
     {
       "sheet": "chem",
-      "row": 643,
+      "row": 636,
       "exIdx": 1,
       "asset": "u_643_e1_absorption_spectrum_label.svg",
       "mode": "both",
       "what": "Single-peak absorption spectrum with dashed '?' boxes at the x-axis label, y-axis label, and lambda-max slot above the peak",
-      "answer_leak_check": "PASS: no wavelength/absorbance axis text and no lambda-max value ('label the x-axis, y-axis, and lambda-max' IS the task); no photon-absorption commentary",
+      "answer_leak_check": "PASS: no wavelength/absorbance axis text and no lambda-max value ('label the x-axis, y-axis, and lambda-max' IS the task); no photon-absorption commentary | re-keyed 643->636 (drift; 2-lane consensus)",
       "serves": []
     },
     {
@@ -3546,12 +3546,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1366,
+      "row": 1357,
       "exIdx": null,
       "asset": "u_chem_titration_weak__plain.svg",
       "mode": "both",
       "what": "weak-acid/strong-base titration curve (buffer plateau, half-equiv pH=pKa, equiv pH>7)",
-      "answer_leak_check": "unlabeled curve = the reading stimulus; pKa/equiv points are what the student must identify (labels withheld)",
+      "answer_leak_check": "unlabeled curve = the reading stimulus; pKa/equiv points are what the student must identify (labels withheld) | re-keyed 1366->1357 (drift; 2-lane consensus)",
       "serves": [],
       "batch": "chem_graphs3_20260720",
       "stem_verified": true
@@ -3777,18 +3777,6 @@
       "row": 672,
       "exIdx": null,
       "asset": "u_econ_ad_as_lras__plain.svg",
-      "mode": "pad-underlay",
-      "what": "blank pad scaffold (draw/sketch task)",
-      "answer_leak_check": "blank axes/structure only",
-      "serves": [],
-      "batch": "pedagogy_qa_20260720",
-      "stem_verified": true
-    },
-    {
-      "sheet": "chem",
-      "row": 701,
-      "exIdx": null,
-      "asset": "u_561_e1_pe_axes_blank.svg",
       "mode": "pad-underlay",
       "what": "blank pad scaffold (draw/sketch task)",
       "answer_leak_check": "blank axes/structure only",
