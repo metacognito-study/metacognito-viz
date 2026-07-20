@@ -243,12 +243,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1157,
+      "row": 1146,
       "exIdx": 1,
       "asset": "u_1157_e1_equilib_stressor_axes.svg",
       "mode": "both",
       "what": "Blank concentration-time axes for N2+3H2<=>2NH3 with dashed stressor markers at t=30 s (N2 added) and t=60 s (T increased, dH<0) - all given in cell",
-      "answer_leak_check": "PASS: no concentration curves before or after stressors; no arrows or shift-direction cues",
+      "answer_leak_check": "blank conc-time axes for 'sketch a graph with a stressor' (1146); re-keyed from 1157 (calc LO - drift)",
       "serves": [
         {
           "sheet": "chem",
