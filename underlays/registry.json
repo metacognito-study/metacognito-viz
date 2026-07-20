@@ -307,10 +307,10 @@
       "sheet": "econ",
       "row": 74,
       "exIdx": 4,
-      "asset": "u_74_e4_econ_circular_flow_skeleton.svg",
-      "mode": "both",
+      "asset": "u_econ_circular_flow_blank.svg",
+      "mode": "pad-underlay",
       "what": "4-box circular-flow skeleton (Households/Firms/Product market/Factor market) with paired connector lines, arrowheads omitted",
-      "answer_leak_check": "PASS: no arrowheads, no flow labels, no teal/amber money-vs-real colour coding (assigning direction + flows IS the exercise)",
+      "answer_leak_check": "MAX-CHALLENGE pad scaffold: empty positioned boxes + connectors, NO labels/arrowheads (student labels boxes AND draws+labels the flows)",
       "serves": [
         {
           "sheet": "econ",
@@ -2743,9 +2743,9 @@
       "sheet": "econ",
       "row": 74,
       "exIdx": null,
-      "asset": "u_74_e4_econ_circular_flow_skeleton.svg",
+      "asset": "u_econ_circular_flow_blank.svg",
       "mode": "pad-underlay",
-      "answer_leak_check": "pad scaffold: blank boxes + connectors, NO arrowheads/flow labels (student draws+labels the flows)",
+      "answer_leak_check": "MAX-CHALLENGE pad scaffold: empty positioned boxes + connectors, NO labels/arrowheads (student labels boxes AND draws+labels the flows)",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
       "stem_verified": true
@@ -2754,9 +2754,9 @@
       "sheet": "econ",
       "row": 76,
       "exIdx": null,
-      "asset": "u_74_e4_econ_circular_flow_skeleton.svg",
+      "asset": "u_econ_circular_flow_blank.svg",
       "mode": "pad-underlay",
-      "answer_leak_check": "pad scaffold: blank boxes + connectors, NO arrowheads/flow labels (student draws+labels the flows)",
+      "answer_leak_check": "MAX-CHALLENGE pad scaffold: empty positioned boxes + connectors, NO labels/arrowheads (student labels boxes AND draws+labels the flows)",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
       "stem_verified": true
