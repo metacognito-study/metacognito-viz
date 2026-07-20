@@ -208,7 +208,7 @@ emit("u_econ_price_floor__labeled.svg", axes() + _demandQP(100) + _supplyQP(0) +
 
 dwl_poly = f'<polygon points="{sx(40)},{sy(60)} {sx(40)},{sy(40)} {sx(50)},{sy(50)}" fill="#6b7280" opacity="0.25"/>'
 tax_guides = ln(sx(40),Y0,sx(40),sy(60),"#999",1,"4 4") + ln(X0,sy(60),sx(40),sy(60),"#999",1,"4 4") + ln(X0,sy(40),sx(40),sy(40),"#999",1,"4 4")
-emit("u_econ_per_unit_tax__plain.svg", axes() + _demandQP(100) + _supplyQP(0) + _supplyQP(-20,"7 5"))
+emit("u_econ_per_unit_tax__plain.svg", axes() + _demandQP(100) + _supplyQP(0))   # 07-20 QA: pad scaffold = pre-tax D+S ONLY; the S+tax shift is the answer the student must draw, so it stays out of the pad (kept on __labeled reference)
 dwl_leader = ln(sx(76),sy(15),sx(47),sy(49),"#999",1)   # leader from the open-space DWL label to the small triangle
 emit("u_econ_per_unit_tax__labeled.svg", axes() + dwl_poly + _demandQP(100) + _supplyQP(0) + _supplyQP(-20,"7 5") + tax_guides + dwl_leader + dotQP(40,60) + dotQP(40,40) + txtQP(52,80,"S+tax",12,"#b91c1c") + txtQP(90,90,"S",13,"#b91c1c") + txtQP(9,90,"D",13,"#1d4ed8") + txt(52,sy(60)+4,"Pb",12,"#333","end") + txt(52,sy(40)+4,"Ps",12,"#333","end") + txtQP(80,12,"DWL",11,"#555") + txt(sx(40),296,"Qt",12))
 

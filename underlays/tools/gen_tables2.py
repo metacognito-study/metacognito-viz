@@ -22,7 +22,7 @@ TABLES = [
             ["Reserves  $200", "Deposits  $1000"],
             ["Loans  $800", ""],
         ],
-        [(0, 0)],
+        [(0, 0), (1, 0)],   # 07-20 QA: blank BOTH Reserves and Loans in the pad scaffold - "construct the T-account" means the student computes both from Deposits $1000 + the reserve ratio; giving Loans $800 pre-filled leaked the harder half
     ),
     (
         "u_econ_money_supply_components_table",
