@@ -673,12 +673,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1405,
+      "row": 1394,
       "exIdx": 2,
       "asset": "u_1405_e2_titration_axes_blank.svg",
       "mode": "pad-underlay",
       "what": "Blank pH-vs-volume-of-titrant axes: pH ticks 0/7/14 with dashed neutral gridline at 7 only",
-      "answer_leak_check": "PASS: no curves, no equivalence or half-equivalence marks, no buffer-region shading; initial-pH and steepness differences (the Ka-comparison answers) not hinted",
+      "answer_leak_check": "PASS: no curves, no equivalence or half-equivalence marks, no buffer-region shading; initial-pH and steepness differences (the Ka-comparison answers) not hinted | re-keyed 1405->1394 (3-lane consensus)",
       "serves": [
         {
           "sheet": "chem",
@@ -829,12 +829,12 @@
     },
     {
       "sheet": "econ",
-      "row": 124,
+      "row": 123,
       "exIdx": 4,
       "asset": "u_124_e4_econ_table_to_graph.svg",
       "mode": "pad-underlay",
       "what": "Table-to-graph conversion scaffold: empty 4-column demand table (P / Qd A / Qd B / Market headers, structure cue-given) -> arrow -> blank mini P-Q axes",
-      "answer_leak_check": "PASS: no quantities, no summed market column values, no demand curve (horizontal summation is the exercise)",
+      "answer_leak_check": "PASS: no quantities, no summed market column values, no demand curve (horizontal summation is the exercise) | re-keyed 124->123 (3-lane consensus)",
       "serves": []
     },
     {
@@ -1433,12 +1433,12 @@
     },
     {
       "sheet": "chem",
-      "row": 1469,
+      "row": 1455,
       "exIdx": 1,
       "asset": "u_1469_e1_common_ion_axes.svg",
       "mode": "pad-underlay",
       "what": "Blank concentration-time axes for the BaSO4 common-ion sketch with a single y tick at the given 0.010 M",
-      "answer_leak_check": "PASS: no curves and deliberately NO dashed line across at 0.010 (a constant line would pre-draw the [Ba2+]-stays-flat half of the answer); no common-ion-effect label",
+      "answer_leak_check": "PASS: no curves and deliberately NO dashed line across at 0.010 (a constant line would pre-draw the [Ba2+]-stays-flat half of the answer); no common-ion-effect label | re-keyed 1469->1455 (3-lane consensus)",
       "serves": []
     },
     {
