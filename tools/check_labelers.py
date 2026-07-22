@@ -45,9 +45,25 @@ def distance_to_circle(px, py, cx, cy, r):
         return 0
     return d - r
 
+def _path_polygon_distance(px, py, path_data):
+    """Fallback when svgpathtools is unavailable: measure against the path's CONTROL POLYGON.
+    A quadratic/cubic control polygon hugs its curve closely, so this is a good approximation --
+    and vastly better than returning infinity, which silently marks every curve as blank ink."""
+    import re as _re
+    nums = [float(n) for n in _re.findall(r'-?\d+\.?\d*', path_data)]
+    pts = [(nums[i], nums[i+1]) for i in range(0, len(nums) - 1, 2)]
+    if not pts:
+        return float('inf')
+    best = float('inf')
+    for a, b in zip(pts, pts[1:]):
+        best = min(best, distance_to_line(px, py, a[0], a[1], b[0], b[1]))
+    for a in pts:
+        best = min(best, distance(px, py, a[0], a[1]))
+    return best
+
 def distance_to_path(px, py, path_data):
     if not HAS_SVGPATHTOOLS:
-        return float('inf')
+        return _path_polygon_distance(px, py, path_data)
     from svgpathtools import parse_path
     try:
         path = parse_path(path_data)
@@ -64,8 +80,23 @@ def distance_to_path(px, py, path_data):
             if d < min_d:
                 min_d = d
         return min_d
-    except:
-        return float('inf')
+    except Exception:
+        # FALLBACK: svgpathtools missing/unparseable -> sample the raw numbers in d= as points.
+        # Without this the ink test silently returns infinity and every curve reads as blank.
+        try:
+            import re as _re
+            nums=[float(n) for n in _re.findall(r'-?\d+\.?\d*', d_attr)]
+            best=float('inf')
+            pts=[(nums[i],nums[i+1]) for i in range(0,len(nums)-1,2)]
+            # measure along the control polygon, not just its vertices: a quadratic's control
+            # polygon hugs the curve, so segment distance approximates curve distance well
+            for a,b in zip(pts,pts[1:]):
+                best=min(best, distance_to_line(px,py,a[0],a[1],b[0],b[1]))
+            for a in pts:
+                best=min(best, distance(px,py,a[0],a[1]))
+            return best
+        except Exception:
+            return float('inf')
 
 def parse_float(val, default=0.0):
     try:
@@ -149,6 +180,7 @@ def main():
     # Find all _coords files
     coords_files = []
     for p in Path('.').rglob('*.json'):
+        if '_coords_WIP' in str(p): continue   # stale pre-fix snapshot, not a live coords file
         if '_coords' in str(p) or 'coords' in p.parts:
             # check if it's a file and avoid node_modules etc
             if p.is_file() and 'node_modules' not in str(p):
@@ -165,7 +197,11 @@ def main():
         row_num = basename.split('.')[0]
 
         # matching _diagrams/**/*.svg
-        svg_files = glob.glob(f'_diagrams/**/row_{row_num}.svg', recursive=True) + glob.glob(f'_diagrams/**/{row_num}.svg', recursive=True)
+        if row_num.startswith('econ_'):
+            cand = os.path.join('_diagrams','econ', row_num[5:] + '.svg')
+            svg_files = [cand] if os.path.exists(cand) else []
+        else:
+            svg_files = glob.glob(f'_diagrams/**/row_{row_num}.svg', recursive=True) + glob.glob(f'_diagrams/**/{row_num}.svg', recursive=True)
         if not svg_files:
             # try finding ANY svg ending in that row_num
             svg_files = list(Path('_diagrams').rglob(f'*{row_num}.svg'))

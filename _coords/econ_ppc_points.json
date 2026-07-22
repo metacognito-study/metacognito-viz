@@ -1,38 +1,38 @@
 {
-  "slug": "ppc_points",
-  "prompt": "Label the key points and concepts on this Production Possibilities Curve.",
-  "options": [
-    "Efficient point (on curve)",
-    "Inefficient point (inside)",
-    "Unattainable point (outside)",
-    "Opportunity cost",
-    "Constant opportunity cost",
-    "Economic growth"
-  ],
-  "hotspots": [
-    {
-      "id": "h1",
-      "label": "Efficient point (on curve)",
-      "x": 0.56,
-      "y": 0.35
-    },
-    {
-      "id": "h2",
-      "label": "Inefficient point (inside)",
-      "x": 0.35,
-      "y": 0.65
-    },
-    {
-      "id": "h3",
-      "label": "Unattainable point (outside)",
-      "x": 0.75,
-      "y": 0.25
-    },
-    {
-      "id": "h4",
-      "label": "Opportunity cost",
-      "x": 0.75,
-      "y": 0.55
-    }
-  ]
+ "slug": "ppc_points",
+ "prompt": "Label the key points and concepts on this Production Possibilities Curve.",
+ "options": [
+  "Efficient point (on curve)",
+  "Inefficient point (inside)",
+  "Unattainable point (outside)",
+  "Opportunity cost",
+  "Constant opportunity cost",
+  "Economic growth"
+ ],
+ "hotspots": [
+  {
+   "id": "h1",
+   "label": "Efficient point (on curve)",
+   "x": 0.456,
+   "y": 0.319
+  },
+  {
+   "id": "h2",
+   "label": "Inefficient point (inside)",
+   "x": 0.35,
+   "y": 0.65
+  },
+  {
+   "id": "h3",
+   "label": "Unattainable point (outside)",
+   "x": 0.75,
+   "y": 0.25
+  },
+  {
+   "id": "h4",
+   "label": "Opportunity cost",
+   "x": 0.615,
+   "y": 0.5
+  }
+ ]
 }

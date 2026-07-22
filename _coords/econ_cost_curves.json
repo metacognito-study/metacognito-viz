@@ -1,38 +1,38 @@
 {
-  "slug": "cost_curves",
-  "prompt": "Label the key cost curves and points for a firm.",
-  "options": [
-    "Marginal cost",
-    "Average total cost",
-    "Average variable cost",
-    "Minimum efficient scale",
-    "Average fixed cost",
-    "Total revenue"
-  ],
-  "hotspots": [
-    {
-      "id": "h1",
-      "label": "Marginal cost",
-      "x": 0.85,
-      "y": 0.12
-    },
-    {
-      "id": "h2",
-      "label": "Average total cost",
-      "x": 0.85,
-      "y": 0.35
-    },
-    {
-      "id": "h3",
-      "label": "Average variable cost",
-      "x": 0.85,
-      "y": 0.6
-    },
-    {
-      "id": "h4",
-      "label": "Minimum efficient scale",
-      "x": 0.5,
-      "y": 0.32
-    }
-  ]
+ "slug": "cost_curves",
+ "prompt": "Label the key cost curves and points for a firm.",
+ "options": [
+  "Marginal cost",
+  "Average total cost",
+  "Average variable cost",
+  "Minimum efficient scale",
+  "Average fixed cost",
+  "Total revenue"
+ ],
+ "hotspots": [
+  {
+   "id": "h1",
+   "label": "Marginal cost",
+   "x": 0.744,
+   "y": 0.188
+  },
+  {
+   "id": "h2",
+   "label": "Average total cost",
+   "x": 0.85,
+   "y": 0.35
+  },
+  {
+   "id": "h3",
+   "label": "Average variable cost",
+   "x": 0.298,
+   "y": 0.481
+  },
+  {
+   "id": "h4",
+   "label": "Minimum efficient scale",
+   "x": 0.5,
+   "y": 0.47
+  }
+ ]
 }
