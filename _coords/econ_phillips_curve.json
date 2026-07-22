@@ -1,0 +1,38 @@
+{
+  "slug": "phillips_curve",
+  "prompt": "Label the short-run and long-run Phillips curves.",
+  "options": [
+    "Short-run Phillips curve",
+    "Long-run Phillips curve",
+    "Natural rate of unemployment",
+    "Inflation rate",
+    "Aggregate supply",
+    "GDP growth rate"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Short-run Phillips curve",
+      "x": 0.8,
+      "y": 0.75
+    },
+    {
+      "id": "h2",
+      "label": "Long-run Phillips curve",
+      "x": 0.47,
+      "y": 0.15
+    },
+    {
+      "id": "h3",
+      "label": "Natural rate of unemployment",
+      "x": 0.45,
+      "y": 0.88
+    },
+    {
+      "id": "h4",
+      "label": "Inflation rate",
+      "x": 0.15,
+      "y": 0.15
+    }
+  ]
+}

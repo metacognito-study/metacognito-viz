@@ -1,0 +1,38 @@
+{
+  "slug": "price_ceiling",
+  "prompt": "Label the key points and areas resulting from this price ceiling.",
+  "options": [
+    "Price ceiling",
+    "Quantity supplied",
+    "Quantity demanded",
+    "Shortage",
+    "Price floor",
+    "Surplus"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Price ceiling",
+      "x": 0.8,
+      "y": 0.65
+    },
+    {
+      "id": "h2",
+      "label": "Quantity supplied",
+      "x": 0.35,
+      "y": 0.88
+    },
+    {
+      "id": "h3",
+      "label": "Quantity demanded",
+      "x": 0.65,
+      "y": 0.88
+    },
+    {
+      "id": "h4",
+      "label": "Shortage",
+      "x": 0.5,
+      "y": 0.7
+    }
+  ]
+}

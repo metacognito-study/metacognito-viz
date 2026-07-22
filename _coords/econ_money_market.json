@@ -1,0 +1,38 @@
+{
+  "slug": "money_market",
+  "prompt": "Label the components of the money market.",
+  "options": [
+    "Money supply",
+    "Money demand",
+    "Nominal interest rate",
+    "Quantity of money",
+    "Real interest rate",
+    "Loanable funds"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Money supply",
+      "x": 0.47,
+      "y": 0.15
+    },
+    {
+      "id": "h2",
+      "label": "Money demand",
+      "x": 0.8,
+      "y": 0.75
+    },
+    {
+      "id": "h3",
+      "label": "Nominal interest rate",
+      "x": 0.15,
+      "y": 0.45
+    },
+    {
+      "id": "h4",
+      "label": "Quantity of money",
+      "x": 0.45,
+      "y": 0.88
+    }
+  ]
+}

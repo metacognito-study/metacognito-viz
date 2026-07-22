@@ -1,0 +1,38 @@
+{
+  "slug": "per_unit_tax",
+  "prompt": "Label the components of this market with a per-unit tax.",
+  "options": [
+    "Price buyers pay",
+    "Price sellers receive",
+    "Tax wedge",
+    "Deadweight loss",
+    "Consumer surplus",
+    "Producer surplus"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Price buyers pay",
+      "x": 0.12,
+      "y": 0.3
+    },
+    {
+      "id": "h2",
+      "label": "Price sellers receive",
+      "x": 0.12,
+      "y": 0.65
+    },
+    {
+      "id": "h3",
+      "label": "Tax wedge",
+      "x": 0.3,
+      "y": 0.47
+    },
+    {
+      "id": "h4",
+      "label": "Deadweight loss",
+      "x": 0.45,
+      "y": 0.47
+    }
+  ]
+}

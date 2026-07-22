@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="white"/>
+
+  <polyline points="80,40 80,260 400,260" fill="none" stroke="#333" stroke-width="2"/>
+  <path d="M 80 50 Q 150 200 380 240" fill="none" stroke="#0055cc" stroke-width="2.5"/>
+  <line x1="200" y1="40" x2="200" y2="260" stroke="#cc0000" stroke-width="2.5"/>
+  <line x1="80" y1="140" x2="200" y2="140" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <circle cx="200" cy="140" r="4" fill="#333"/>
+
+</svg>

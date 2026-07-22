@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="white"/>
+
+  <!-- Axes -->
+  <polyline points="80,40 80,260 400,260" fill="none" stroke="#333" stroke-width="2"/>
+  <!-- Demand -->
+  <line x1="80" y1="50" x2="380" y2="250" stroke="#0055cc" stroke-width="2.5"/>
+  <!-- Supply -->
+  <line x1="80" y1="250" x2="380" y2="50" stroke="#cc0000" stroke-width="2.5"/>
+
+  <!-- Price ceiling line -->
+  <line x1="80" y1="200" x2="380" y2="200" stroke="#333" stroke-width="2"/>
+
+  <!-- PC at y=200 -->
+  <!-- Qs (Supply): x = 455 - 1.5(200) = 455 - 300 = 155 -->
+  <line x1="155" y1="200" x2="155" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <circle cx="155" cy="200" r="4" fill="#cc0000"/>
+
+  <!-- Qd (Demand): x = 1.5(200) + 5 = 300 + 5 = 305 -->
+  <line x1="305" y1="200" x2="305" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <circle cx="305" cy="200" r="4" fill="#0055cc"/>
+
+  <!-- Shortage arrow -->
+  <line x1="165" y1="220" x2="295" y2="220" stroke="#333" stroke-width="2"/>
+  <polygon points="295,220 285,215 285,225" fill="#333"/>
+  <polygon points="165,220 175,215 175,225" fill="#333"/>
+
+</svg>

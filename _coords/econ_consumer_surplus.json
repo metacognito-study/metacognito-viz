@@ -1,0 +1,38 @@
+{
+  "slug": "consumer_surplus",
+  "prompt": "Label the areas and equilibrium values on this market diagram.",
+  "options": [
+    "Consumer surplus area",
+    "Producer surplus area",
+    "Equilibrium price",
+    "Equilibrium quantity",
+    "Deadweight loss",
+    "Shortage"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Consumer surplus area",
+      "x": 0.25,
+      "y": 0.3
+    },
+    {
+      "id": "h2",
+      "label": "Producer surplus area",
+      "x": 0.25,
+      "y": 0.65
+    },
+    {
+      "id": "h3",
+      "label": "Equilibrium price",
+      "x": 0.1,
+      "y": 0.5
+    },
+    {
+      "id": "h4",
+      "label": "Equilibrium quantity",
+      "x": 0.5,
+      "y": 0.88
+    }
+  ]
+}
