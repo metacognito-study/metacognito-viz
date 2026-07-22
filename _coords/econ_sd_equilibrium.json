@@ -1,0 +1,38 @@
+{
+  "slug": "sd_equilibrium",
+  "prompt": "Label the key components of this market diagram.",
+  "options": [
+    "Demand curve",
+    "Supply curve",
+    "Equilibrium price",
+    "Equilibrium quantity",
+    "Price ceiling",
+    "Deadweight loss"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Demand curve",
+      "x": 0.8,
+      "y": 0.8
+    },
+    {
+      "id": "h2",
+      "label": "Supply curve",
+      "x": 0.8,
+      "y": 0.2
+    },
+    {
+      "id": "h3",
+      "label": "Equilibrium price",
+      "x": 0.15,
+      "y": 0.5
+    },
+    {
+      "id": "h4",
+      "label": "Equilibrium quantity",
+      "x": 0.5,
+      "y": 0.88
+    }
+  ]
+}

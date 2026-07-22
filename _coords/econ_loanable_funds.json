@@ -1,0 +1,38 @@
+{
+  "slug": "loanable_funds",
+  "prompt": "Label the key components of the loanable funds market.",
+  "options": [
+    "Supply of loanable funds",
+    "Demand for loanable funds",
+    "Real interest rate",
+    "Quantity of loanable funds",
+    "Nominal interest rate",
+    "Money supply"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Supply of loanable funds",
+      "x": 0.8,
+      "y": 0.2
+    },
+    {
+      "id": "h2",
+      "label": "Demand for loanable funds",
+      "x": 0.8,
+      "y": 0.8
+    },
+    {
+      "id": "h3",
+      "label": "Real interest rate",
+      "x": 0.15,
+      "y": 0.5
+    },
+    {
+      "id": "h4",
+      "label": "Quantity of loanable funds",
+      "x": 0.5,
+      "y": 0.88
+    }
+  ]
+}

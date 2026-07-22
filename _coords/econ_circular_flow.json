@@ -1,0 +1,38 @@
+{
+  "slug": "circular_flow",
+  "prompt": "Label the key sectors and markets in the circular flow model.",
+  "options": [
+    "Households",
+    "Firms",
+    "Product market",
+    "Factor market",
+    "Government",
+    "Financial market"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Households",
+      "x": 0.15,
+      "y": 0.5
+    },
+    {
+      "id": "h2",
+      "label": "Firms",
+      "x": 0.85,
+      "y": 0.5
+    },
+    {
+      "id": "h3",
+      "label": "Product market",
+      "x": 0.5,
+      "y": 0.15
+    },
+    {
+      "id": "h4",
+      "label": "Factor market",
+      "x": 0.5,
+      "y": 0.85
+    }
+  ]
+}
