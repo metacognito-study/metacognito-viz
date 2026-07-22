@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <g fill="none" stroke="#d0d5dd" stroke-width="1">
+    <rect x="14" y="14" width="218" height="138" rx="10" fill="#ffffff"/>
+    <rect x="246" y="14" width="218" height="138" rx="10" fill="#ffffff"/>
+    <rect x="14" y="168" width="218" height="138" rx="10" fill="#ffffff"/>
+    <rect x="246" y="168" width="218" height="138" rx="10" fill="#ffffff"/>
+  </g>
+
+  <g fill="#f2f4f7">
+    <rect x="22" y="22" width="20" height="18" rx="4"/>
+    <rect x="254" y="22" width="20" height="18" rx="4"/>
+    <rect x="22" y="176" width="20" height="18" rx="4"/>
+    <rect x="254" y="176" width="20" height="18" rx="4"/>
+  </g>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#667085" text-anchor="middle">
+    <text x="32" y="35">1</text>
+    <text x="264" y="35">2</text>
+    <text x="32" y="189">3</text>
+    <text x="264" y="189">4</text>
+  </g>
+
+  <g font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="bold" fill="#101828">
+    <text x="123" y="50" text-anchor="middle">HCl</text>
+    <text x="355" y="50" text-anchor="middle">HBr</text>
+    <text x="147" y="202" text-anchor="end">HNO</text>
+    <text x="384" y="202" text-anchor="end">HClO</text>
+  </g>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" fill="#101828">
+    <text x="148" y="208" text-anchor="start">3</text>
+    <text x="385" y="208" text-anchor="start">4</text>
+  </g>
+
+  <g font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#222222" text-anchor="middle">
+    <text x="100" y="126">H</text>
+    <text x="146" y="126">Cl</text>
+
+    <text x="330" y="126">H</text>
+    <text x="378" y="126">Br</text>
+
+    <text x="84" y="276">H</text>
+    <text x="112" y="276">O</text>
+    <text x="140" y="276">N</text>
+    <text x="176" y="254">O</text>
+    <text x="176" y="298">O</text>
+
+    <text x="292" y="276">H</text>
+    <text x="320" y="276">O</text>
+    <text x="348" y="276">Cl</text>
+    <text x="384" y="254">O</text>
+    <text x="410" y="276">O</text>
+    <text x="384" y="298">O</text>
+  </g>
+
+  <g stroke="#222222" stroke-width="2" stroke-linecap="round">
+    <line x1="108" y1="120" x2="135" y2="120"/>
+
+    <line x1="338" y1="120" x2="366" y2="120"/>
+
+    <line x1="91" y1="270" x2="103" y2="270"/>
+    <line x1="121" y1="270" x2="131" y2="270"/>
+    <line x1="150.4" y1="266.0" x2="168.5" y2="254.9"/>
+    <line x1="148.4" y1="262.6" x2="166.5" y2="251.5"/>
+    <line x1="149.4" y1="275.7" x2="167.5" y2="286.8"/>
+
+    <line x1="299" y1="270" x2="311" y2="270"/>
+    <line x1="329" y1="270" x2="337" y2="270"/>
+    <line x1="359.1" y1="263.2" x2="375.5" y2="253.2"/>
+    <line x1="361" y1="270" x2="400" y2="270"/>
+    <line x1="359.1" y1="276.8" x2="375.5" y2="286.8"/>
+  </g>
+</svg>

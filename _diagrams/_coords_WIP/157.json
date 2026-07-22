@@ -1,0 +1,23 @@
+{
+  "row": 157,
+  "hotspots": [
+    {
+      "id": "sol",
+      "label": "Solid (ordered lattice)",
+      "x": 0.17,
+      "y": 0.5
+    },
+    {
+      "id": "liq",
+      "label": "Liquid (close, random)",
+      "x": 0.5,
+      "y": 0.5
+    },
+    {
+      "id": "gas",
+      "label": "Gas (spread out)",
+      "x": 0.83,
+      "y": 0.5
+    }
+  ]
+}

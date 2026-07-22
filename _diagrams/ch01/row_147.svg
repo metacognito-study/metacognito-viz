@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <g fill="#bfe0f2" stroke="none">
+    <polygon points="202,258 258,258 310,302 150,302"/>
+  </g>
+  <line x1="202" y1="258" x2="258" y2="258" stroke="#6aa9c9" stroke-width="2"/>
+
+  <path d="M 210 230 L 210 252 L 146 300 Q 146 306 152 306 L 308 306 Q 314 306 314 300 L 250 252 L 250 230"
+        fill="none" stroke="#2b3a4a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <ellipse cx="230" cy="240" rx="3.5" ry="5" fill="#bfe0f2" stroke="#6aa9c9" stroke-width="1"/>
+  <ellipse cx="230" cy="249" rx="3.5" ry="5" fill="#bfe0f2" stroke="#6aa9c9" stroke-width="1"/>
+
+  <polygon points="150,64 310,64 230,174" fill="#e8e6e0" stroke="#9aa0a6" stroke-width="1.4" stroke-linejoin="round"/>
+  <ellipse cx="230" cy="64" rx="80" ry="9" fill="#e8e6e0" stroke="#9aa0a6" stroke-width="1.4"/>
+
+  <line x1="230" y1="70" x2="230" y2="130" stroke="#9aa0a6" stroke-width="1"/>
+
+  <g fill="none" stroke="#2b3a4a" stroke-linecap="round">
+    <ellipse cx="230" cy="42" rx="120" ry="13" stroke-width="2.5"/>
+    <line x1="110" y1="42" x2="222" y2="190" stroke-width="2.5"/>
+    <line x1="350" y1="42" x2="238" y2="190" stroke-width="2.5"/>
+    <line x1="113" y1="42" x2="225" y2="190" stroke-width="1.2"/>
+    <line x1="347" y1="42" x2="235" y2="190" stroke-width="1.2"/>
+    <line x1="222" y1="190" x2="222" y2="234" stroke-width="2.5"/>
+    <line x1="238" y1="190" x2="238" y2="234" stroke-width="2.5"/>
+  </g>
+
+  <polygon points="189,118 271,118 254,140 206,140" fill="#bfe0f2" stroke="none"/>
+  <line x1="189" y1="118" x2="271" y2="118" stroke="#6aa9c9" stroke-width="2"/>
+
+  <path d="M 201 134 Q 211 125 221 132 Q 230 124 239 132 Q 249 125 259 134 L 230 172 Z"
+        fill="#8d7355" stroke="#6f5940" stroke-width="1" stroke-linejoin="round"/>
+
+  <g fill="#6f5940" stroke="none">
+    <circle cx="208" cy="140" r="2.5"/>
+    <circle cx="215" cy="137" r="2"/>
+    <circle cx="206" cy="139" r="2"/>
+    <circle cx="212" cy="146" r="2"/>
+    <circle cx="247" cy="139" r="2.5"/>
+    <circle cx="253" cy="137" r="2"/>
+    <circle cx="249" cy="142" r="2.5"/>
+    <circle cx="248" cy="146" r="2"/>
+    <circle cx="231" cy="168" r="2"/>
+  </g>
+</svg>

@@ -1,0 +1,29 @@
+{
+ "row": 415,
+ "hotspots": [
+  {
+   "id": "eq_neg",
+   "label": "Exothermic (ΔH < 0)",
+   "x": 0.26,
+   "y": 0.3
+  },
+  {
+   "id": "eq_pos",
+   "label": "Endothermic (ΔH > 0)",
+   "x": 0.26,
+   "y": 0.72
+  },
+  {
+   "id": "arrow_neg",
+   "label": "Heat released to surroundings",
+   "x": 0.74,
+   "y": 0.3
+  },
+  {
+   "id": "arrow_pos",
+   "label": "Heat absorbed from surroundings",
+   "x": 0.74,
+   "y": 0.72
+  }
+ ]
+}

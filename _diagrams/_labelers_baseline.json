@@ -1,0 +1,1242 @@
+[
+ {
+  "row": 16,
+  "svgKey": "ch01/row_16",
+  "prompt": "Label the two parts of this measurement",
+  "hotspots": [
+   {
+    "id": "num",
+    "label": "Magnitude (number)",
+    "x": 0.32,
+    "y": 0.5
+   },
+   {
+    "id": "unit",
+    "label": "Unit",
+    "x": 0.68,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Magnitude (number)",
+   "Unit",
+   "Significant figures",
+   "Uncertainty",
+   "Precision"
+  ]
+ },
+ {
+  "row": 79,
+  "svgKey": "ch01/row_79",
+  "prompt": "Label the axes and key markers on this diagram",
+  "hotspots": [
+   {
+    "id": "xax",
+    "label": "Kinetic energy (Ek)",
+    "x": 0.55,
+    "y": 0.95
+   },
+   {
+    "id": "yax",
+    "label": "Number of particles",
+    "x": 0.03,
+    "y": 0.4
+   },
+   {
+    "id": "avg",
+    "label": "Average Ek (Ek̄)",
+    "x": 0.48,
+    "y": 0.15
+   },
+   {
+    "id": "are",
+    "label": "All particles (area = total)",
+    "x": 0.65,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Kinetic energy (Ek)",
+   "Number of particles",
+   "Average Ek (Ek̄)",
+   "All particles (area = total)",
+   "Temperature",
+   "Potential energy",
+   "Pressure"
+  ]
+ },
+ {
+  "row": 126,
+  "svgKey": "ch01/row_126",
+  "prompt": "Label each particle diagram with the type of matter shown",
+  "hotspots": [
+   {
+    "id": "elem",
+    "label": "Pure element",
+    "x": 0.15,
+    "y": 0.5
+   },
+   {
+    "id": "comp",
+    "label": "Pure compound",
+    "x": 0.38,
+    "y": 0.5
+   },
+   {
+    "id": "homo",
+    "label": "Homogeneous mixture",
+    "x": 0.62,
+    "y": 0.5
+   },
+   {
+    "id": "hete",
+    "label": "Heterogeneous mixture",
+    "x": 0.85,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Pure element",
+   "Pure compound",
+   "Homogeneous mixture",
+   "Heterogeneous mixture",
+   "Ionic compound",
+   "Solution"
+  ]
+ },
+ {
+  "row": 147,
+  "svgKey": "ch01/row_147",
+  "prompt": "Label the parts of this filtration diagram",
+  "hotspots": [
+   {
+    "id": "funl",
+    "label": "Funnel",
+    "x": 0.5,
+    "y": 0.2
+   },
+   {
+    "id": "filt",
+    "label": "Filter paper",
+    "x": 0.5,
+    "y": 0.4
+   },
+   {
+    "id": "resd",
+    "label": "Residue",
+    "x": 0.5,
+    "y": 0.55
+   },
+   {
+    "id": "filtrate",
+    "label": "Filtrate",
+    "x": 0.5,
+    "y": 0.85
+   }
+  ],
+  "options": [
+   "Funnel",
+   "Filter paper",
+   "Residue",
+   "Filtrate",
+   "Conical flask",
+   "Beaker",
+   "Precipitate"
+  ]
+ },
+ {
+  "row": 157,
+  "svgKey": "ch01/row_157",
+  "prompt": "Label each particle arrangement with the state of matter",
+  "hotspots": [
+   {
+    "id": "sol",
+    "label": "Solid (ordered lattice)",
+    "x": 0.17,
+    "y": 0.5
+   },
+   {
+    "id": "liq",
+    "label": "Liquid (close, random)",
+    "x": 0.5,
+    "y": 0.5
+   },
+   {
+    "id": "gas",
+    "label": "Gas (spread out)",
+    "x": 0.83,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Solid (ordered lattice)",
+   "Liquid (close, random)",
+   "Gas (spread out)",
+   "Plasma",
+   "Supercritical fluid",
+   "Aqueous solution"
+  ]
+ },
+ {
+  "row": 168,
+  "svgKey": "ch02/row_168",
+  "prompt": "Label each subatomic particle with its charge",
+  "hotspots": [
+   {
+    "id": "prot",
+    "label": "Proton (+1)",
+    "x": 0.42,
+    "y": 0.44
+   },
+   {
+    "id": "neut",
+    "label": "Neutron (0)",
+    "x": 0.58,
+    "y": 0.56
+   },
+   {
+    "id": "elec",
+    "label": "Electron (−1)",
+    "x": 0.88,
+    "y": 0.28
+   }
+  ],
+  "options": [
+   "Proton (+1)",
+   "Neutron (0)",
+   "Electron (−1)",
+   "Positron (+1)",
+   "Quark",
+   "Neutrino"
+  ]
+ },
+ {
+  "row": 187,
+  "svgKey": "ch02/row_187",
+  "prompt": "Label each formula: is it an acid or not an acid?",
+  "hotspots": [
+   {
+    "id": "h3po4",
+    "label": "Acid (starts with H)",
+    "x": 0.15,
+    "y": 0.5
+   },
+   {
+    "id": "kcl",
+    "label": "Not an acid (no acidic H)",
+    "x": 0.4,
+    "y": 0.5
+   },
+   {
+    "id": "h5io6",
+    "label": "Acid (starts with H)",
+    "x": 0.65,
+    "y": 0.5
+   },
+   {
+    "id": "naoh",
+    "label": "Not an acid (base/hydroxide)",
+    "x": 0.88,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Acid (starts with H)",
+   "Not an acid (no acidic H)",
+   "Not an acid (base/hydroxide)",
+   "Salt",
+   "Neutral metal oxide"
+  ]
+ },
+ {
+  "row": 189,
+  "svgKey": "ch02/row_189",
+  "prompt": "Label each formula: binary acid or oxyacid?",
+  "hotspots": [
+   {
+    "id": "hcn",
+    "label": "Binary acid (H + nonmetal only)",
+    "x": 0.15,
+    "y": 0.5
+   },
+   {
+    "id": "hi",
+    "label": "Binary acid (H + nonmetal only)",
+    "x": 0.38,
+    "y": 0.5
+   },
+   {
+    "id": "h2so4",
+    "label": "Oxyacid (contains oxygen)",
+    "x": 0.62,
+    "y": 0.5
+   },
+   {
+    "id": "hno3",
+    "label": "Oxyacid (contains oxygen)",
+    "x": 0.85,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Binary acid (H + nonmetal only)",
+   "Oxyacid (contains oxygen)",
+   "Strong base",
+   "Neutral salt",
+   "Hydrate"
+  ]
+ },
+ {
+  "row": 213,
+  "svgKey": "ch03/row_213",
+  "prompt": "Label the axes of this mass spectrum",
+  "hotspots": [
+   {
+    "id": "xax",
+    "label": "Mass-to-charge ratio (m/z)",
+    "x": 0.55,
+    "y": 0.95
+   },
+   {
+    "id": "yax",
+    "label": "Relative abundance (%)",
+    "x": 0.04,
+    "y": 0.45
+   },
+   {
+    "id": "base",
+    "label": "Base peak (tallest bar)",
+    "x": 0.42,
+    "y": 0.08
+   }
+  ],
+  "options": [
+   "Mass-to-charge ratio (m/z)",
+   "Relative abundance (%)",
+   "Base peak (tallest bar)",
+   "Molecular ion (M⁺)",
+   "Retention time",
+   "Wavelength (nm)"
+  ]
+ },
+ {
+  "row": 217,
+  "svgKey": "ch02/row_217",
+  "prompt": "Label each formula as acid or non-acid",
+  "hotspots": [
+   {
+    "id": "hcl",
+    "label": "Acid (HCl)",
+    "x": 0.2,
+    "y": 0.5
+   },
+   {
+    "id": "naoh",
+    "label": "Base (NaOH)",
+    "x": 0.5,
+    "y": 0.5
+   },
+   {
+    "id": "h2so4",
+    "label": "Acid (H₂SO₄)",
+    "x": 0.8,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Acid (HCl)",
+   "Base (NaOH)",
+   "Acid (H₂SO₄)",
+   "Salt",
+   "Neutral compound",
+   "Metal oxide"
+  ]
+ },
+ {
+  "row": 219,
+  "svgKey": "ch02/row_219",
+  "prompt": "Label each formula as binary acid or oxyacid",
+  "hotspots": [
+   {
+    "id": "hcl",
+    "label": "Binary acid",
+    "x": 0.15,
+    "y": 0.5
+   },
+   {
+    "id": "hbr",
+    "label": "Binary acid",
+    "x": 0.38,
+    "y": 0.5
+   },
+   {
+    "id": "hno3",
+    "label": "Oxyacid (has O)",
+    "x": 0.62,
+    "y": 0.5
+   },
+   {
+    "id": "hclo4",
+    "label": "Oxyacid (has O)",
+    "x": 0.85,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Binary acid",
+   "Oxyacid (has O)",
+   "Strong base",
+   "Salt",
+   "Neutral molecule"
+  ]
+ },
+ {
+  "row": 222,
+  "svgKey": "ch02/row_222",
+  "prompt": "Label the structural parts of this oxyacid (H₂SO₄)",
+  "hotspots": [
+   {
+    "id": "S",
+    "label": "Central atom (S)",
+    "x": 0.5,
+    "y": 0.5
+   },
+   {
+    "id": "O",
+    "label": "Oxygen atoms",
+    "x": 0.25,
+    "y": 0.3
+   },
+   {
+    "id": "OH",
+    "label": "Ionizable −OH",
+    "x": 0.75,
+    "y": 0.7
+   },
+   {
+    "id": "whole",
+    "label": "Oxyacid",
+    "x": 0.5,
+    "y": 0.08
+   }
+  ],
+  "options": [
+   "Central atom (S)",
+   "Oxygen atoms",
+   "Ionizable −OH",
+   "Oxyacid",
+   "Hydrogen bond",
+   "Lone pair",
+   "Anion"
+  ]
+ },
+ {
+  "row": 248,
+  "svgKey": "ch03/row_248",
+  "prompt": "Label the axes and peaks of this mass spectrum",
+  "hotspots": [
+   {
+    "id": "xax",
+    "label": "Mass-to-charge ratio (m/z)",
+    "x": 0.55,
+    "y": 0.95
+   },
+   {
+    "id": "yax",
+    "label": "Relative abundance (%)",
+    "x": 0.03,
+    "y": 0.45
+   },
+   {
+    "id": "base",
+    "label": "Base peak (100%)",
+    "x": 0.45,
+    "y": 0.05
+   },
+   {
+    "id": "mion",
+    "label": "Molecular ion (M⁺)",
+    "x": 0.88,
+    "y": 0.35
+   }
+  ],
+  "options": [
+   "Mass-to-charge ratio (m/z)",
+   "Relative abundance (%)",
+   "Base peak (100%)",
+   "Molecular ion (M⁺)",
+   "Fragment ion",
+   "Isotope peak",
+   "Retention time"
+  ]
+ },
+ {
+  "row": 258,
+  "svgKey": "ch03/row_258",
+  "prompt": "Label the key regions and point on this moles-added vs product-formed graph",
+  "hotspots": [
+   {
+    "id": "stoich",
+    "label": "Stoichiometric point",
+    "x": 0.5,
+    "y": 0.2
+   },
+   {
+    "id": "lim",
+    "label": "Limiting reagent consumed",
+    "x": 0.25,
+    "y": 0.55
+   },
+   {
+    "id": "exc",
+    "label": "Excess reagent remains",
+    "x": 0.75,
+    "y": 0.12
+   },
+   {
+    "id": "prod",
+    "label": "Maximum product formed",
+    "x": 0.5,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Stoichiometric point",
+   "Limiting reagent consumed",
+   "Excess reagent remains",
+   "Maximum product formed",
+   "Half-equivalence point",
+   "Endpoint",
+   "Inflection point"
+  ]
+ },
+ {
+  "row": 302,
+  "svgKey": "ch03/row_302",
+  "prompt": "Label the regions and key point on this stoichiometric graph",
+  "hotspots": [
+   {
+    "id": "rise",
+    "label": "Limiting reagent region",
+    "x": 0.25,
+    "y": 0.55
+   },
+   {
+    "id": "bend",
+    "label": "Stoichiometric point",
+    "x": 0.5,
+    "y": 0.2
+   },
+   {
+    "id": "flat",
+    "label": "Excess reagent region",
+    "x": 0.75,
+    "y": 0.12
+   },
+   {
+    "id": "mix",
+    "label": "Maximum product yield",
+    "x": 0.5,
+    "y": 0.5
+   }
+  ],
+  "options": [
+   "Limiting reagent region",
+   "Stoichiometric point",
+   "Excess reagent region",
+   "Maximum product yield",
+   "Half-equivalence point",
+   "Endpoint",
+   "Plateau"
+  ]
+ },
+ {
+  "row": 314,
+  "svgKey": "ch03/row_314",
+  "prompt": "Label reactants and product in this particle diagram",
+  "hotspots": [
+   {
+    "id": "lim",
+    "label": "Limiting reactant",
+    "x": 0.2,
+    "y": 0.4
+   },
+   {
+    "id": "exc",
+    "label": "Excess reactant",
+    "x": 0.5,
+    "y": 0.4
+   },
+   {
+    "id": "prod",
+    "label": "Product (C)",
+    "x": 0.78,
+    "y": 0.55
+   },
+   {
+    "id": "left",
+    "label": "Leftover excess",
+    "x": 0.5,
+    "y": 0.7
+   }
+  ],
+  "options": [
+   "Limiting reactant",
+   "Excess reactant",
+   "Product (C)",
+   "Leftover excess",
+   "Catalyst",
+   "Solvent",
+   "Spectator ion"
+  ]
+ },
+ {
+  "row": 415,
+  "svgKey": "ch06/row_415",
+  "prompt": "Label each thermochemical equation as endothermic or exothermic using the sign of ΔH",
+  "hotspots": [
+   {
+    "id": "eq_neg",
+    "label": "Exothermic (ΔH < 0)",
+    "x": 0.25,
+    "y": 0.35
+   },
+   {
+    "id": "eq_pos",
+    "label": "Endothermic (ΔH > 0)",
+    "x": 0.75,
+    "y": 0.35
+   },
+   {
+    "id": "arrow_neg",
+    "label": "Heat released to surroundings",
+    "x": 0.25,
+    "y": 0.7
+   },
+   {
+    "id": "arrow_pos",
+    "label": "Heat absorbed from surroundings",
+    "x": 0.75,
+    "y": 0.7
+   }
+  ],
+  "options": [
+   "Exothermic (ΔH < 0)",
+   "Endothermic (ΔH > 0)",
+   "Heat released to surroundings",
+   "Heat absorbed from surroundings",
+   "No heat transfer (ΔH = 0)",
+   "Activation energy"
+  ]
+ },
+ {
+  "row": 416,
+  "svgKey": "ch06/row_416",
+  "prompt": "Label each reaction as endothermic or exothermic from whether heat appears as a product or reactant",
+  "hotspots": [
+   {
+    "id": "heat_product",
+    "label": "Exothermic (heat on product side)",
+    "x": 0.25,
+    "y": 0.4
+   },
+   {
+    "id": "heat_reactant",
+    "label": "Endothermic (heat on reactant side)",
+    "x": 0.75,
+    "y": 0.4
+   },
+   {
+    "id": "released",
+    "label": "Energy released",
+    "x": 0.25,
+    "y": 0.72
+   },
+   {
+    "id": "absorbed",
+    "label": "Energy absorbed",
+    "x": 0.75,
+    "y": 0.72
+   }
+  ],
+  "options": [
+   "Exothermic (heat on product side)",
+   "Endothermic (heat on reactant side)",
+   "Energy released",
+   "Energy absorbed",
+   "Enthalpy of formation",
+   "Neutralization"
+  ]
+ },
+ {
+  "row": 493,
+  "svgKey": "ch06/row_493",
+  "prompt": "Label each equation as endothermic or exothermic",
+  "hotspots": [
+   {
+    "id": "endo_eq",
+    "label": "Endothermic",
+    "x": 0.25,
+    "y": 0.3
+   },
+   {
+    "id": "exo_eq",
+    "label": "Exothermic",
+    "x": 0.75,
+    "y": 0.3
+   },
+   {
+    "id": "heat_in",
+    "label": "Heat absorbed",
+    "x": 0.1,
+    "y": 0.55
+   },
+   {
+    "id": "heat_out",
+    "label": "Heat released",
+    "x": 0.9,
+    "y": 0.55
+   }
+  ],
+  "options": [
+   "Endothermic",
+   "Exothermic",
+   "Heat absorbed",
+   "Heat released",
+   "Spontaneous",
+   "Activation energy"
+  ]
+ },
+ {
+  "row": 494,
+  "svgKey": "ch06/row_494",
+  "prompt": "Label each ΔH sign as endothermic or exothermic",
+  "hotspots": [
+   {
+    "id": "endo",
+    "label": "Endothermic (ΔH > 0)",
+    "x": 0.25,
+    "y": 0.35
+   },
+   {
+    "id": "exo",
+    "label": "Exothermic (ΔH < 0)",
+    "x": 0.75,
+    "y": 0.35
+   },
+   {
+    "id": "plus",
+    "label": "Positive ΔH (absorbs)",
+    "x": 0.25,
+    "y": 0.65
+   },
+   {
+    "id": "neg",
+    "label": "Negative ΔH (releases)",
+    "x": 0.75,
+    "y": 0.65
+   }
+  ],
+  "options": [
+   "Endothermic (ΔH > 0)",
+   "Exothermic (ΔH < 0)",
+   "Positive ΔH (absorbs)",
+   "Negative ΔH (releases)",
+   "Enthalpy of formation",
+   "Activation energy"
+  ]
+ },
+ {
+  "row": 543,
+  "svgKey": "ch06/row_543",
+  "prompt": "Label the temperature-change and phase-change sections",
+  "hotspots": [
+   {
+    "id": "slope1",
+    "label": "Temperature changing",
+    "x": 0.12,
+    "y": 0.72
+   },
+   {
+    "id": "flat1",
+    "label": "Phase change (flat)",
+    "x": 0.3,
+    "y": 0.58
+   },
+   {
+    "id": "slope2",
+    "label": "Temperature changing",
+    "x": 0.52,
+    "y": 0.42
+   },
+   {
+    "id": "flat2",
+    "label": "Phase change (flat)",
+    "x": 0.7,
+    "y": 0.28
+   }
+  ],
+  "options": [
+   "Temperature changing",
+   "Phase change (flat)",
+   "Condensation",
+   "Sublimation",
+   "Deposition",
+   "Isothermal"
+  ]
+ },
+ {
+  "row": 545,
+  "svgKey": "ch06/row_545",
+  "prompt": "Label the phase(s) present in each section of the curve",
+  "hotspots": [
+   {
+    "id": "s",
+    "label": "Solid",
+    "x": 0.1,
+    "y": 0.78
+   },
+   {
+    "id": "sl",
+    "label": "Solid + liquid",
+    "x": 0.28,
+    "y": 0.6
+   },
+   {
+    "id": "l",
+    "label": "Liquid",
+    "x": 0.5,
+    "y": 0.45
+   },
+   {
+    "id": "lg",
+    "label": "Liquid + gas",
+    "x": 0.7,
+    "y": 0.3
+   }
+  ],
+  "options": [
+   "Solid",
+   "Solid + liquid",
+   "Liquid",
+   "Liquid + gas",
+   "Gas",
+   "Supercritical fluid",
+   "Plasma"
+  ]
+ },
+ {
+  "row": 627,
+  "svgKey": "ch07/row_627",
+  "prompt": "Label the axes and key features of this PES spectrum",
+  "hotspots": [
+   {
+    "id": "xax",
+    "label": "Binding energy (MJ/mol)",
+    "x": 0.55,
+    "y": 0.96
+   },
+   {
+    "id": "yax",
+    "label": "Relative # of electrons",
+    "x": 0.03,
+    "y": 0.4
+   },
+   {
+    "id": "val",
+    "label": "Valence electrons (low IE)",
+    "x": 0.8,
+    "y": 0.15
+   },
+   {
+    "id": "core",
+    "label": "Core electrons (high IE, 1s)",
+    "x": 0.15,
+    "y": 0.35
+   },
+   {
+    "id": "ht",
+    "label": "Peak height = electron count",
+    "x": 0.5,
+    "y": 0.6
+   }
+  ],
+  "options": [
+   "Binding energy (MJ/mol)",
+   "Relative # of electrons",
+   "Valence electrons (low IE)",
+   "Core electrons (high IE, 1s)",
+   "Peak height = electron count",
+   "Ionization energy",
+   "Electron affinity",
+   "Shielding"
+  ]
+ },
+ {
+  "row": 923,
+  "svgKey": "ch11/row_923",
+  "prompt": "Label each interaction type in these solution diagrams",
+  "hotspots": [
+   {
+    "id": "idip",
+    "label": "Ion-dipole interaction",
+    "x": 0.2,
+    "y": 0.45
+   },
+   {
+    "id": "hbnd",
+    "label": "H-bond / dipole-dipole",
+    "x": 0.5,
+    "y": 0.45
+   },
+   {
+    "id": "lds",
+    "label": "London dispersion forces",
+    "x": 0.8,
+    "y": 0.45
+   },
+   {
+    "id": "hyd",
+    "label": "Hydration sphere",
+    "x": 0.2,
+    "y": 0.75
+   }
+  ],
+  "options": [
+   "Ion-dipole interaction",
+   "H-bond / dipole-dipole",
+   "London dispersion forces",
+   "Hydration sphere",
+   "Covalent bond",
+   "Ionic bond",
+   "Metallic bond"
+  ]
+ },
+ {
+  "row": 1004,
+  "svgKey": "ch13/row_1004",
+  "prompt": "Label the curves and equilibrium pressures on this graph",
+  "hotspots": [
+   {
+    "id": "rxnt",
+    "label": "Reactant (P falling)",
+    "x": 0.25,
+    "y": 0.3
+   },
+   {
+    "id": "prod",
+    "label": "Product (P rising)",
+    "x": 0.25,
+    "y": 0.7
+   },
+   {
+    "id": "peq",
+    "label": "Equilibrium pressure Peq",
+    "x": 0.75,
+    "y": 0.25
+   },
+   {
+    "id": "flat",
+    "label": "At equilibrium (curves flat)",
+    "x": 0.7,
+    "y": 0.55
+   }
+  ],
+  "options": [
+   "Reactant (P falling)",
+   "Product (P rising)",
+   "Equilibrium pressure Peq",
+   "At equilibrium (curves flat)",
+   "Boiling point",
+   "Activation energy",
+   "Partial pressure"
+  ]
+ },
+ {
+  "row": 1012,
+  "svgKey": "ch13/row_1012",
+  "prompt": "Label the key events on this equilibrium-shift graph",
+  "hotspots": [
+   {
+    "id": "orig",
+    "label": "Original equilibrium",
+    "x": 0.2,
+    "y": 0.4
+   },
+   {
+    "id": "pert",
+    "label": "Volume change (perturbation)",
+    "x": 0.48,
+    "y": 0.2
+   },
+   {
+    "id": "shift",
+    "label": "System re-equilibrating",
+    "x": 0.62,
+    "y": 0.48
+   },
+   {
+    "id": "new",
+    "label": "New equilibrium Peq",
+    "x": 0.82,
+    "y": 0.35
+   }
+  ],
+  "options": [
+   "Original equilibrium",
+   "Volume change (perturbation)",
+   "System re-equilibrating",
+   "New equilibrium Peq",
+   "Temperature change",
+   "Catalyst added",
+   "Endpoint"
+  ]
+ },
+ {
+  "row": 1415,
+  "svgKey": "ch18/row_1415",
+  "prompt": "Label the parts of this galvanic cell diagram",
+  "hotspots": [
+   {
+    "id": "anode",
+    "label": "Anode (Zn, oxidation)",
+    "x": 0.15,
+    "y": 0.5
+   },
+   {
+    "id": "cath",
+    "label": "Cathode (Cu, reduction)",
+    "x": 0.85,
+    "y": 0.5
+   },
+   {
+    "id": "sb",
+    "label": "Salt bridge (ion flow)",
+    "x": 0.5,
+    "y": 0.2
+   },
+   {
+    "id": "wire",
+    "label": "External circuit (e⁻ flow)",
+    "x": 0.5,
+    "y": 0.05
+   }
+  ],
+  "options": [
+   "Anode (Zn, oxidation)",
+   "Cathode (Cu, reduction)",
+   "Salt bridge (ion flow)",
+   "External circuit (e⁻ flow)",
+   "Power source",
+   "Electrolytic cell",
+   "Voltmeter"
+  ]
+ },
+ {
+  "row": 1417,
+  "svgKey": "ch18/row_1417",
+  "prompt": "Label the solutions and ion directions in this galvanic cell",
+  "hotspots": [
+   {
+    "id": "asol",
+    "label": "Anode solution (Zn²⁺ builds)",
+    "x": 0.18,
+    "y": 0.72
+   },
+   {
+    "id": "csol",
+    "label": "Cathode solution (Cu²⁺ used)",
+    "x": 0.82,
+    "y": 0.72
+   },
+   {
+    "id": "anion",
+    "label": "Anions → anode side",
+    "x": 0.35,
+    "y": 0.28
+   },
+   {
+    "id": "cation",
+    "label": "Cations → cathode side",
+    "x": 0.65,
+    "y": 0.28
+   }
+  ],
+  "options": [
+   "Anode solution (Zn²⁺ builds)",
+   "Cathode solution (Cu²⁺ used)",
+   "Anions → anode side",
+   "Cations → cathode side",
+   "Distilled water",
+   "Buffer solution",
+   "Electrolyte only"
+  ]
+ },
+ {
+  "row": 1606,
+  "svgKey": "ch12/row_1606",
+  "prompt": "Label the reactants, transition state, and products",
+  "hotspots": [
+   {
+    "id": "reac",
+    "label": "Reactants",
+    "x": 0.1,
+    "y": 0.68
+   },
+   {
+    "id": "ts",
+    "label": "Transition state (‡)",
+    "x": 0.5,
+    "y": 0.12
+   },
+   {
+    "id": "prod",
+    "label": "Products",
+    "x": 0.9,
+    "y": 0.78
+   },
+   {
+    "id": "peak",
+    "label": "Maximum energy point",
+    "x": 0.5,
+    "y": 0.38
+   }
+  ],
+  "options": [
+   "Reactants",
+   "Transition state (‡)",
+   "Products",
+   "Maximum energy point",
+   "Intermediate",
+   "Activated complex",
+   "Equilibrium state"
+  ]
+ },
+ {
+  "row": 1618,
+  "svgKey": "ch12/row_1618",
+  "prompt": "Label all features of this energy diagram",
+  "hotspots": [
+   {
+    "id": "r",
+    "label": "Reactants",
+    "x": 0.1,
+    "y": 0.68
+   },
+   {
+    "id": "ts",
+    "label": "Transition state",
+    "x": 0.5,
+    "y": 0.1
+   },
+   {
+    "id": "p",
+    "label": "Products",
+    "x": 0.9,
+    "y": 0.78
+   },
+   {
+    "id": "ea",
+    "label": "Activation energy (Ea)",
+    "x": 0.32,
+    "y": 0.38
+   },
+   {
+    "id": "dh",
+    "label": "ΔH (enthalpy change)",
+    "x": 0.82,
+    "y": 0.52
+   }
+  ],
+  "options": [
+   "Reactants",
+   "Transition state",
+   "Products",
+   "Activation energy (Ea)",
+   "ΔH (enthalpy change)",
+   "Catalyst",
+   "Intermediate",
+   "Reaction coordinate"
+  ]
+ },
+ {
+  "row": 1619,
+  "svgKey": "ch12/row_1619",
+  "prompt": "Label each diagram as exothermic or endothermic",
+  "hotspots": [
+   {
+    "id": "exo_diag",
+    "label": "Exothermic (ΔH < 0)",
+    "x": 0.25,
+    "y": 0.3
+   },
+   {
+    "id": "endo_diag",
+    "label": "Endothermic (ΔH > 0)",
+    "x": 0.75,
+    "y": 0.3
+   },
+   {
+    "id": "exo_dh",
+    "label": "ΔH < 0 (downward)",
+    "x": 0.25,
+    "y": 0.65
+   },
+   {
+    "id": "endo_dh",
+    "label": "ΔH > 0 (upward)",
+    "x": 0.75,
+    "y": 0.65
+   }
+  ],
+  "options": [
+   "Exothermic (ΔH < 0)",
+   "Endothermic (ΔH > 0)",
+   "ΔH < 0 (downward)",
+   "ΔH > 0 (upward)",
+   "Activation energy",
+   "Zero enthalpy",
+   "Equilibrium"
+  ]
+ },
+ {
+  "row": 1620,
+  "svgKey": "ch12/row_1620",
+  "prompt": "Label the forward and reverse activation energies",
+  "hotspots": [
+   {
+    "id": "fwd_ea",
+    "label": "Forward Ea",
+    "x": 0.3,
+    "y": 0.38
+   },
+   {
+    "id": "rev_ea",
+    "label": "Reverse Ea",
+    "x": 0.7,
+    "y": 0.52
+   },
+   {
+    "id": "r",
+    "label": "Reactants",
+    "x": 0.1,
+    "y": 0.68
+   },
+   {
+    "id": "ts",
+    "label": "Transition state (TS)",
+    "x": 0.5,
+    "y": 0.1
+   }
+  ],
+  "options": [
+   "Forward Ea",
+   "Reverse Ea",
+   "Reactants",
+   "Transition state (TS)",
+   "Products",
+   "ΔH",
+   "Catalyst energy level"
+  ]
+ }
+]

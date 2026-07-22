@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <g stroke="#8a94a6" fill="none" stroke-width="2" stroke-dasharray="7 5">
+    <rect x="80" y="80" width="320" height="210" rx="16"/>
+  </g>
+  <g stroke="#5a6478" fill="none" stroke-width="3" stroke-linecap="round">
+    <path d="M 88 132 L 88 102 Q 88 88 102 88 L 132 88"/>
+  </g>
+
+  <g stroke="#14213d" stroke-width="3" stroke-linecap="butt">
+    <line x1="234" y1="132" x2="234" y2="158"/>
+    <line x1="246" y1="132" x2="246" y2="158"/>
+    <line x1="234" y1="202" x2="234" y2="228"/>
+    <line x1="246" y1="202" x2="246" y2="228"/>
+    <line x1="128" y1="180" x2="152" y2="180"/>
+    <line x1="188" y1="180" x2="223" y2="180"/>
+    <line x1="257" y1="180" x2="292" y2="180"/>
+    <line x1="328" y1="180" x2="352" y2="180"/>
+  </g>
+
+  <g font-family="Helvetica, Arial, sans-serif" font-weight="bold" fill="#14213d" text-anchor="middle">
+    <text x="240" y="190" font-size="28">S</text>
+    <text x="240" y="119" font-size="26">O</text>
+    <text x="240" y="259" font-size="26">O</text>
+    <text x="170" y="189" font-size="26">O</text>
+    <text x="310" y="189" font-size="26">O</text>
+    <text x="110" y="189" font-size="26">H</text>
+    <text x="370" y="189" font-size="26">H</text>
+  </g>
+</svg>

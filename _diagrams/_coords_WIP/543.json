@@ -1,0 +1,29 @@
+{
+  "row": 543,
+  "hotspots": [
+    {
+      "id": "slope1",
+      "label": "Temperature changing",
+      "x": 0.188,
+      "y": 0.719
+    },
+    {
+      "id": "flat1",
+      "label": "Phase change (flat)",
+      "x": 0.333,
+      "y": 0.625
+    },
+    {
+      "id": "slope2",
+      "label": "Temperature changing",
+      "x": 0.5,
+      "y": 0.438
+    },
+    {
+      "id": "flat2",
+      "label": "Phase change (flat)",
+      "x": 0.708,
+      "y": 0.25
+    }
+  ]
+}

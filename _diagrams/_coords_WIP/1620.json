@@ -1,0 +1,29 @@
+{
+ "row": 1620,
+ "hotspots": [
+  {
+   "id": "fwd_ea",
+   "label": "Forward Ea",
+   "x": 0.3,
+   "y": 0.4
+  },
+  {
+   "id": "rev_ea",
+   "label": "Reverse Ea",
+   "x": 0.7,
+   "y": 0.55
+  },
+  {
+   "id": "r",
+   "label": "Reactants",
+   "x": 0.5,
+   "y": 0.219
+  },
+  {
+   "id": "ts",
+   "label": "Transition state (TS)",
+   "x": 0.896,
+   "y": 0.746
+  }
+ ]
+}

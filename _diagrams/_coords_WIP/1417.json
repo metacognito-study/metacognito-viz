@@ -1,0 +1,29 @@
+{
+ "row": 1417,
+ "hotspots": [
+  {
+   "id": "asol",
+   "label": "Anode solution (Zn²⁺ builds)",
+   "x": 0.2,
+   "y": 0.72
+  },
+  {
+   "id": "csol",
+   "label": "Cathode solution (Cu²⁺ used)",
+   "x": 0.8,
+   "y": 0.72
+  },
+  {
+   "id": "anion",
+   "label": "Anions → anode side",
+   "x": 0.62,
+   "y": 0.28
+  },
+  {
+   "id": "cation",
+   "label": "Cations → cathode side",
+   "x": 0.38,
+   "y": 0.28
+  }
+ ]
+}

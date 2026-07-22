@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="#ffffff"/>
+  <line x1="60" y1="270" x2="440" y2="270" stroke="#333333" stroke-width="2"/>
+  <polygon points="440,266 448,270 440,274" fill="#333333"/>
+  <line x1="60" y1="270" x2="60" y2="40" stroke="#333333" stroke-width="2"/>
+  <polygon points="56,40 60,32 64,40" fill="#333333"/>
+  <line x1="230.4" y1="40" x2="230.4" y2="270" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <text x="230.4" y="288" font-family="sans-serif" font-size="12" fill="#ef4444" text-anchor="middle">t₁</text>
+  <line x1="360" y1="40" x2="360" y2="270" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <text x="360" y="288" font-family="sans-serif" font-size="12" fill="#64748b" text-anchor="middle">t₂</text>
+  <line x1="60" y1="128" x2="230.4" y2="128" stroke="#d97706" stroke-width="2.5"/>
+  <text x="75" y="118" font-family="sans-serif" font-size="13" font-weight="bold" fill="#d97706">N₂O₄(g)</text>
+  <line x1="230.4" y1="128" x2="230.4" y2="64" stroke="#d97706" stroke-width="2.5" stroke-dasharray="2,2"/>
+  <path d="M 230.4,64 Q 280,105 360,112 L 430,112" fill="none" stroke="#d97706" stroke-width="2.5"/>
+  <line x1="60" y1="200" x2="230.4" y2="200" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="75" y="218" font-family="sans-serif" font-size="13" font-weight="bold" fill="#2563eb">2 NO₂(g)</text>
+  <line x1="230.4" y1="200" x2="230.4" y2="240" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="2,2"/>
+  <path d="M 230.4,240 Q 280,195 360,190 L 430,190" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+</svg>

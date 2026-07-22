@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <g id="shelf">
+    <rect x="16" y="250" width="448" height="13" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="16" y1="268" x2="464" y2="268" stroke="#cbd5e1" stroke-width="2"/>
+  </g>
+
+  <g id="bottle1">
+    <rect x="46" y="78" width="40" height="14" rx="3" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
+    <rect x="53" y="92" width="26" height="16" fill="#eef3f7" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M22 250 L22 132 Q22 108 53 108 L79 108 Q110 108 110 132 L110 250 Z" fill="#eef3f7" stroke="#64748b" stroke-width="2"/>
+    <rect x="28" y="128" width="76" height="40" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+    <text x="36.6" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">H</text>
+    <text x="51.8" y="160" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#0f172a">3</text>
+    <text x="58.5" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">P</text>
+    <text x="72.5" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">O</text>
+    <text x="88.8" y="160" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#0f172a">4</text>
+  </g>
+
+  <g id="bottle2">
+    <rect x="162" y="78" width="40" height="14" rx="3" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
+    <rect x="169" y="92" width="26" height="16" fill="#eef3f7" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M138 250 L138 132 Q138 108 169 108 L195 108 Q226 108 226 132 L226 250 Z" fill="#eef3f7" stroke="#64748b" stroke-width="2"/>
+    <rect x="144" y="128" width="76" height="40" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+    <text x="164.5" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">K</text>
+    <text x="179.7" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">C</text>
+    <text x="194.9" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">l</text>
+  </g>
+
+  <g id="bottle3">
+    <rect x="278" y="78" width="40" height="14" rx="3" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
+    <rect x="285" y="92" width="26" height="16" fill="#eef3f7" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M254 250 L254 132 Q254 108 285 108 L311 108 Q342 108 342 132 L342 250 Z" fill="#eef3f7" stroke="#64748b" stroke-width="2"/>
+    <rect x="260" y="128" width="76" height="40" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+    <text x="272.7" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">H</text>
+    <text x="287.9" y="160" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#0f172a">5</text>
+    <text x="294.6" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">I</text>
+    <text x="300.4" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">O</text>
+    <text x="316.7" y="160" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#0f172a">6</text>
+  </g>
+
+  <g id="bottle4">
+    <rect x="394" y="78" width="40" height="14" rx="3" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
+    <rect x="401" y="92" width="26" height="16" fill="#eef3f7" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M370 250 L370 132 Q370 108 401 108 L427 108 Q458 108 458 132 L458 250 Z" fill="#eef3f7" stroke="#64748b" stroke-width="2"/>
+    <rect x="376" y="128" width="76" height="40" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+    <text x="384.8" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">N</text>
+    <text x="400.0" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">a</text>
+    <text x="411.7" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">O</text>
+    <text x="428.0" y="155" font-family="Helvetica, Arial, sans-serif" font-size="21" fill="#0f172a">H</text>
+  </g>
+</svg>

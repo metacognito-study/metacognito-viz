@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="#ffffff"/>
+  <line x1="50" y1="280" x2="440" y2="280" stroke="#333333" stroke-width="2"/>
+  <polygon points="440,276 448,280 440,284" fill="#333333"/>
+  <line x1="50" y1="280" x2="50" y2="30" stroke="#333333" stroke-width="2"/>
+  <polygon points="46,30 50,22 54,30" fill="#333333"/>
+  <path d="M 50,208 L 110,208 C 170,208 190,70 240,70 C 290,70 310,249.6 370,249.6 L 430,249.6" 
+        fill="none" stroke="#059669" stroke-width="2.5"/>
+  <text x="72" y="198" font-family="sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="middle">X + Y</text>
+  <text x="408" y="240" font-family="sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="middle">Z</text>
+  <text x="240" y="38.4" font-family="sans-serif" font-size="15" font-weight="bold" fill="#7c3aed" text-anchor="middle">[X···Y]‡</text>
+  <line x1="150" y1="70" x2="330" y2="70" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="110" y1="208" x2="330" y2="208" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="310" y1="249.6" x2="330" y2="249.6" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="168" y1="208" x2="168" y2="70" stroke="#dc2626" stroke-width="2"/>
+  <polygon points="165,78 168,70 171,78" fill="#dc2626"/>
+  <polygon points="165,200 168,208 171,200" fill="#dc2626"/>
+  <line x1="312" y1="208" x2="312" y2="249.6" stroke="#2563eb" stroke-width="2"/>
+  <polygon points="309,216 312,208 315,216" fill="#2563eb"/>
+  <polygon points="309,241.6 312,249.6 315,241.6" fill="#2563eb"/>
+</svg>

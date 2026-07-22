@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <g>
+    <rect x="14" y="14" width="219" height="139" rx="10" fill="#fbfcfd" stroke="#d8dde3" stroke-width="1"/>
+    <rect x="247" y="14" width="219" height="139" rx="10" fill="#fbfcfd" stroke="#d8dde3" stroke-width="1"/>
+    <rect x="14" y="167" width="219" height="139" rx="10" fill="#fbfcfd" stroke="#d8dde3" stroke-width="1"/>
+    <rect x="247" y="167" width="219" height="139" rx="10" fill="#fbfcfd" stroke="#d8dde3" stroke-width="1"/>
+  </g>
+
+  <g fill="none" stroke="#dfe4ea" stroke-width="1" stroke-dasharray="4 4">
+    <circle cx="44" cy="83.5" r="17"/>
+    <circle cx="277" cy="83.5" r="17"/>
+    <circle cx="44" cy="236.5" r="17"/>
+    <circle cx="277" cy="236.5" r="17"/>
+  </g>
+
+  <g font-family="Helvetica, Arial, sans-serif" fill="#1a1c1e" text-anchor="middle">
+    <text x="135" y="48" font-size="26" font-weight="bold">H</text>
+    <text x="152" y="48" font-size="26" font-weight="bold">C</text>
+    <text x="169" y="48" font-size="26" font-weight="bold">N</text>
+
+    <text x="358" y="48" font-size="26" font-weight="bold">H</text>
+    <text x="371.5" y="52" font-size="15">2</text>
+    <text x="385" y="48" font-size="26" font-weight="bold">S</text>
+    <text x="402" y="48" font-size="26" font-weight="bold">O</text>
+    <text x="415.5" y="52" font-size="15">4</text>
+
+    <text x="146" y="201" font-size="26" font-weight="bold">H</text>
+    <text x="159" y="201" font-size="26" font-weight="bold">I</text>
+
+    <text x="363" y="201" font-size="26" font-weight="bold">H</text>
+    <text x="380" y="201" font-size="26" font-weight="bold">N</text>
+    <text x="397" y="201" font-size="26" font-weight="bold">O</text>
+    <text x="410.5" y="205" font-size="15">3</text>
+  </g>
+
+  <g stroke="#9aa0a6" stroke-width="2" stroke-linecap="round">
+    <line x1="114" y1="110" x2="146" y2="110"/>
+    <line x1="146" y1="110" x2="182" y2="110"/>
+
+    <line x1="385" y1="110" x2="385" y2="86"/>
+    <line x1="385" y1="110" x2="385" y2="134"/>
+    <line x1="385" y1="110" x2="359" y2="110"/>
+    <line x1="385" y1="110" x2="411" y2="110"/>
+    <line x1="359" y1="110" x2="341" y2="110"/>
+    <line x1="411" y1="110" x2="429" y2="110"/>
+
+    <line x1="130" y1="263" x2="164" y2="263"/>
+
+    <line x1="385" y1="263" x2="363" y2="243"/>
+    <line x1="385" y1="263" x2="407" y2="243"/>
+    <line x1="385" y1="263" x2="385" y2="287"/>
+    <line x1="385" y1="287" x2="402" y2="295"/>
+  </g>
+
+  <g stroke="#9aa0a6" stroke-width="1">
+    <circle cx="114" cy="110" r="6" fill="#ffffff"/>
+    <circle cx="146" cy="110" r="11" fill="#808589"/>
+    <circle cx="182" cy="110" r="13" fill="#2e5fd0"/>
+
+    <circle cx="385" cy="110" r="13" fill="#e6c229"/>
+    <circle cx="385" cy="86" r="10" fill="#d93025"/>
+    <circle cx="385" cy="134" r="10" fill="#d93025"/>
+    <circle cx="359" cy="110" r="10" fill="#d93025"/>
+    <circle cx="411" cy="110" r="10" fill="#d93025"/>
+    <circle cx="341" cy="110" r="6" fill="#ffffff"/>
+    <circle cx="429" cy="110" r="6" fill="#ffffff"/>
+
+    <circle cx="130" cy="263" r="6" fill="#ffffff"/>
+    <circle cx="164" cy="263" r="15" fill="#7b3fa0"/>
+
+    <circle cx="385" cy="263" r="12" fill="#2e5fd0"/>
+    <circle cx="363" cy="243" r="10" fill="#d93025"/>
+    <circle cx="407" cy="243" r="10" fill="#d93025"/>
+    <circle cx="385" cy="287" r="10" fill="#d93025"/>
+    <circle cx="402" cy="295" r="6" fill="#ffffff"/>
+  </g>
+</svg>

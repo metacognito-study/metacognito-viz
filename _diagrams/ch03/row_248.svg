@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <g stroke="#b9c2cc" stroke-width="1.5" stroke-dasharray="6 6">
+    <line x1="64" y1="60" x2="244" y2="60"/>
+  </g>
+
+  <g stroke="#1f2a37" stroke-width="2.5" stroke-linecap="square">
+    <line x1="64" y1="48" x2="64" y2="252"/>
+    <line x1="64" y1="252" x2="452" y2="252"/>
+  </g>
+
+  <g stroke="#1f2a37" stroke-width="2" stroke-linecap="butt">
+    <line x1="58" y1="252" x2="64" y2="252"/>
+    <line x1="58" y1="156" x2="64" y2="156"/>
+    <line x1="58" y1="60" x2="64" y2="60"/>
+    <line x1="192" y1="252" x2="192" y2="258"/>
+    <line x1="256" y1="252" x2="256" y2="258"/>
+    <line x1="320" y1="252" x2="320" y2="258"/>
+    <line x1="384" y1="252" x2="384" y2="258"/>
+  </g>
+
+  <g fill="#2f6f4e">
+    <rect x="158" y="217" width="4" height="35"/>
+    <rect x="235" y="229" width="4" height="23"/>
+    <rect x="248" y="175" width="4" height="77"/>
+    <rect x="260" y="60" width="4" height="192"/>
+    <rect x="337" y="237" width="4" height="15"/>
+    <rect x="350" y="204" width="4" height="48"/>
+    <rect x="356" y="152" width="4" height="100"/>
+    <rect x="363" y="246" width="4" height="6"/>
+  </g>
+
+  <g fill="#1f2a37" font-family="Helvetica, Arial, sans-serif" font-size="14" text-anchor="middle">
+    <text x="192" y="272">20</text>
+    <text x="256" y="272">30</text>
+    <text x="320" y="272">40</text>
+    <text x="384" y="272">50</text>
+  </g>
+</svg>

@@ -1,0 +1,29 @@
+{
+ "row": 302,
+ "hotspots": [
+  {
+   "id": "rise",
+   "label": "Limiting reagent region",
+   "x": 0.3125,
+   "y": 0.675
+  },
+  {
+   "id": "bend",
+   "label": "Stoichiometric point",
+   "x": 0.792,
+   "y": 0.375
+  },
+  {
+   "id": "flat",
+   "label": "Excess reagent region",
+   "x": 0.608,
+   "y": 0.375
+  },
+  {
+   "id": "mix",
+   "label": "Maximum product yield",
+   "x": 0.146,
+   "y": 0.55
+  }
+ ]
+}

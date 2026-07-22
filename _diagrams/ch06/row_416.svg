@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+<rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+<line x1="240" y1="28" x2="240" y2="300" stroke="#cbd5e1" stroke-width="1"/>
+<rect x="20" y="42" width="200" height="66" rx="8" ry="8" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+<rect x="260" y="42" width="200" height="66" rx="8" ry="8" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+<text x="120" y="64" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155" text-anchor="middle">N₂ + 3H₂ → 2NH₃ + 92 kJ</text>
+<text x="360" y="64" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155" text-anchor="middle">CaCO₃ + 178 kJ → CaO + CO₂</text>
+<line x1="120" y1="110" x2="120" y2="190" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 4"/>
+<line x1="360" y1="110" x2="360" y2="190" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 4"/>
+<circle cx="120" cy="222" r="24" fill="none" stroke="#334155" stroke-width="1.6"/>
+<g>
+<polyline points="98.8,200.8 96.7,194.4 88.2,194.4 88.2,185.9 81.8,183.8" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="76.2,178.2 84.8,180.8 78.8,186.8" fill="#334155"/>
+<polyline points="141.2,200.8 147.6,198.7 147.6,190.2 156.1,190.2 158.2,183.8" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="163.8,178.2 161.2,186.8 155.2,180.8" fill="#334155"/>
+<polyline points="98.8,243.2 92.4,245.3 92.4,253.8 83.9,253.8 81.8,260.2" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="76.2,265.8 78.8,257.2 84.8,263.2" fill="#334155"/>
+<polyline points="141.2,243.2 143.3,249.6 151.8,249.6 151.8,258.1 158.2,260.2" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="163.8,265.8 155.2,263.2 161.2,257.2" fill="#334155"/>
+</g>
+<circle cx="360" cy="222" r="24" fill="none" stroke="#334155" stroke-width="1.6"/>
+<g>
+<polyline points="316.2,178.2 322.5,180.3 322.5,188.8 331,188.8 333.1,195.1" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="338.8,200.8 336.1,192.2 330.2,198.1" fill="#334155"/>
+<polyline points="403.8,178.2 401.7,184.5 393.2,184.5 393.2,193 386.9,195.1" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="381.2,200.8 389.8,198.1 383.9,192.2" fill="#334155"/>
+<polyline points="316.2,265.8 318.3,259.5 326.8,259.5 326.8,251 333.1,248.9" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="338.8,243.2 330.2,245.9 336.1,251.8" fill="#334155"/>
+<polyline points="403.8,265.8 397.5,263.7 397.5,255.2 389,255.2 386.9,248.9" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="381.2,243.2 383.9,251.8 389.8,245.9" fill="#334155"/>
+</g>
+</svg>

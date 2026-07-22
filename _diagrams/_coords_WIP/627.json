@@ -1,0 +1,35 @@
+{
+ "row": 627,
+ "hotspots": [
+  {
+   "id": "xax",
+   "label": "Binding energy (MJ/mol)",
+   "x": 0.542,
+   "y": 0.906
+  },
+  {
+   "id": "yax",
+   "label": "Relative # of electrons",
+   "x": 0.083,
+   "y": 0.5
+  },
+  {
+   "id": "val",
+   "label": "Valence electrons (low IE)",
+   "x": 0.229,
+   "y": 0.594
+  },
+  {
+   "id": "core",
+   "label": "Core electrons (high IE, 1s)",
+   "x": 0.667,
+   "y": 0.594
+  },
+  {
+   "id": "ht",
+   "label": "Peak height = electron count",
+   "x": 0.448,
+   "y": 0.5
+  }
+ ]
+}

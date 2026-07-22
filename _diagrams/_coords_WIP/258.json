@@ -1,0 +1,29 @@
+{
+ "row": 258,
+ "hotspots": [
+  {
+   "id": "stoich",
+   "label": "Stoichiometric point",
+   "x": 0.338,
+   "y": 0.534
+  },
+  {
+   "id": "lim",
+   "label": "Limiting reagent consumed",
+   "x": 0.725,
+   "y": 0.288
+  },
+  {
+   "id": "exc",
+   "label": "Excess reagent remains",
+   "x": 0.531,
+   "y": 0.288
+  },
+  {
+   "id": "prod",
+   "label": "Maximum product formed",
+   "x": 0.66,
+   "y": 0.8125
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+  "row": 1415,
+  "hotspots": [
+    {
+      "id": "anode",
+      "label": "Anode (Zn, oxidation)",
+      "x": 0.18,
+      "y": 0.55
+    },
+    {
+      "id": "cath",
+      "label": "Cathode (Cu, reduction)",
+      "x": 0.82,
+      "y": 0.55
+    },
+    {
+      "id": "sb",
+      "label": "Salt bridge (ion flow)",
+      "x": 0.5,
+      "y": 0.32
+    },
+    {
+      "id": "wire",
+      "label": "External circuit (e\u207b flow)",
+      "x": 0.5,
+      "y": 0.12
+    }
+  ]
+}

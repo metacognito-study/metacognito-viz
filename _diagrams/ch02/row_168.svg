@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <g fill="none" stroke="#b9c2cd" stroke-width="1.6">
+    <circle cx="170" cy="160" r="100"/>
+    <circle cx="170" cy="160" r="140"/>
+  </g>
+
+  <circle cx="170" cy="160" r="78" fill="none" stroke="#d3dae2" stroke-width="1.2" stroke-dasharray="5 5"/>
+
+  <g stroke="#8b98a8" stroke-width="1.6" fill="#f2f4f7">
+    <circle cx="220" cy="160" r="22"/>
+    <circle cx="195" cy="117" r="22"/>
+    <circle cx="145" cy="117" r="22"/>
+    <circle cx="145" cy="203" r="22"/>
+  </g>
+
+  <g stroke="#22303f" stroke-width="1.6" fill="#4a5666">
+    <circle cx="170" cy="160" r="22"/>
+    <circle cx="120" cy="160" r="22"/>
+    <circle cx="195" cy="203" r="22"/>
+  </g>
+
+  <g fill="#1f2937">
+    <circle cx="170" cy="60" r="7"/>
+    <circle cx="170" cy="260" r="7"/>
+    <circle cx="310" cy="160" r="7"/>
+  </g>
+
+  <g fill="#1f2937" font-family="Georgia, 'Times New Roman', serif">
+    <text x="388" y="52" font-size="20" text-anchor="end">7</text>
+    <text x="388" y="74" font-size="20" text-anchor="end">3</text>
+    <text x="400" y="63" font-size="34" text-anchor="start">Li</text>
+  </g>
+</svg>

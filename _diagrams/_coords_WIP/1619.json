@@ -1,0 +1,29 @@
+{
+ "row": 1619,
+ "hotspots": [
+  {
+   "id": "exo_diag",
+   "label": "Exothermic (ΔH < 0)",
+   "x": 0.25,
+   "y": 0.2
+  },
+  {
+   "id": "endo_diag",
+   "label": "Endothermic (ΔH > 0)",
+   "x": 0.75,
+   "y": 0.2
+  },
+  {
+   "id": "exo_dh",
+   "label": "ΔH < 0 (downward)",
+   "x": 0.083,
+   "y": 0.45
+  },
+  {
+   "id": "endo_dh",
+   "label": "ΔH > 0 (upward)",
+   "x": 0.75,
+   "y": 0.844
+  }
+ ]
+}

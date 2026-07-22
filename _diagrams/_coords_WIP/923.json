@@ -1,0 +1,29 @@
+{
+ "row": 923,
+ "hotspots": [
+  {
+   "id": "idip",
+   "label": "Ion-dipole interaction",
+   "x": 0.75,
+   "y": 0.734
+  },
+  {
+   "id": "hbnd",
+   "label": "H-bond / dipole-dipole",
+   "x": 0.75,
+   "y": 0.25
+  },
+  {
+   "id": "lds",
+   "label": "London dispersion forces",
+   "x": 0.229,
+   "y": 0.25
+  },
+  {
+   "id": "hyd",
+   "label": "Hydration sphere",
+   "x": 0.229,
+   "y": 0.734
+  }
+ ]
+}

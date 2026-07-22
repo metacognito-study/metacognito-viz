@@ -1,0 +1,29 @@
+{
+ "row": 1004,
+ "hotspots": [
+  {
+   "id": "rxnt",
+   "label": "Reactant (P falling)",
+   "x": 0.25,
+   "y": 0.35
+  },
+  {
+   "id": "prod",
+   "label": "Product (P rising)",
+   "x": 0.25,
+   "y": 0.7
+  },
+  {
+   "id": "peq",
+   "label": "Equilibrium pressure Peq",
+   "x": 0.542,
+   "y": 0.55
+  },
+  {
+   "id": "flat",
+   "label": "At equilibrium (curves flat)",
+   "x": 0.7,
+   "y": 0.844
+  }
+ ]
+}

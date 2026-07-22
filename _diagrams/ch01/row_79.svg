@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <path d="M 70,270 C 100,268 122,180 140,110 C 150,92 160,88 170,88 C 182,88 196,94 210,105 C 226,118 236,136 250,152 C 266,171 282,186 300,196 C 320,207 340,225 360,232 C 385,241 415,253 440,258 L 440,270 L 70,270 Z" fill="#bcd7ef" fill-opacity="0.55" stroke="none"/>
+
+  <line x1="70" y1="40" x2="70" y2="270" stroke="#333333" stroke-width="2"/>
+  <line x1="70" y1="270" x2="448" y2="270" stroke="#333333" stroke-width="2"/>
+  <polygon points="64,50 76,50 70,38" fill="#333333"/>
+  <polygon points="438,264 438,276 450,270" fill="#333333"/>
+
+  <path d="M 70,270 C 100,268 122,180 140,110 C 150,92 160,88 170,88 C 182,88 196,94 210,105 C 226,118 236,136 250,152 C 266,171 282,186 300,196 C 320,207 340,225 360,232 C 385,241 415,253 440,258" fill="none" stroke="#1f4e79" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <line x1="225" y1="270" x2="225" y2="68" stroke="#b03030" stroke-width="2" stroke-dasharray="6 5"/>
+  <polygon points="219,281 231,281 225,271" fill="#b03030"/>
+</svg>

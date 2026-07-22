@@ -1,0 +1,29 @@
+{
+  "row": 545,
+  "hotspots": [
+    {
+      "id": "s",
+      "label": "Solid",
+      "x": 0.188,
+      "y": 0.719
+    },
+    {
+      "id": "sl",
+      "label": "Solid + liquid",
+      "x": 0.333,
+      "y": 0.625
+    },
+    {
+      "id": "l",
+      "label": "Liquid",
+      "x": 0.5,
+      "y": 0.438
+    },
+    {
+      "id": "lg",
+      "label": "Liquid + gas",
+      "x": 0.708,
+      "y": 0.25
+    }
+  ]
+}
