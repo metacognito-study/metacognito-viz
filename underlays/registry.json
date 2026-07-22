@@ -332,7 +332,8 @@
           "row": 78,
           "exIdx": 1
         }
-      ]
+      ],
+      "stem_anchor": "label real and money flows in the two-sector circular-flow model"
     },
     {
       "sheet": "econ",
@@ -353,7 +354,8 @@
           "row": 121,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "distinguish normal goods from inferior goods by the income effect"
     },
     {
       "sheet": "econ",
@@ -369,7 +371,8 @@
           "row": 138,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "Market Equilibrium & the Three-Step Method"
     },
     {
       "sheet": "econ",
@@ -445,7 +448,8 @@
           "row": 183,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "explain the substitution effect behind the demand curve"
     },
     {
       "sheet": "econ",
@@ -511,7 +515,8 @@
           "row": 115,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "state the assumptions of the PPC model"
     },
     {
       "sheet": "chem",
@@ -602,7 +607,8 @@
           "row": 81,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "The Production Possibilities Curve"
     },
     {
       "sheet": "econ",
@@ -633,7 +639,8 @@
           "row": 236,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "determine equilibrium price and quantity from a supply-and-demand schedule"
     },
     {
       "sheet": "chem",
@@ -768,7 +775,8 @@
           "row": 71,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "distinguish non-rivalry from non-excludability"
     },
     {
       "sheet": "econ",
@@ -804,7 +812,8 @@
           "row": 60,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "distinguish a need from a want"
     },
     {
       "sheet": "econ",
@@ -825,7 +834,8 @@
           "row": 13,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "categorize a given list of resources into the four factors of production"
     },
     {
       "sheet": "econ",
@@ -835,7 +845,8 @@
       "mode": "pad-underlay",
       "what": "Table-to-graph conversion scaffold: empty 4-column demand table (P / Qd A / Qd B / Market headers, structure cue-given) -> arrow -> blank mini P-Q axes",
       "answer_leak_check": "PASS: no quantities, no summed market column values, no demand curve (horizontal summation is the exercise) | re-keyed 124->123 (3-lane consensus)",
-      "serves": []
+      "serves": [],
+      "stem_anchor": "construct a market demand curve by horizontally summing individual demand curves"
     },
     {
       "sheet": "econ",
@@ -845,7 +856,8 @@
       "mode": "pad-underlay",
       "what": "Two-good opportunity-cost table skeleton: generic Good X / Good Y rows, 'to gain 1 unit / you give up' columns, cost cells empty",
       "answer_leak_check": "PASS: no cost values, no reciprocal (1/x) relationship shown - demonstrating it is the exercise; goods kept generic",
-      "serves": []
+      "serves": [],
+      "stem_anchor": "Terms of Trade & the Direction of Trade"
     },
     {
       "sheet": "econ",
@@ -973,7 +985,8 @@
           "row": 88,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "calculate the opportunity cost of moving between two points on a PPC"
     },
     {
       "sheet": "chem",
@@ -1640,7 +1653,8 @@
           "row": 150,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "define what economics studies, specifically referencing wants and resources"
     },
     {
       "sheet": "econ",
@@ -1661,7 +1675,8 @@
           "row": 72,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "predict an unintended consequence of a government policy by considering how incentives change"
     },
     {
       "sheet": "econ",
@@ -1687,7 +1702,8 @@
           "row": 107,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "calculate percentage change using the initial value as the base"
     },
     {
       "sheet": "econ",
@@ -1703,7 +1719,8 @@
           "row": 114,
           "exIdx": 4
         }
-      ]
+      ],
+      "stem_anchor": "Specialization & the Gains from Trade"
     },
     {
       "sheet": "chem",
@@ -1824,7 +1841,8 @@
       "what": "Demand shift D1->D2: equilibrium P and Q both rise",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "distinguish normal goods from inferior goods by the income effect"
     },
     {
       "sheet": "econ",
@@ -1835,7 +1853,8 @@
       "what": "Supply shift S1->S2: P falls, Q rises",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "Market Equilibrium & the Three-Step Method"
     },
     {
       "sheet": "econ",
@@ -1846,7 +1865,8 @@
       "what": "Supply-demand equilibrium with Pe/Qe marked",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "determine equilibrium price and quantity from a supply-and-demand schedule"
     },
     {
       "sheet": "econ",
@@ -1857,7 +1877,8 @@
       "what": "Circular flow (money circuit): households-firms via product+factor markets",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "label real and money flows in the two-sector circular-flow model"
     },
     {
       "sheet": "econ",
@@ -1868,7 +1889,8 @@
       "what": "Bowed-out PPC with efficient/inefficient/unattainable points",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "state the assumptions of the PPC model"
     },
     {
       "sheet": "econ",
@@ -1879,7 +1901,8 @@
       "what": "Numeric gridded S&D: read Pe=$6, Qe=60 off the grid",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "explain the substitution effect behind the demand curve"
     },
     {
       "sheet": "econ",
@@ -1901,7 +1924,8 @@
       "what": "Demand schedule table (P vs Qd)",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "distinguish a movement along the demand curve from a shift of the demand curve"
     },
     {
       "sheet": "econ",
@@ -1912,7 +1936,8 @@
       "what": "Output-per-worker table for opportunity-cost/comparative advantage",
       "answer_leak_check": "labeled example-image (viewing surface, not a drawing answer)",
       "serves": [],
-      "batch": "factory_batchA_20260719"
+      "batch": "factory_batchA_20260719",
+      "stem_anchor": "Terms of Trade & the Direction of Trade"
     },
     {
       "sheet": "econ",
@@ -2368,7 +2393,8 @@
       "answer_leak_check": "labeled viewing surface",
       "serves": [],
       "batch": "micro_ch4-8_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "distinguish a movement along the demand curve from a shift of the demand curve"
     },
     {
       "sheet": "econ",
@@ -2380,7 +2406,8 @@
       "answer_leak_check": "labeled viewing surface",
       "serves": [],
       "batch": "micro_ch4-8_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "identify whether a market price creates a surplus or a shortage"
     },
     {
       "sheet": "econ",
@@ -2392,7 +2419,8 @@
       "answer_leak_check": "labeled viewing surface",
       "serves": [],
       "batch": "micro_ch4-8_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "predict the price pressure created by a surplus or a shortage"
     },
     {
       "sheet": "econ",
@@ -2404,7 +2432,8 @@
       "answer_leak_check": "single D1 scaffold; student draws the shift(s)",
       "serves": [],
       "batch": "micro_ch4-8_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "distinguish normal goods from inferior goods by the income effect"
     },
     {
       "sheet": "econ",
@@ -2416,7 +2445,8 @@
       "answer_leak_check": "plain: curves only, student draws/shades",
       "serves": [],
       "batch": "micro_ch4-8_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "Market Equilibrium & the Three-Step Method"
     },
     {
       "sheet": "econ",
@@ -2703,7 +2733,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "define an externality"
     },
     {
       "sheet": "econ",
@@ -2714,7 +2745,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "distinguish a negative externality from a positive externality"
     },
     {
       "sheet": "econ",
@@ -2725,7 +2757,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "describe the two-sector circular-flow model"
     },
     {
       "sheet": "econ",
@@ -2736,7 +2769,8 @@
       "answer_leak_check": "MAX-CHALLENGE pad scaffold: empty positioned boxes + connectors, NO labels/arrowheads (student labels boxes AND draws+labels the flows)",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "label real and money flows in the two-sector circular-flow model"
     },
     {
       "sheet": "econ",
@@ -2747,7 +2781,8 @@
       "answer_leak_check": "MAX-CHALLENGE pad scaffold: empty positioned boxes + connectors, NO labels/arrowheads (student labels boxes AND draws+labels the flows)",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "trace the real flow and the money flow in the two-sector circular-flow diagram"
     },
     {
       "sheet": "econ",
@@ -2758,7 +2793,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "explain the productive-efficiency meaning of points on the frontier"
     },
     {
       "sheet": "econ",
@@ -2769,7 +2805,8 @@
       "answer_leak_check": "plain draw/plot task",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "identify points on, inside, and outside the PPC as efficient, inefficient, and unattainable"
     },
     {
       "sheet": "econ",
@@ -2780,7 +2817,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "calculate the opportunity cost of moving between two points on a PPC"
     },
     {
       "sheet": "econ",
@@ -2791,7 +2829,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "distinguish a constant-cost PPC from an increasing-cost PPC"
     },
     {
       "sheet": "econ",
@@ -2802,7 +2841,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "identify causes of outward shifts in a production possibilities curve"
     },
     {
       "sheet": "econ",
@@ -2813,7 +2853,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "identify causes of inward shifts in a production possibilities curve"
     },
     {
       "sheet": "econ",
@@ -2824,7 +2865,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "determine absolute advantage from input data"
     },
     {
       "sheet": "econ",
@@ -2835,7 +2877,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "calculate opportunity cost from labor-hours input data"
     },
     {
       "sheet": "econ",
@@ -2846,7 +2889,8 @@
       "answer_leak_check": "labeled view",
       "serves": [],
       "batch": "structural_ch1-3+13-14_groq_20260719",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "explain why comparative advantage drives specialization"
     },
     {
       "sheet": "econ",
@@ -3446,7 +3490,8 @@
       "answer_leak_check": "labeled reference",
       "serves": [],
       "batch": "final_bind_20260720",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "distinguish quantity demanded from demand"
     },
     {
       "sheet": "econ",
@@ -3602,7 +3647,8 @@
       "answer_leak_check": "labeled worked-example (yellow-box reference only; NOT shown in the pad)",
       "serves": [],
       "batch": "finalbind_20260720",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "draw a demand shift with accurate labels"
     },
     {
       "sheet": "econ",
@@ -3614,7 +3660,8 @@
       "answer_leak_check": "labeled worked-example (yellow-box reference only; NOT shown in the pad)",
       "serves": [],
       "batch": "finalbind_20260720",
-      "stem_verified": true
+      "stem_verified": true,
+      "stem_anchor": "draw a supply shift with accurate labels"
     },
     {
       "sheet": "econ",
@@ -3783,6 +3830,19 @@
       "serves": [],
       "batch": "pedagogy_qa_20260720",
       "stem_verified": true
+    },
+    {
+      "sheet": "econ",
+      "row": 129,
+      "exIdx": null,
+      "asset": "u_130_e4_econ_demand_shift_d1.svg",
+      "mode": "pad-underlay",
+      "what": "D1 scaffold on P-Q axes; student draws the shifted curve + labels",
+      "answer_leak_check": "withholds D2 and the new equilibrium - the LO asks the student to DRAW the shift",
+      "serves": [],
+      "batch": "anchor_pass_20260721",
+      "stem_verified": true,
+      "stem_anchor": "draw a demand shift with accurate labels"
     }
   ]
 }
