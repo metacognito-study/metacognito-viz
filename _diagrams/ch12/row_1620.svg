@@ -18,4 +18,7 @@
   <line x1="336" y1="260" x2="336" y2="70" stroke="#059669" stroke-width="2"/>
   <polygon points="333,78 336,70 339,78" fill="#059669"/>
   <polygon points="333,252 336,260 339,252" fill="#059669"/>
-<line x1="430" y1="223" x2="430" y2="254" stroke="#0f766e" stroke-width="2"/><polygon points="430,217.6 425,227 435,227" fill="#0f766e"/><polygon points="430,260 425,250.6 435,250.6" fill="#0f766e"/><line x1="100" y1="217.6" x2="430" y2="217.6" stroke="#0f766e" stroke-width="1" stroke-dasharray="3,3"/><line x1="380" y1="260" x2="430" y2="260" stroke="#0f766e" stroke-width="1" stroke-dasharray="3,3"/></svg>
+<line x1="430" y1="223" x2="430" y2="254" stroke="#0f766e" stroke-width="2"/><polygon points="430,217.6 425,227 435,227" fill="#0f766e"/><polygon points="430,260 425,250.6 435,250.6" fill="#0f766e"/><line x1="100" y1="217.6" x2="430" y2="217.6" stroke="#0f766e" stroke-width="1" stroke-dasharray="3,3"/><line x1="380" y1="260" x2="430" y2="260" stroke="#0f766e" stroke-width="1" stroke-dasharray="3,3"/><line x1="290" y1="260" x2="290" y2="70" stroke="#f59e0b" stroke-width="2"/>
+<polygon points="287,78 290,70 293,78" fill="#f59e0b"/>
+<polygon points="287,252 290,260 293,252" fill="#f59e0b"/>
+</svg>
