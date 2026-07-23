@@ -1,0 +1,41 @@
+{
+  "slug": "lewis_structure_resonance_v1",
+  "prompt": "Tap the label that shows the correct major contributing resonance structure for this molecule/ion.",
+  "options": [
+    "resonance structure A",
+    "resonance structure B",
+    "resonance hybrid",
+    "major contributor",
+    "ionic bond",
+    "covalent bond",
+    "coordinate covalent bond",
+    "sigma bond",
+    "pi bond"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "resonance structure A",
+      "x": 0.25,
+      "y": 0.366
+    },
+    {
+      "id": "h2",
+      "label": "resonance structure B",
+      "x": 0.75,
+      "y": 0.366
+    },
+    {
+      "id": "h3",
+      "label": "resonance hybrid",
+      "x": 0.25,
+      "y": 0.834
+    },
+    {
+      "id": "h4",
+      "label": "major contributor",
+      "x": 0.75,
+      "y": 0.834
+    }
+  ]
+}
