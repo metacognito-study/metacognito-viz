@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+    <!-- White background -->
+    <rect x="0" y="0" width="480" height="320" fill="#ffffff" />
+
+    <!-- NH3 Diagram -->
+    <!-- Bonds -->
+    <line x1="120" y1="60" x2="90" y2="100" stroke="#333" stroke-width="3" />
+    <line x1="120" y1="60" x2="120" y2="100" stroke="#333" stroke-width="3" />
+    <line x1="120" y1="60" x2="150" y2="100" stroke="#333" stroke-width="3" />
+
+    <!-- N Atom -->
+    <circle cx="120" cy="60" r="16" fill="#A0C8FF" stroke="#333" stroke-width="2" />
+    <text x="120" y="65" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#000">N</text>
+
+    <!-- H Atoms -->
+    <circle cx="90" cy="100" r="12" fill="#FFF" stroke="#333" stroke-width="2" />
+    <text x="90" y="104" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#000">H</text>
+
+    <circle cx="120" cy="100" r="12" fill="#FFF" stroke="#333" stroke-width="2" />
+    <text x="120" y="104" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#000">H</text>
+
+    <circle cx="150" cy="100" r="12" fill="#FFF" stroke="#333" stroke-width="2" />
+    <text x="150" y="104" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#000">H</text>
+
+    <!-- Lone pair -->
+    <circle cx="114" cy="36" r="2.5" fill="#000" />
+    <circle cx="126" cy="36" r="2.5" fill="#000" />
+    <path d="M 106,42 C 106,24 134,24 134,42" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="2,2" />
+
+    <!-- Partial Charges -->
+    <text x="145" y="55" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#d32f2f">δ⁻</text>
+    <text x="70" y="115" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1976d2">δ⁺</text>
+    <text x="120" y="124" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1976d2">δ⁺</text>
+    <text x="170" y="115" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1976d2">δ⁺</text>
+
+    <!-- Target Boxes for NH3 -->
+    <text x="105" y="182" text-anchor="end" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000">Molecule:</text>
+    <polyline points="110,165 200,165 200,190 110,190 110,165" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="4,4" />
+
+    <text x="105" y="242" text-anchor="end" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000">Dominant IMF:</text>
+    <polyline points="110,225 230,225 230,250 110,250 110,225" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="4,4" />
+
+    <!-- PH3 Diagram -->
+    <!-- Bonds -->
+    <line x1="360" y1="60" x2="330" y2="100" stroke="#333" stroke-width="3" />
+    <line x1="360" y1="60" x2="360" y2="100" stroke="#333" stroke-width="3" />
+    <line x1="360" y1="60" x2="390" y2="100" stroke="#333" stroke-width="3" />
+
+    <!-- P Atom -->
+    <circle cx="360" cy="60" r="16" fill="#FFDCA8" stroke="#333" stroke-width="2" />
+    <text x="360" y="65" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#000">P</text>
+
+    <!-- H Atoms -->
+    <circle cx="330" cy="100" r="12" fill="#FFF" stroke="#333" stroke-width="2" />
+    <text x="330" y="104" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#000">H</text>
+
+    <circle cx="360" cy="100" r="12" fill="#FFF" stroke="#333" stroke-width="2" />
+    <text x="360" y="104" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#000">H</text>
+
+    <circle cx="390" cy="100" r="12" fill="#FFF" stroke="#333" stroke-width="2" />
+    <text x="390" y="104" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#000">H</text>
+
+    <!-- Lone pair -->
+    <circle cx="354" cy="36" r="2.5" fill="#000" />
+    <circle cx="366" cy="36" r="2.5" fill="#000" />
+    <path d="M 346,42 C 346,24 374,24 374,42" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="2,2" />
+
+    <!-- Partial Charges -->
+    <text x="385" y="55" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#d32f2f">δ⁻</text>
+    <text x="310" y="115" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1976d2">δ⁺</text>
+    <text x="360" y="124" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1976d2">δ⁺</text>
+    <text x="410" y="115" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1976d2">δ⁺</text>
+
+    <!-- Target Boxes for PH3 -->
+    <text x="295" y="182" text-anchor="end" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000">Molecule:</text>
+    <polyline points="300,165 390,165 390,190 300,190 300,165" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="4,4" />
+
+    <text x="295" y="242" text-anchor="end" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000">Dominant IMF:</text>
+    <polyline points="300,225 450,225 450,250 300,250 300,225" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="4,4" />
+</svg>

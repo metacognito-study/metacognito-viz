@@ -1,0 +1,40 @@
+{
+  "slug": "intermolecular_force_comparison_v4",
+  "prompt": "Label which molecule has the dominant intermolecular force and identify that force",
+  "options": [
+    "NH3",
+    "PH3",
+    "Hydrogen bonding",
+    "Dipole-dipole forces",
+    "London dispersion forces",
+    "Ionic bonding",
+    "Covalent bonding",
+    "Metallic bonding"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "NH3",
+      "x": 0.323,
+      "y": 0.555
+    },
+    {
+      "id": "h2",
+      "label": "PH3",
+      "x": 0.719,
+      "y": 0.555
+    },
+    {
+      "id": "h3",
+      "label": "Hydrogen bonding",
+      "x": 0.354,
+      "y": 0.742
+    },
+    {
+      "id": "h4",
+      "label": "Dipole-dipole forces",
+      "x": 0.781,
+      "y": 0.742
+    }
+  ]
+}
