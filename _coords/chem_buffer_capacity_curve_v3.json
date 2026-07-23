@@ -1,0 +1,40 @@
+{
+  "slug": "buffer_capacity_curve_v3",
+  "prompt": "Label the buffer region and the points of maximum/minimum buffering capacity",
+  "options": [
+    "Buffer region",
+    "Maximum buffering capacity",
+    "Low buffering capacity",
+    "Titration curve",
+    "Equivalence point",
+    "Initial pH",
+    "Half-equivalence point",
+    "Endpoint"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Titration curve",
+      "x": 0.179,
+      "y": 0.328
+    },
+    {
+      "id": "h2",
+      "label": "Maximum buffering capacity",
+      "x": 0.396,
+      "y": 0.379
+    },
+    {
+      "id": "h3",
+      "label": "Buffer region",
+      "x": 0.599,
+      "y": 0.425
+    },
+    {
+      "id": "h4",
+      "label": "Low buffering capacity",
+      "x": 0.694,
+      "y": 0.735
+    }
+  ]
+}
