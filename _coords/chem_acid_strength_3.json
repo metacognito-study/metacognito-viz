@@ -1,31 +1,40 @@
 {
-  "slug": "acid_strength_3",
-  "prompt": "Label the three acids by relative strength",
-  "options": [
-    "Strongest acid (lowest pKa)",
-    "Intermediate acid",
-    "Weakest acid (highest pKa)",
-    "Strong base",
-    "Neutral salt"
-  ],
-  "hotspots": [
-    {
-      "id": "h0",
-      "label": "Strongest acid (lowest pKa)",
-      "x": 0.167,
-      "y": 0.714
-    },
-    {
-      "id": "h1",
-      "label": "Intermediate acid",
-      "x": 0.333,
-      "y": 0.531
-    },
-    {
-      "id": "h2",
-      "label": "Weakest acid (highest pKa)",
-      "x": 0.5,
-      "y": 0.285
-    }
-  ]
+    "slug": "acid_strength_3",
+    "prompt": "Rank the three acids by strength from their titration curves",
+    "options": [
+        "Strongest acid (lowest pKa)",
+        "Intermediate acid",
+        "Weakest acid (highest pKa)",
+        "Buffer region",
+        "Equivalence point",
+        "Strong base titrant",
+        "pH = 7",
+        "Endpoint"
+    ],
+    "hotspots": [
+        {
+            "id": "h1",
+            "label": "Strongest acid (lowest pKa)",
+            "x": 0.247,
+            "y": 0.722
+        },
+        {
+            "id": "h2",
+            "label": "Intermediate acid",
+            "x": 0.409,
+            "y": 0.502
+        },
+        {
+            "id": "h3",
+            "label": "Weakest acid (highest pKa)",
+            "x": 0.247,
+            "y": 0.354
+        },
+        {
+            "id": "h4",
+            "label": "Buffer region",
+            "x": 0.247,
+            "y": 0.156
+        }
+    ]
 }
