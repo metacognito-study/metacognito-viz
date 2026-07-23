@@ -1,36 +1,53 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
-  <rect width="480" height="320" fill="#ffffff" />
-  
-  <text x="240" y="70" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle" fill="#333333">N2(g) + 3H2(g) ⇌ 2NH3(g)</text>
+    <!-- Background -->
+    <rect x="0" y="0" width="480" height="320" fill="white" />
+    
+    <!-- Equilibrium Equation -->
+    <g font-family="sans-serif" fill="black">
+        <text x="95" y="60" font-size="24">N</text>
+        <text x="113" y="68" font-size="16">2</text>
+        <text x="125" y="60" font-size="24">(g) + 3H</text>
+        <text x="219" y="68" font-size="16">2</text>
+        <text x="231" y="60" font-size="24">(g) &#x21CC; 2NH</text>
+        <text x="357" y="68" font-size="16">3</text>
+        <text x="369" y="60" font-size="24">(g)</text>
+    </g>
 
-  <!-- Horizontal lines -->
-  <line x1="16" y1="120" x2="464" y2="120" stroke="#333333" stroke-width="2" />
-  <line x1="16" y1="180" x2="464" y2="180" stroke="#333333" stroke-width="2" />
-  <line x1="16" y1="252" x2="464" y2="252" stroke="#333333" stroke-width="2" />
-  
-  <!-- Vertical lines -->
-  <line x1="16" y1="120" x2="16" y2="252" stroke="#333333" stroke-width="2" />
-  <line x1="160" y1="120" x2="160" y2="252" stroke="#333333" stroke-width="2" />
-  <line x1="236" y1="120" x2="236" y2="252" stroke="#333333" stroke-width="2" />
-  <line x1="312" y1="120" x2="312" y2="252" stroke="#333333" stroke-width="2" />
-  <line x1="388" y1="120" x2="388" y2="252" stroke="#333333" stroke-width="2" />
-  <line x1="464" y1="120" x2="464" y2="252" stroke="#333333" stroke-width="2" />
+    <!-- Table Borders -->
+    <!-- Horizontal lines -->
+    <line x1="10" y1="110" x2="470" y2="110" stroke="black" stroke-width="2" />
+    <line x1="10" y1="170" x2="470" y2="170" stroke="black" stroke-width="2" />
+    <line x1="10" y1="240" x2="470" y2="240" stroke="black" stroke-width="2" />
+    
+    <!-- Vertical lines -->
+    <line x1="10" y1="110" x2="10" y2="240" stroke="black" stroke-width="2" />
+    <line x1="130" y1="110" x2="130" y2="240" stroke="black" stroke-width="2" />
+    <line x1="215" y1="110" x2="215" y2="240" stroke="black" stroke-width="2" />
+    <line x1="300" y1="110" x2="300" y2="240" stroke="black" stroke-width="2" />
+    <line x1="385" y1="110" x2="385" y2="240" stroke="black" stroke-width="2" />
+    <line x1="470" y1="110" x2="470" y2="240" stroke="black" stroke-width="2" />
 
-  <!-- Headers (Row 1) -->
-  <text x="198" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Total</text>
-  <text x="198" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">pressure</text>
+    <!-- Table Headers (Header Row: Y=110 to 170) -->
+    <g font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="black">
+        <text x="70" y="145">Condition</text>
+        
+        <text x="172.5" y="135">Total</text>
+        <text x="172.5" y="155">pressure</text>
+        
+        <text x="257.5" y="135">Shift</text>
+        <text x="257.5" y="155">direction</text>
+        
+        <text x="342.5" y="135">Moles</text>
+        <text x="342.5" y="155">NH&#x2083;</text>
+        
+        <text x="427.5" y="135">Value</text>
+        <text x="427.5" y="155">of K</text>
+    </g>
 
-  <text x="274" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Shift</text>
-  <text x="274" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">direction</text>
-
-  <text x="350" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Moles</text>
-  <text x="350" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">NH3</text>
-
-  <text x="426" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Value</text>
-  <text x="426" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">of K</text>
-
-  <!-- Row condition (Row 2, Column 1) -->
-  <text x="88" y="211" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333333">Container volume</text>
-  <text x="88" y="231" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333333">decreased</text>
-
+    <!-- Table Data row (Row 1: Y=170 to 240) -->
+    <g font-family="sans-serif" font-size="14" text-anchor="middle" fill="black">
+        <text x="70" y="195">Container</text>
+        <text x="70" y="215">volume</text>
+        <text x="70" y="235">decreased</text>
+    </g>
 </svg>

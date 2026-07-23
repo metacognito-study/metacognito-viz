@@ -1,37 +1,37 @@
 {
-  "slug": "lechatelier_pressure",
-  "prompt": "Predict the direction of shift for each quantity",
-  "options": [
-    "Increases (↑)",
-    "Decreases (↓)",
-    "No change (↔)",
-    "Shifts toward products",
-    "Shifts toward reactants"
-  ],
-  "hotspots": [
-    {
-      "id": "h1",
-      "label": "Increases (↑)",
-      "x": 0.413,
-      "y": 0.675
-    },
-    {
-      "id": "h2",
-      "label": "Shifts toward products",
-      "x": 0.571,
-      "y": 0.675
-    },
-    {
-      "id": "h3",
-      "label": "Increases (↑)",
-      "x": 0.729,
-      "y": 0.675
-    },
-    {
-      "id": "h4",
-      "label": "No change (↔)",
-      "x": 0.888,
-      "y": 0.675
-    }
-  ]
+    "slug": "lechatelier_pressure",
+    "prompt": "Predict the direction of shift for each quantity",
+    "options": [
+        "Increases (\u2191)",
+        "Decreases (\u2193)",
+        "No change (\u2194)",
+        "Shifts toward products",
+        "Shifts toward reactants"
+    ],
+    "hotspots": [
+        {
+            "id": "h1",
+            "label": "Increases (\u2191)",
+            "x": 0.359,
+            "y": 0.641
+        },
+        {
+            "id": "h2",
+            "label": "Shifts toward products",
+            "x": 0.536,
+            "y": 0.641
+        },
+        {
+            "id": "h3",
+            "label": "Increases (\u2191)",
+            "x": 0.714,
+            "y": 0.641
+        },
+        {
+            "id": "h4",
+            "label": "No change (\u2194)",
+            "x": 0.891,
+            "y": 0.641
+        }
+    ]
 }
