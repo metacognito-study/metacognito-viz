@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="white"/>
+  
+  <!-- Axes: Y from (60,40) to (60,280), X from (60,280) to (440,280) -->
+  <polyline points="60,40 60,280 440,280" fill="none" stroke="#333" stroke-width="2.5"/>
+  
+  <!-- MD curve: Downward sloping from (100, 80) to (400, 260) -->
+  <line x1="100" y1="80" x2="400" y2="260" stroke="#333" stroke-width="2.5"/>
+  
+  <!-- MS1: Vertical at x=160 -->
+  <line x1="160" y1="40" x2="160" y2="280" stroke="#333" stroke-width="2.5"/>
+  
+  <!-- MS2: Vertical at x=340 -->
+  <line x1="340" y1="40" x2="340" y2="280" stroke="#333" stroke-width="2.5"/>
+  
+  <!-- Dashed lines showing equilibrium interest rates on the Y-axis -->
+  <line x1="60" y1="116" x2="160" y2="116" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="60" y1="224" x2="340" y2="224" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+  
+  <!-- Shift arrow: rightward from MS1 to MS2 at y=80 -->
+  <line x1="180" y1="80" x2="320" y2="80" stroke="#333" stroke-width="2.5"/>
+  <polygon points="320,80 310,74 310,86" fill="#333"/>
+</svg>
