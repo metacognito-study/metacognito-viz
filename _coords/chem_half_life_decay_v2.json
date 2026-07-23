@@ -1,0 +1,54 @@
+{
+  "slug": "half_life_decay_v2",
+  "prompt": "Tap the label that correctly identifies the half-life of this radioactive decay curve.",
+  "options": [
+    "half-life 1",
+    "half-life 2",
+    "half-life 3",
+    "one half-life",
+    "two half-lives",
+    "doubling time",
+    "mean life",
+    "decay constant",
+    "activity",
+    "initial amount"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "initial amount",
+      "x": 0.125,
+      "y": 0.188
+    },
+    {
+      "id": "h2",
+      "label": "half-life 1",
+      "x": 0.333,
+      "y": 0.531
+    },
+    {
+      "id": "h3",
+      "label": "half-life 2",
+      "x": 0.542,
+      "y": 0.703
+    },
+    {
+      "id": "h4",
+      "label": "half-life 3",
+      "x": 0.750,
+      "y": 0.789
+    },
+    {
+      "id": "h5",
+      "label": "one half-life",
+      "x": 0.333,
+      "y": 0.875
+    },
+    {
+      "id": "h6",
+      "label": "two half-lives",
+      "x": 0.542,
+      "y": 0.875
+    }
+  ]
+}
