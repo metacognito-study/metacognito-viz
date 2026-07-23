@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff" />
+  
+  <!-- CH4 Molecule -->
+  <text x="120" y="200" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">C</text>
+  <text x="120" y="140" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">H</text>
+  <text x="120" y="260" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">H</text>
+  <text x="60" y="200" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">H</text>
+  <text x="180" y="200" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">H</text>
+  
+  <line x1="120" y1="155" x2="120" y2="185" stroke="#333" stroke-width="2" />
+  <line x1="120" y1="215" x2="120" y2="245" stroke="#333" stroke-width="2" />
+  <line x1="75" y1="200" x2="105" y2="200" stroke="#333" stroke-width="2" />
+  <line x1="135" y1="200" x2="165" y2="200" stroke="#333" stroke-width="2" />
+
+  <!-- CCl4 Molecule -->
+  <text x="360" y="200" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">C</text>
+  <text x="360" y="140" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">Cl</text>
+  <text x="360" y="260" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">Cl</text>
+  <text x="300" y="200" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">Cl</text>
+  <text x="420" y="200" font-family="sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">Cl</text>
+  
+  <line x1="360" y1="155" x2="360" y2="185" stroke="#333" stroke-width="2" />
+  <line x1="360" y1="215" x2="360" y2="245" stroke="#333" stroke-width="2" />
+  <line x1="315" y1="200" x2="345" y2="200" stroke="#333" stroke-width="2" />
+  <line x1="375" y1="200" x2="405" y2="200" stroke="#333" stroke-width="2" />
+
+  <!-- Target Boxes for Labels -->
+  <!-- Box 1 (CH4) -->
+  <polyline points="50,44 190,44 190,84 50,84 50,44" stroke="#333" stroke-width="2" fill="none" stroke-dasharray="4" />
+  <line x1="120" y1="84" x2="120" y2="114" stroke="#333" stroke-width="2" />
+  <polygon points="115,109 125,109 120,114" fill="#333" />
+
+  <!-- Box 2 (CCl4) -->
+  <polyline points="290,44 430,44 430,84 290,84 290,44" stroke="#333" stroke-width="2" fill="none" stroke-dasharray="4" />
+  <line x1="360" y1="84" x2="360" y2="114" stroke="#333" stroke-width="2" />
+  <polygon points="355,109 365,109 360,114" fill="#333" />
+
+</svg>
