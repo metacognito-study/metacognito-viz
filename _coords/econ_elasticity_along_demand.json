@@ -1,0 +1,40 @@
+{
+  "slug": "elasticity_along_demand",
+  "prompt": "Tap the label that correctly identifies the region of elastic demand on this linear demand curve.",
+  "options": [
+    "elastic",
+    "unit elastic",
+    "inelastic",
+    "total revenue maximum",
+    "perfectly elastic",
+    "perfectly inelastic",
+    "cross-price elastic",
+    "income elastic"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "elastic",
+      "x": 0.292,
+      "y": 0.156
+    },
+    {
+      "id": "h2",
+      "label": "unit elastic",
+      "x": 0.458,
+      "y": 0.250
+    },
+    {
+      "id": "h3",
+      "label": "inelastic",
+      "x": 0.625,
+      "y": 0.344
+    },
+    {
+      "id": "h4",
+      "label": "total revenue maximum",
+      "x": 0.458,
+      "y": 0.594
+    }
+  ]
+}
