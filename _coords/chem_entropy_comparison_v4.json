@@ -1,0 +1,32 @@
+{
+  "slug": "entropy_comparison_v4",
+  "prompt": "Label which system has higher entropy and why",
+  "options": [
+    "Higher entropy",
+    "Lower entropy",
+    "More microstates/dispersal",
+    "Higher enthalpy",
+    "Lower enthalpy",
+    "Equilibrium"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Lower entropy",
+      "x": 0.208,
+      "y": 0.172
+    },
+    {
+      "id": "h2",
+      "label": "Higher entropy",
+      "x": 0.688,
+      "y": 0.172
+    },
+    {
+      "id": "h3",
+      "label": "More microstates/dispersal",
+      "x": 0.688,
+      "y": 0.797
+    }
+  ]
+}
