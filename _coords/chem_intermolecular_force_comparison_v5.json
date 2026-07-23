@@ -1,0 +1,40 @@
+{
+  "slug": "intermolecular_force_comparison_v5",
+  "prompt": "Label which molecule has the dominant intermolecular force and identify that force",
+  "options": [
+    "C2H6",
+    "CH3OH",
+    "Hydrogen bonding",
+    "Dipole-dipole forces",
+    "London dispersion forces",
+    "Ionic bonding",
+    "Covalent bonding",
+    "Metallic bonding"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "CH3OH",
+      "x": 0.750,
+      "y": 0.594
+    },
+    {
+      "id": "h2",
+      "label": "C2H6",
+      "x": 0.250,
+      "y": 0.594
+    },
+    {
+      "id": "h3",
+      "label": "Hydrogen bonding",
+      "x": 0.750,
+      "y": 0.812
+    },
+    {
+      "id": "h4",
+      "label": "London dispersion forces",
+      "x": 0.250,
+      "y": 0.812
+    }
+  ]
+}
