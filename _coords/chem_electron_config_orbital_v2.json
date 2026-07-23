@@ -1,0 +1,40 @@
+{
+  "slug": "electron_config_orbital_v2",
+  "prompt": "Tap the label that shows the correct ground-state orbital diagram for the outermost electrons of the given element.",
+  "options": [
+    "4s2 3d6",
+    "4s1 3d10",
+    "4s2 3d5",
+    "4s2 3d8",
+    "4s2 3d4",
+    "4s2 3d9",
+    "4s0 3d8",
+    "4s2 3d7"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "4s2 3d5",
+      "x": 0.854,
+      "y": 0.297
+    },
+    {
+      "id": "h2",
+      "label": "4s1 3d10",
+      "x": 0.854,
+      "y": 0.484
+    },
+    {
+      "id": "h3",
+      "label": "4s2 3d8",
+      "x": 0.854,
+      "y": 0.672
+    },
+    {
+      "id": "h4",
+      "label": "4s2 3d6",
+      "x": 0.854,
+      "y": 0.859
+    }
+  ]
+}
