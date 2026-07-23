@@ -1,0 +1,41 @@
+{
+  "slug": "entropy_comparison_v1",
+  "prompt": "Tap the label that correctly indicates which system has higher entropy (greater disorder).",
+  "options": [
+    "higher entropy",
+    "lower entropy",
+    "S_high",
+    "S_low",
+    "enthalpy",
+    "free energy",
+    "internal energy",
+    "temperature",
+    "heat capacity"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "lower entropy",
+      "x": 0.365,
+      "y": 0.713
+    },
+    {
+      "id": "h2",
+      "label": "S_low",
+      "x": 0.365,
+      "y": 0.9
+    },
+    {
+      "id": "h3",
+      "label": "higher entropy",
+      "x": 0.781,
+      "y": 0.713
+    },
+    {
+      "id": "h4",
+      "label": "S_high",
+      "x": 0.781,
+      "y": 0.9
+    }
+  ]
+}
