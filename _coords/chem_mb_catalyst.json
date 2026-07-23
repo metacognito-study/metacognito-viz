@@ -1,0 +1,31 @@
+{
+  "slug": "mb_catalyst",
+  "prompt": "Label the catalyzed and uncatalyzed activation energies",
+  "options": [
+    "Maxwell-Boltzmann distribution",
+    "Uncatalyzed Ea",
+    "Catalyzed Ea",
+    "Average kinetic energy",
+    "Enthalpy change (\u0394H)"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "Maxwell-Boltzmann distribution",
+      "x": 0.229,
+      "y": 0.344
+    },
+    {
+      "id": "h1",
+      "label": "Uncatalyzed Ea",
+      "x": 0.625,
+      "y": 0.312
+    },
+    {
+      "id": "h2",
+      "label": "Catalyzed Ea",
+      "x": 0.458,
+      "y": 0.312
+    }
+  ]
+}

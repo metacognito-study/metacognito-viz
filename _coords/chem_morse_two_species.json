@@ -1,0 +1,24 @@
+{
+  "slug": "morse_two_species",
+  "prompt": "Label the Morse curves based on bond properties",
+  "options": [
+    "Shorter, stronger bond",
+    "Longer, weaker bond",
+    "Shorter, weaker bond",
+    "Longer, stronger bond"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "Shorter, stronger bond",
+      "x": 0.283,
+      "y": 0.875
+    },
+    {
+      "id": "h1",
+      "label": "Longer, weaker bond",
+      "x": 0.433,
+      "y": 0.775
+    }
+  ]
+}

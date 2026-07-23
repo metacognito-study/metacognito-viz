@@ -1,0 +1,38 @@
+{
+  "slug": "energy_profile_cat",
+  "prompt": "Label the paths and energies on the profile",
+  "options": [
+    "Uncatalyzed path",
+    "Catalyzed path",
+    "Lower Ea (catalyzed)",
+    "\u0394H (enthalpy change)",
+    "Higher \u0394H",
+    "Reactants"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "Uncatalyzed path",
+      "x": 0.417,
+      "y": 0.25
+    },
+    {
+      "id": "h1",
+      "label": "Catalyzed path",
+      "x": 0.521,
+      "y": 0.438
+    },
+    {
+      "id": "h2",
+      "label": "Lower Ea (catalyzed)",
+      "x": 0.333,
+      "y": 0.438
+    },
+    {
+      "id": "h3",
+      "label": "\u0394H (enthalpy change)",
+      "x": 0.625,
+      "y": 0.703
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "slug": "solubility_two",
+  "prompt": "Label the solubility curves based on temperature dependence",
+  "options": [
+    "More soluble at high temp",
+    "Solubility slightly decreases at high temp",
+    "Insoluble salt",
+    "Gas solubility"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "More soluble at high temp",
+      "x": 0.833,
+      "y": 0.406
+    },
+    {
+      "id": "h1",
+      "label": "Solubility slightly decreases at high temp",
+      "x": 0.729,
+      "y": 0.734
+    }
+  ]
+}
