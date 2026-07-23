@@ -1,0 +1,40 @@
+{
+    "slug": "half_life_decay_v4",
+    "prompt": "Label the half-life interval and the remaining-fraction points on this decay curve",
+    "options": [
+        "One half-life",
+        "50% remaining",
+        "25% remaining",
+        "Decay curve",
+        "Two half-lives",
+        "75% remaining",
+        "10% remaining",
+        "Growth curve"
+    ],
+    "hotspots": [
+        {
+            "id": "h1",
+            "label": "One half-life",
+            "x": 0.219,
+            "y": 0.919
+        },
+        {
+            "id": "h2",
+            "label": "50% remaining",
+            "x": 0.312,
+            "y": 0.5
+        },
+        {
+            "id": "h3",
+            "label": "25% remaining",
+            "x": 0.5,
+            "y": 0.688
+        },
+        {
+            "id": "h4",
+            "label": "Decay curve",
+            "x": 0.792,
+            "y": 0.811
+        }
+    ]
+}
