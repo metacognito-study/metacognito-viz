@@ -5,7 +5,7 @@
     "Uncatalysed pathway",
     "Catalysed pathway",
     "Lower activation energy",
-    "Enthalpy change (ΔH)",
+    "Enthalpy change (\u0394H)",
     "Higher activation energy",
     "Transition state",
     "Reactants",
@@ -15,26 +15,26 @@
     {
       "id": "h1",
       "label": "Uncatalysed pathway",
-      "x": 0.498,
+      "x": 0.5,
       "y": 0.125
     },
     {
       "id": "h2",
       "label": "Catalysed pathway",
-      "x": 0.667,
-      "y": 0.522
+      "x": 0.688,
+      "y": 0.594
     },
     {
       "id": "h3",
       "label": "Lower activation energy",
-      "x": 0.500,
+      "x": 0.5,
       "y": 0.391
     },
     {
       "id": "h4",
-      "label": "Enthalpy change (ΔH)",
-      "x": 0.833,
-      "y": 0.625
+      "label": "Enthalpy change (\u0394H)",
+      "x": 0.854,
+      "y": 0.641
     }
   ]
 }

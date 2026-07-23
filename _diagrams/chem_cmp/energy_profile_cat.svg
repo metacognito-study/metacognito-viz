@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <!-- White background -->
+  <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333333" />
+    </marker>
+  </defs>
+
+  <!-- Axes -->
+  <line x1="40" y1="290" x2="40" y2="20" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="40" y1="290" x2="460" y2="290" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Labels for axes -->
+  <text x="15" y="60" transform="rotate(-90 15 60)" fill="#333333" font-family="sans-serif" font-size="16">Energy</text>
+  <text x="190" y="310" fill="#333333" font-family="sans-serif" font-size="16">Reaction Progress</text>
+
+  <!-- Reactant and Product lines -->
+  <line x1="50" y1="150" x2="120" y2="150" stroke="#333333" stroke-width="2.5"/>
+  <line x1="360" y1="260" x2="450" y2="260" stroke="#333333" stroke-width="2.5"/>
+
+  <!-- Uncatalysed Pathway -->
+  <path d="M 120 150 Q 180 40 240 40 T 360 260" fill="none" stroke="#e63946" stroke-width="3" stroke-dasharray="8,4" />
+  
+  <!-- Catalysed Pathway -->
+  <path d="M 120 150 Q 180 100 240 100 T 360 260" fill="none" stroke="#1d3557" stroke-width="3" />
+
+  <!-- Extend reactant line for measuring activation energy and enthalpy -->
+  <line x1="120" y1="150" x2="450" y2="150" stroke="#666666" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="360" y1="260" x2="450" y2="260" stroke="#666666" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+  <!-- Activation Energy of Catalysed Route arrow -->
+  <!-- from R_y up to peak_cat_y -->
+  <line x1="240" y1="150" x2="240" y2="100" stroke="#1d3557" stroke-width="2" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  
+  <!-- Enthalpy Change arrow -->
+  <!-- from R_y down to P_y -->
+  <line x1="410" y1="150" x2="410" y2="260" stroke="#666666" stroke-width="2" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+</svg>
