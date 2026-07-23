@@ -1,32 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
   <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
-
   <g stroke="#1f2937" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-
     <g>
-      <rect x="210" y="76" width="60" height="16" fill="#bfdbfe" stroke="none"/>
-      <polyline points="210,58 210,92 270,92 270,58"/>
-      <line x1="204" y1="62" x2="276" y2="62"/>
+      <rect x="200" y="56" width="80" height="36" fill="#bfdbfe" stroke="none"/>
+      <polyline points="200,38 200,92 280,92 280,38"/>
+      <line x1="194" y1="42" x2="286" y2="42"/>
     </g>
-
-    <rect x="165" y="92" width="150" height="8" fill="#e5e7eb"/>
+    <rect x="150" y="92" width="180" height="8" fill="#e5e7eb"/>
     <rect x="232" y="100" width="16" height="20" fill="#e5e7eb"/>
-
-    <rect x="60" y="120" width="360" height="160" rx="10" fill="#f3f4f6"/>
-
-    <rect x="80" y="280" width="30" height="10" fill="#d1d5db"/>
-    <rect x="370" y="280" width="30" height="10" fill="#d1d5db"/>
-
-    <rect x="120" y="262" width="50" height="12" rx="4" fill="#e5e7eb"/>
-    <rect x="180" y="262" width="50" height="12" rx="4" fill="#e5e7eb"/>
-
-    <rect x="90" y="145" width="300" height="110" fill="#ffffff"/>
-
-    <rect x="110" y="158" width="160" height="84" rx="8" fill="#e8f1fd" stroke="#2563eb" stroke-width="2" stroke-dasharray="7 5"/>
-    <rect x="296" y="158" width="76" height="84" rx="8" fill="#fdf0dc" stroke="#b45309" stroke-width="2" stroke-dasharray="7 5"/>
-
+    <rect x="40" y="120" width="400" height="160" rx="10" fill="#f3f4f6"/>
+    <rect x="60" y="280" width="40" height="10" fill="#d1d5db"/>
+    <rect x="380" y="280" width="40" height="10" fill="#d1d5db"/>
+    <rect x="100" y="262" width="60" height="12" rx="4" fill="#e5e7eb"/>
+    <rect x="180" y="262" width="60" height="12" rx="4" fill="#e5e7eb"/>
+    <rect x="60" y="145" width="360" height="110" fill="#ffffff"/>
+    <rect x="80" y="158" width="220" height="84" rx="8" fill="#e8f1fd" stroke="#2563eb" stroke-width="2" stroke-dasharray="7 5"/>
+    <rect x="320" y="158" width="80" height="84" rx="8" fill="#fdf0dc" stroke="#b45309" stroke-width="2" stroke-dasharray="7 5"/>
   </g>
-
-  <text x="190" y="190" font-family="Helvetica, Arial, sans-serif" font-size="34" fill="#0f172a" text-anchor="middle">24.58</text>
-  <text x="334" y="190" font-family="Helvetica, Arial, sans-serif" font-size="34" fill="#0f172a" text-anchor="middle">g</text>
 </svg>
