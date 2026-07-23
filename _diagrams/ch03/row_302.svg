@@ -2,8 +2,8 @@
   <rect x="0" y="0" width="480" height="320" fill="#FFFFFF"/>
 
   <g font-family="Helvetica, Arial, sans-serif" fill="#1A1A1A">
-    <text x="240" y="22" font-size="13" text-anchor="middle">Mg(s) + 2HCl(aq) → MgCl₂(aq) + H₂(g)</text>
-    <text x="240" y="38" font-size="11" text-anchor="middle">Each flask holds 15 mmol Mg; the HCl added increases flask to flask</text>
+    <text x="240" y="22" font-size="16" text-anchor="middle">Mg(s) + 2HCl(aq) → MgCl₂(aq) + H₂(g)</text>
+    <text x="240" y="42" font-size="13" text-anchor="middle">Each flask holds 15 mmol Mg; the HCl added increases flask to flask</text>
   </g>
 
   <rect x="70" y="50" width="222" height="220" fill="#EAF2FB"/>
@@ -39,24 +39,24 @@
     <circle cx="440" cy="120" r="3"/>
   </g>
 
-  <g font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#1A1A1A" text-anchor="middle">
-    <text x="70" y="288">0</text>
-    <text x="144" y="288">10</text>
-    <text x="218" y="288">20</text>
-    <text x="292" y="288">30</text>
-    <text x="366" y="288">40</text>
-    <text x="440" y="288">50</text>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#1A1A1A" text-anchor="middle">
+    <text x="70" y="292">0</text>
+    <text x="144" y="292">10</text>
+    <text x="218" y="292">20</text>
+    <text x="292" y="292">30</text>
+    <text x="366" y="292">40</text>
+    <text x="440" y="292">50</text>
   </g>
 
-  <g font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#1A1A1A" text-anchor="end">
-    <text x="53" y="274">0</text>
-    <text x="53" y="224">5</text>
-    <text x="53" y="174">10</text>
-    <text x="53" y="124">15</text>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#1A1A1A" text-anchor="end">
+    <text x="53" y="275">0</text>
+    <text x="53" y="225">5</text>
+    <text x="53" y="175">10</text>
+    <text x="53" y="125">15</text>
   </g>
 
-  <g font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1A1A1A" text-anchor="middle">
-    <text x="255" y="308">Amount of HCl added (mmol)</text>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="15" fill="#1A1A1A" text-anchor="middle">
+    <text x="255" y="312">Amount of HCl added (mmol)</text>
     
   </g>
 </svg>

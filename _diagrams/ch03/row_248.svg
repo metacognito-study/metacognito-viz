@@ -21,20 +21,25 @@
   </g>
 
   <g fill="#2f6f4e">
-    <rect x="158" y="217" width="4" height="35"/>
-    <rect x="235" y="229" width="4" height="23"/>
-    <rect x="248" y="175" width="4" height="77"/>
-    <rect x="260" y="60" width="4" height="192"/>
-    <rect x="337" y="237" width="4" height="15"/>
-    <rect x="350" y="204" width="4" height="48"/>
-    <rect x="356" y="152" width="4" height="100"/>
-    <rect x="363" y="246" width="4" height="6"/>
+    <rect x="155" y="217" width="10" height="35"/>
+    <rect x="232" y="229" width="10" height="23"/>
+    <rect x="245" y="175" width="10" height="77"/>
+    <rect x="257" y="60" width="10" height="192"/>
+    <rect x="334" y="237" width="10" height="15"/>
+    <rect x="347" y="204" width="10" height="48"/>
+    <rect x="353" y="152" width="10" height="100"/>
+    <rect x="360" y="246" width="10" height="6"/>
   </g>
 
-  <g fill="#1f2a37" font-family="Helvetica, Arial, sans-serif" font-size="14" text-anchor="middle">
-    <text x="192" y="272">20</text>
-    <text x="256" y="272">30</text>
-    <text x="320" y="272">40</text>
-    <text x="384" y="272">50</text>
+  <g fill="#1f2a37" font-family="Helvetica, Arial, sans-serif" font-size="16" text-anchor="middle">
+    <text x="192" y="274">20</text>
+    <text x="256" y="274">30</text>
+    <text x="320" y="274">40</text>
+    <text x="384" y="274">50</text>
+  </g>
+  <g fill="#1f2a37" font-family="Helvetica, Arial, sans-serif" font-size="16" text-anchor="end">
+    <text x="54" y="258">0</text>
+    <text x="54" y="162">50</text>
+    <text x="54" y="66">100</text>
   </g>
 </svg>

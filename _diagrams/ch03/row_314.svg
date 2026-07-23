@@ -5,8 +5,8 @@
 
     <text x="240" y="34" text-anchor="middle" font-size="19" fill="#1a1a1a">A  +  B  &#8594;  C</text>
 
-    <text x="115" y="56" text-anchor="middle" font-size="12" fill="#555555">Before</text>
-    <text x="360" y="56" text-anchor="middle" font-size="12" fill="#555555">After</text>
+    <text x="115" y="56" text-anchor="middle" font-size="14" fill="#555555">Before</text>
+    <text x="360" y="56" text-anchor="middle" font-size="14" fill="#555555">After</text>
 
     <rect x="40" y="62" width="150" height="196" rx="8" ry="8" fill="none" stroke="#8c8c8c" stroke-width="1.6"/>
     <rect x="280" y="62" width="160" height="196" rx="8" ry="8" fill="none" stroke="#8c8c8c" stroke-width="1.6"/>
@@ -15,60 +15,60 @@
     <polygon points="256,152 270,160 256,168" fill="#444444"/>
 
     <g stroke-width="1.8">
-      <circle cx="89" cy="95" r="11" fill="#cfe4f7" stroke="#1f5fa8"/>
-      <circle cx="141" cy="95" r="11" fill="#cfe4f7" stroke="#1f5fa8"/>
-      <circle cx="115" cy="140" r="11" fill="#cfe4f7" stroke="#1f5fa8"/>
+      <circle cx="89" cy="95" r="14" fill="#cfe4f7" stroke="#1f5fa8"/>
+      <circle cx="141" cy="95" r="14" fill="#cfe4f7" stroke="#1f5fa8"/>
+      <circle cx="115" cy="140" r="14" fill="#cfe4f7" stroke="#1f5fa8"/>
 
-      <circle cx="115" cy="176" r="11" fill="#fce4bd" stroke="#c77b12"/>
-      <circle cx="83" cy="199" r="11" fill="#fce4bd" stroke="#c77b12"/>
-      <circle cx="147" cy="199" r="11" fill="#fce4bd" stroke="#c77b12"/>
-      <circle cx="95" cy="238" r="11" fill="#fce4bd" stroke="#c77b12"/>
-      <circle cx="135" cy="238" r="11" fill="#fce4bd" stroke="#c77b12"/>
+      <circle cx="115" cy="176" r="14" fill="#fce4bd" stroke="#c77b12"/>
+      <circle cx="83" cy="204" r="14" fill="#fce4bd" stroke="#c77b12"/>
+      <circle cx="147" cy="204" r="14" fill="#fce4bd" stroke="#c77b12"/>
+      <circle cx="95" cy="238" r="14" fill="#fce4bd" stroke="#c77b12"/>
+      <circle cx="135" cy="238" r="14" fill="#fce4bd" stroke="#c77b12"/>
     </g>
 
-    <g font-size="12" text-anchor="middle" fill="#123f73">
-      <text x="89" y="99">A</text>
-      <text x="141" y="99">A</text>
-      <text x="115" y="144">A</text>
+    <g font-size="16" text-anchor="middle" fill="#123f73">
+      <text x="89" y="100.5">A</text>
+      <text x="141" y="100.5">A</text>
+      <text x="115" y="145.5">A</text>
     </g>
-    <g font-size="12" text-anchor="middle" fill="#7a4a05">
-      <text x="115" y="180">B</text>
-      <text x="83" y="203">B</text>
-      <text x="147" y="203">B</text>
-      <text x="95" y="242">B</text>
-      <text x="135" y="242">B</text>
+    <g font-size="16" text-anchor="middle" fill="#7a4a05">
+      <text x="115" y="181.5">B</text>
+      <text x="83" y="209.5">B</text>
+      <text x="147" y="209.5">B</text>
+      <text x="95" y="243.5">B</text>
+      <text x="135" y="243.5">B</text>
     </g>
 
     <g stroke-width="1.8">
-      <line x1="358" y1="76" x2="362" y2="76" stroke="#555555" stroke-width="2.6"/>
-      <circle cx="349" cy="76" r="9" fill="#cfe4f7" stroke="#1f5fa8"/>
-      <circle cx="371" cy="76" r="9" fill="#fce4bd" stroke="#c77b12"/>
+      <line x1="352" y1="84" x2="368" y2="84" stroke="#555555" stroke-width="2.6"/>
+      <circle cx="346" cy="84" r="14" fill="#cfe4f7" stroke="#1f5fa8"/>
+      <circle cx="374" cy="84" r="14" fill="#fce4bd" stroke="#c77b12"/>
 
-      <line x1="328" y1="146" x2="332" y2="146" stroke="#555555" stroke-width="2.6"/>
-      <circle cx="319" cy="146" r="9" fill="#cfe4f7" stroke="#1f5fa8"/>
-      <circle cx="341" cy="146" r="9" fill="#fce4bd" stroke="#c77b12"/>
+      <line x1="322" y1="146" x2="338" y2="146" stroke="#555555" stroke-width="2.6"/>
+      <circle cx="316" cy="146" r="14" fill="#cfe4f7" stroke="#1f5fa8"/>
+      <circle cx="344" cy="146" r="14" fill="#fce4bd" stroke="#c77b12"/>
 
-      <line x1="388" y1="146" x2="392" y2="146" stroke="#555555" stroke-width="2.6"/>
-      <circle cx="379" cy="146" r="9" fill="#cfe4f7" stroke="#1f5fa8"/>
-      <circle cx="401" cy="146" r="9" fill="#fce4bd" stroke="#c77b12"/>
+      <line x1="382" y1="146" x2="398" y2="146" stroke="#555555" stroke-width="2.6"/>
+      <circle cx="376" cy="146" r="14" fill="#cfe4f7" stroke="#1f5fa8"/>
+      <circle cx="404" cy="146" r="14" fill="#fce4bd" stroke="#c77b12"/>
 
-      <circle cx="330" cy="215" r="11" fill="#fce4bd" stroke="#c77b12"/>
-      <circle cx="390" cy="215" r="11" fill="#fce4bd" stroke="#c77b12"/>
+      <circle cx="330" cy="215" r="14" fill="#fce4bd" stroke="#c77b12"/>
+      <circle cx="390" cy="215" r="14" fill="#fce4bd" stroke="#c77b12"/>
     </g>
 
-    <g font-size="10" text-anchor="middle" fill="#123f73">
-      <text x="349" y="79.5">A</text>
-      <text x="319" y="149.5">A</text>
-      <text x="379" y="149.5">A</text>
+    <g font-size="15" text-anchor="middle" fill="#123f73">
+      <text x="346" y="89.5">A</text>
+      <text x="316" y="151.5">A</text>
+      <text x="376" y="151.5">A</text>
     </g>
-    <g font-size="10" text-anchor="middle" fill="#7a4a05">
-      <text x="371" y="79.5">B</text>
-      <text x="341" y="149.5">B</text>
-      <text x="401" y="149.5">B</text>
+    <g font-size="15" text-anchor="middle" fill="#7a4a05">
+      <text x="374" y="89.5">B</text>
+      <text x="344" y="151.5">B</text>
+      <text x="404" y="151.5">B</text>
     </g>
-    <g font-size="12" text-anchor="middle" fill="#7a4a05">
-      <text x="330" y="219">B</text>
-      <text x="390" y="219">B</text>
+    <g font-size="16" text-anchor="middle" fill="#7a4a05">
+      <text x="330" y="220.5">B</text>
+      <text x="390" y="220.5">B</text>
     </g>
 
   </g>
