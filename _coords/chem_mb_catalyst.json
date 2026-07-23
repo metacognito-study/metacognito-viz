@@ -1,31 +1,40 @@
 {
   "slug": "mb_catalyst",
-  "prompt": "Label the catalyzed and uncatalyzed activation energies",
+  "prompt": "Label the two activation-energy positions on one distribution",
   "options": [
-    "Maxwell-Boltzmann distribution",
-    "Uncatalyzed Ea",
-    "Catalyzed Ea",
+    "Energy distribution curve",
+    "Catalysed activation energy",
+    "Uncatalysed activation energy",
+    "Extra molecules able to react",
     "Average kinetic energy",
-    "Enthalpy change (\u0394H)"
+    "Enthalpy change",
+    "Higher temperature",
+    "Bond energy"
   ],
   "hotspots": [
     {
-      "id": "h0",
-      "label": "Maxwell-Boltzmann distribution",
-      "x": 0.229,
-      "y": 0.344
-    },
-    {
       "id": "h1",
-      "label": "Uncatalyzed Ea",
-      "x": 0.625,
-      "y": 0.312
+      "label": "Energy distribution curve",
+      "x": 0.25,
+      "y": 0.188
     },
     {
       "id": "h2",
-      "label": "Catalyzed Ea",
-      "x": 0.458,
+      "label": "Catalysed activation energy",
+      "x": 0.417,
+      "y": 0.469
+    },
+    {
+      "id": "h3",
+      "label": "Uncatalysed activation energy",
+      "x": 0.562,
       "y": 0.312
+    },
+    {
+      "id": "h4",
+      "label": "Extra molecules able to react",
+      "x": 0.49,
+      "y": 0.812
     }
   ]
 }
