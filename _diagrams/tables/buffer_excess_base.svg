@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+    <rect width="480" height="320" fill="white" />
+    <!-- Table Borders -->
+    <line x1="10" y1="80" x2="460" y2="80" stroke="#333" stroke-width="2" />
+    <line x1="10" y1="130" x2="460" y2="130" stroke="#333" stroke-width="2" />
+    <line x1="10" y1="210" x2="460" y2="210" stroke="#333" stroke-width="2" />
+    
+    <line x1="10" y1="80" x2="10" y2="210" stroke="#333" stroke-width="2" />
+    <line x1="100" y1="80" x2="100" y2="210" stroke="#333" stroke-width="2" />
+    <line x1="172" y1="80" x2="172" y2="210" stroke="#333" stroke-width="2" />
+    <line x1="244" y1="80" x2="244" y2="210" stroke="#333" stroke-width="2" />
+    <line x1="316" y1="80" x2="316" y2="210" stroke="#333" stroke-width="2" />
+    <line x1="388" y1="80" x2="388" y2="210" stroke="#333" stroke-width="2" />
+    <line x1="460" y1="80" x2="460" y2="210" stroke="#333" stroke-width="2" />
+
+    <!-- Headers -->
+    <text x="136" y="110" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#333">Moles A⁻</text>
+    <text x="208" y="110" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#333">Moles HA</text>
+    
+    <text x="280" y="100" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#333">Ratio</text>
+    <text x="280" y="120" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#333">[A⁻]/[HA]</text>
+    
+    <text x="352" y="110" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#333">pH</text>
+    
+    <text x="424" y="100" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#333">Capacity</text>
+    <text x="424" y="120" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#333">vs base</text>
+
+    <!-- Row Header -->
+    <text x="55" y="155" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#333">Too much</text>
+    <text x="55" y="175" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#333">strong base</text>
+    <text x="55" y="195" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#333">added</text>
+</svg>

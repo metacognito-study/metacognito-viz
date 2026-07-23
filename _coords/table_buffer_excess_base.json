@@ -1,60 +1,46 @@
 {
-  "slug": "table_buffer_excess_base",
-  "prompt": "Predict the direction of change for each parameter.",
+  "slug": "buffer_excess_base",
+  "prompt": "Predict the direction of change for each quantity",
   "options": [
-    "Increases (\u2191)",
-    "Decreases (\u2193)",
-    "No change (\u2194)"
+    "Increases (↑)",
+    "Decreases (↓)",
+    "No change (↔)"
   ],
   "hotspots": [
     {
-      "id": "r1c0",
-      "label": "Answer for Moles A\u207b",
-      "x": 0.203,
-      "y": 0.406,
-      "answer": "Increases (\u2191)"
+      "id": "h1",
+      "label": "Answer for Moles A⁻",
+      "x": 0.283,
+      "y": 0.531,
+      "answer": "Increases (↑)"
     },
     {
-      "id": "r1c1",
+      "id": "h2",
       "label": "Answer for Moles HA",
-      "x": 0.401,
-      "y": 0.406,
-      "answer": "Decreases (\u2193)"
+      "x": 0.433,
+      "y": 0.531,
+      "answer": "Decreases (↓)"
     },
     {
-      "id": "r1c2",
-      "label": "Answer for Ratio [A\u207b]/[HA]",
-      "x": 0.599,
-      "y": 0.406,
-      "answer": "Increases (\u2191)"
+      "id": "h3",
+      "label": "Answer for Ratio [A⁻]/[HA]",
+      "x": 0.583,
+      "y": 0.531,
+      "answer": "Increases (↑)"
     },
     {
-      "id": "r1c3",
+      "id": "h4",
       "label": "Answer for pH",
-      "x": 0.797,
-      "y": 0.406,
-      "answer": "Increases (\u2191)"
+      "x": 0.733,
+      "y": 0.531,
+      "answer": "Increases (↑)"
     },
     {
-      "id": "r2c0",
-      "label": "Answer for Overall capacity",
-      "x": 0.271,
-      "y": 0.75,
-      "answer": "No change (\u2194)"
-    },
-    {
-      "id": "r2c1",
-      "label": "Answer for Capacity against acid",
-      "x": 0.5,
-      "y": 0.75,
-      "answer": "Increases (\u2191)"
-    },
-    {
-      "id": "r2c2",
-      "label": "Answer for Capacity against base",
-      "x": 0.729,
-      "y": 0.75,
-      "answer": "Decreases (\u2193)"
+      "id": "h5",
+      "label": "Answer for Capacity vs base",
+      "x": 0.883,
+      "y": 0.531,
+      "answer": "Decreases (↓)"
     }
   ]
 }
