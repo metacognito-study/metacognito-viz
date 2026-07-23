@@ -1,0 +1,29 @@
+{
+  "slug": "intermolecular_force_comparison_v1",
+  "prompt": "Tap the label that correctly identifies the strongest intermolecular force present in the highlighted molecule.",
+  "options": [
+    "hydrogen bonding",
+    "dipole-dipole",
+    "London dispersion",
+    "ion-dipole",
+    "covalent bonding",
+    "ionic bonding",
+    "metallic bonding",
+    "van der Waals",
+    "induced dipole"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "hydrogen bonding",
+      "x": 0.292,
+      "y": 0.281
+    },
+    {
+      "id": "h2",
+      "label": "dipole-dipole",
+      "x": 0.708,
+      "y": 0.281
+    }
+  ]
+}

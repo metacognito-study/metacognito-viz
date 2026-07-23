@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+    <rect width="480" height="320" fill="#ffffff"/>
+    
+    <!-- Title -->
+    <text x="240" y="40" font-family="sans-serif" font-size="20" fill="#333333" text-anchor="middle" font-weight="bold">Strongest Intermolecular Forces</text>
+
+    <!-- H2O Molecule -->
+    <!-- Bonds -->
+    <line x1="140" y1="175" x2="115" y2="215" stroke="#333333" stroke-width="3"/>
+    <line x1="140" y1="175" x2="165" y2="215" stroke="#333333" stroke-width="3"/>
+    
+    <!-- Atoms -->
+    <circle cx="140" cy="170" r="18" fill="#ff6666"/>
+    <text x="140" y="176" font-family="sans-serif" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">O</text>
+    
+    <circle cx="110" cy="220" r="12" fill="#dddddd"/>
+    <text x="110" y="225" font-family="sans-serif" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">H</text>
+    
+    <circle cx="170" cy="220" r="12" fill="#dddddd"/>
+    <text x="170" y="225" font-family="sans-serif" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">H</text>
+
+    <!-- Lone pairs -->
+    <circle cx="128" cy="148" r="3" fill="#333333"/>
+    <circle cx="136" cy="145" r="3" fill="#333333"/>
+    <circle cx="152" cy="148" r="3" fill="#333333"/>
+    <circle cx="144" cy="145" r="3" fill="#333333"/>
+
+    <!-- H2S Molecule -->
+    <!-- Bonds -->
+    <line x1="340" y1="175" x2="315" y2="215" stroke="#333333" stroke-width="3"/>
+    <line x1="340" y1="175" x2="365" y2="215" stroke="#333333" stroke-width="3"/>
+    
+    <!-- Atoms -->
+    <circle cx="340" cy="170" r="22" fill="#ffcc00"/>
+    <text x="340" y="176" font-family="sans-serif" font-size="18" fill="#333333" text-anchor="middle" font-weight="bold">S</text>
+    
+    <circle cx="305" cy="220" r="12" fill="#dddddd"/>
+    <text x="305" y="225" font-family="sans-serif" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">H</text>
+    
+    <circle cx="375" cy="220" r="12" fill="#dddddd"/>
+    <text x="375" y="225" font-family="sans-serif" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">H</text>
+
+    <!-- Lone pairs -->
+    <circle cx="326" cy="144" r="3" fill="#333333"/>
+    <circle cx="335" cy="140" r="3" fill="#333333"/>
+    <circle cx="354" cy="144" r="3" fill="#333333"/>
+    <circle cx="345" cy="140" r="3" fill="#333333"/>
+
+    <!-- Target Box and Arrow for H2O -->
+    <line x1="90" y1="70" x2="190" y2="70" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <line x1="190" y1="70" x2="190" y2="110" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <line x1="190" y1="110" x2="90" y2="110" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <line x1="90" y1="110" x2="90" y2="70" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <text x="140" y="95" font-family="sans-serif" font-size="14" fill="#666666" text-anchor="middle">Identify IMF</text>
+    <line x1="140" y1="110" x2="140" y2="145" stroke="#666666" stroke-width="2"/>
+    <polygon points="140,150 135,140 145,140" fill="#666666"/>
+
+    <!-- Target Box and Arrow for H2S -->
+    <line x1="290" y1="70" x2="390" y2="70" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <line x1="390" y1="70" x2="390" y2="110" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <line x1="390" y1="110" x2="290" y2="110" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <line x1="290" y1="110" x2="290" y2="70" stroke="#666666" stroke-width="2" stroke-dasharray="4,4"/>
+    <text x="340" y="95" font-family="sans-serif" font-size="14" fill="#666666" text-anchor="middle">Identify IMF</text>
+    <line x1="340" y1="110" x2="340" y2="140" stroke="#666666" stroke-width="2"/>
+    <polygon points="340,145 335,135 345,135" fill="#666666"/>
+</svg>
