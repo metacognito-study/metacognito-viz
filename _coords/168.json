@@ -1,1 +1,1 @@
-{"row":168,"hotspots":[{"id":"prot","label":"Proton (+1)","x":0.25,"y":0.5},{"id":"neut","label":"Neutron (0)","x":0.406,"y":0.366},{"id":"elec","label":"Electron (−1)","x":0.646,"y":0.5}]}
+{"row": 168, "hotspots": [{"id": "prot", "label": "Proton (+1)", "x": 0.396, "y": 0.5}, {"id": "neut", "label": "Neutron (0)", "x": 0.552, "y": 0.366}, {"id": "elec", "label": "Electron (\u22121)", "x": 0.792, "y": 0.5}]}

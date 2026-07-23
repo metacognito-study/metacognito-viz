@@ -20,19 +20,19 @@
     <text x="152" y="48" font-size="26" font-weight="bold">C</text>
     <text x="169" y="48" font-size="26" font-weight="bold">N</text>
 
-    <text x="358" y="48" font-size="26" font-weight="bold">H</text>
-    <text x="371.5" y="52" font-size="15">2</text>
+    <text x="350" y="48" font-size="26" font-weight="bold">H</text>
+    <text x="368" y="52" font-size="15">2</text>
     <text x="385" y="48" font-size="26" font-weight="bold">S</text>
-    <text x="402" y="48" font-size="26" font-weight="bold">O</text>
-    <text x="415.5" y="52" font-size="15">4</text>
+    <text x="405" y="48" font-size="26" font-weight="bold">O</text>
+    <text x="425" y="52" font-size="15">4</text>
 
     <text x="146" y="201" font-size="26" font-weight="bold">H</text>
     <text x="159" y="201" font-size="26" font-weight="bold">I</text>
 
-    <text x="363" y="201" font-size="26" font-weight="bold">H</text>
+    <text x="356" y="201" font-size="26" font-weight="bold">H</text>
     <text x="380" y="201" font-size="26" font-weight="bold">N</text>
-    <text x="397" y="201" font-size="26" font-weight="bold">O</text>
-    <text x="410.5" y="205" font-size="15">3</text>
+    <text x="400" y="201" font-size="26" font-weight="bold">O</text>
+    <text x="420" y="205" font-size="15">3</text>
   </g>
 
   <g stroke="#9aa0a6" stroke-width="2" stroke-linecap="round">

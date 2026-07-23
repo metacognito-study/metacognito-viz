@@ -2,10 +2,10 @@
   <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
 
   <g stroke="#8a94a6" fill="none" stroke-width="2" stroke-dasharray="7 5">
-    <rect x="80" y="80" width="320" height="210" rx="16"/>
+    <rect x="70" y="70" width="340" height="230" rx="16"/>
   </g>
   <g stroke="#5a6478" fill="none" stroke-width="3" stroke-linecap="round">
-    <path d="M 88 132 L 88 102 Q 88 88 102 88 L 132 88"/>
+    <path d="M 85 132 L 85 95 Q 85 85 95 85 L 132 85"/>
   </g>
 
   <g stroke="#14213d" stroke-width="3" stroke-linecap="butt">
