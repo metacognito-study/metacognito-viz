@@ -1,0 +1,40 @@
+{
+  "slug": "electron_config_orbital_v4",
+  "prompt": "Label the orbital diagram boxes and the electron arrows for this element",
+  "options": [
+    "4s orbital",
+    "3d orbitals",
+    "Spin-up electron (unpaired)",
+    "Paired electrons (opposite spins)",
+    "2p orbital",
+    "4p orbital",
+    "Spin-down only",
+    "Empty orbital"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "4s orbital",
+      "x": 0.208,
+      "y": 0.672
+    },
+    {
+      "id": "h2",
+      "label": "3d orbitals",
+      "x": 0.677,
+      "y": 0.672
+    },
+    {
+      "id": "h3",
+      "label": "Spin-up electron (unpaired)",
+      "x": 0.885,
+      "y": 0.453
+    },
+    {
+      "id": "h4",
+      "label": "Paired electrons (opposite spins)",
+      "x": 0.208,
+      "y": 0.500
+    }
+  ]
+}

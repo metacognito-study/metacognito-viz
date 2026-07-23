@@ -1,0 +1,53 @@
+<svg viewBox="0 0 480 320" width="480" height="320" xmlns="http://www.w3.org/2000/svg">
+  <!-- Canvas background -->
+  <rect width="480" height="320" fill="white"/>
+
+  <!-- Title -->
+  <text x="240" y="60" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#000">Orbital Diagram</text>
+
+  <!-- 4s box -->
+  <rect x="75" y="135" width="50" height="50" stroke="black" stroke-width="2" fill="none"/>
+  <!-- 4s electrons -->
+  <!-- Up -->
+  <line x1="90" y1="175" x2="90" y2="145" stroke="black" stroke-width="2"/>
+  <polyline points="85,152 90,145 95,152" stroke="black" stroke-width="2" fill="none"/>
+  <!-- Down -->
+  <line x1="110" y1="145" x2="110" y2="175" stroke="black" stroke-width="2"/>
+  <polyline points="105,168 110,175 115,168" stroke="black" stroke-width="2" fill="none"/>
+  
+  <!-- 3d boxes (5 boxes) -->
+  <rect x="200" y="135" width="50" height="50" stroke="black" stroke-width="2" fill="none"/>
+  <rect x="250" y="135" width="50" height="50" stroke="black" stroke-width="2" fill="none"/>
+  <rect x="300" y="135" width="50" height="50" stroke="black" stroke-width="2" fill="none"/>
+  <rect x="350" y="135" width="50" height="50" stroke="black" stroke-width="2" fill="none"/>
+  <rect x="400" y="135" width="50" height="50" stroke="black" stroke-width="2" fill="none"/>
+  
+  <!-- 3d electrons (all up) -->
+  <!-- Box 1 -->
+  <line x1="225" y1="175" x2="225" y2="145" stroke="black" stroke-width="2"/>
+  <polyline points="220,152 225,145 230,152" stroke="black" stroke-width="2" fill="none"/>
+  <!-- Box 2 -->
+  <line x1="275" y1="175" x2="275" y2="145" stroke="black" stroke-width="2"/>
+  <polyline points="270,152 275,145 280,152" stroke="black" stroke-width="2" fill="none"/>
+  <!-- Box 3 -->
+  <line x1="325" y1="175" x2="325" y2="145" stroke="black" stroke-width="2"/>
+  <polyline points="320,152 325,145 330,152" stroke="black" stroke-width="2" fill="none"/>
+  <!-- Box 4 -->
+  <line x1="375" y1="175" x2="375" y2="145" stroke="black" stroke-width="2"/>
+  <polyline points="370,152 375,145 380,152" stroke="black" stroke-width="2" fill="none"/>
+  <!-- Box 5 -->
+  <line x1="425" y1="175" x2="425" y2="145" stroke="black" stroke-width="2"/>
+  <polyline points="420,152 425,145 430,152" stroke="black" stroke-width="2" fill="none"/>
+
+  <!-- Brackets -->
+  <!-- 4s bracket -->
+  <path d="M 75,195 L 75,200 L 125,200 L 125,195" stroke="black" stroke-width="2" fill="none"/>
+  <line x1="100" y1="200" x2="100" y2="215" stroke="black" stroke-width="2"/>
+  <circle cx="100" cy="215" r="4" fill="black"/>
+
+  <!-- 3d bracket -->
+  <path d="M 200,195 L 200,200 L 450,200 L 450,195" stroke="black" stroke-width="2" fill="none"/>
+  <line x1="325" y1="200" x2="325" y2="215" stroke="black" stroke-width="2"/>
+  <circle cx="325" cy="215" r="4" fill="black"/>
+
+</svg>
