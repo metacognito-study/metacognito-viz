@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="white"/>
+  <!-- Axes -->
+  <line x1="40" y1="20" x2="40" y2="280" stroke="#333" stroke-width="2"/>
+  <line x1="40" y1="280" x2="460" y2="280" stroke="#333" stroke-width="2"/>
+  <path d="M 40,100 A 200,200 0 0,1 220,280" stroke="#333" stroke-width="2.5" fill="none"/>
+  <path d="M 40,50 A 300,300 0 0,1 300,280" stroke="#333" stroke-width="2.5" fill="none" stroke-dasharray="5,5"/>
+  <path d="M 204.84,179.84000000000003 L 234.84,179.84000000000003 L 224.84,169.84000000000003 M 234.84,179.84000000000003 L 224.84,189.84000000000003" stroke="#333" stroke-width="2" fill="none"/>
+</svg>

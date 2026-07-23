@@ -1,0 +1,46 @@
+{
+  "slug": "shift_money_supply",
+  "prompt": "Label the axes, the money supply curves, and the direction of the shift.",
+  "options": [
+    "Quantity of money",
+    "Nominal interest rate",
+    "Real interest rate",
+    "Money demand",
+    "MS\u2081",
+    "MS\u2082",
+    "Shift right (increase)",
+    "Shift left (decrease)"
+  ],
+  "hotspots": [
+    {
+      "id": "h_y",
+      "label": "Nominal interest rate",
+      "x": 0.083,
+      "y": 0.469
+    },
+    {
+      "id": "h_x",
+      "label": "Quantity of money",
+      "x": 0.833,
+      "y": 0.875
+    },
+    {
+      "id": "h_c1",
+      "label": "MS\u2081",
+      "x": 0.312,
+      "y": 0.156
+    },
+    {
+      "id": "h_c2",
+      "label": "MS\u2082",
+      "x": 0.583,
+      "y": 0.781
+    },
+    {
+      "id": "h_dir",
+      "label": "Shift right (increase)",
+      "x": 0.448,
+      "y": 0.469
+    }
+  ]
+}

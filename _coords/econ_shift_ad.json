@@ -1,0 +1,47 @@
+{
+  "slug": "shift_ad",
+  "prompt": "Label the axes, the aggregate demand curves, and the direction of the shift.",
+  "options": [
+    "Real GDP",
+    "Price level",
+    "Aggregate supply",
+    "AD\u2081",
+    "AD\u2082",
+    "Shift right (increase)",
+    "Shift left (decrease)",
+    "Inflation",
+    "Unemployment"
+  ],
+  "hotspots": [
+    {
+      "id": "h_y",
+      "label": "Price level",
+      "x": 0.083,
+      "y": 0.469
+    },
+    {
+      "id": "h_x",
+      "label": "Real GDP",
+      "x": 0.521,
+      "y": 0.875
+    },
+    {
+      "id": "h_c1",
+      "label": "AD\u2081",
+      "x": 0.167,
+      "y": 0.156
+    },
+    {
+      "id": "h_c2",
+      "label": "AD\u2082",
+      "x": 0.875,
+      "y": 0.781
+    },
+    {
+      "id": "h_dir",
+      "label": "Shift right (increase)",
+      "x": 0.521,
+      "y": 0.469
+    }
+  ]
+}
