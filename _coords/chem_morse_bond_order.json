@@ -1,45 +1,47 @@
 {
   "slug": "morse_bond_order",
-  "prompt": "Label the Morse curves for different bond orders",
+  "prompt": "Label the potential-energy curves for different bond orders",
   "options": [
     "Single bond",
     "Double bond",
     "Triple bond",
     "Shortest bond length",
     "Deepest well (strongest bond)",
-    "Quadruple bond",
-    "Longest bond length"
+    "Longest bond length",
+    "Weakest bond",
+    "Activation energy",
+    "Zero point of energy"
   ],
   "hotspots": [
     {
-      "id": "h0",
-      "label": "Single bond",
-      "x": 0.396,
-      "y": 0.75
-    },
-    {
       "id": "h1",
-      "label": "Double bond",
-      "x": 0.25,
-      "y": 0.312
+      "label": "Single bond",
+      "x": 0.792,
+      "y": 0.227
     },
     {
       "id": "h2",
-      "label": "Triple bond",
-      "x": 0.729,
-      "y": 0.672
+      "label": "Double bond",
+      "x": 0.625,
+      "y": 0.233
     },
     {
       "id": "h3",
-      "label": "Shortest bond length",
-      "x": 0.208,
-      "y": 0.625
+      "label": "Triple bond",
+      "x": 0.458,
+      "y": 0.228
     },
     {
       "id": "h4",
+      "label": "Shortest bond length",
+      "x": 0.25,
+      "y": 0.875
+    },
+    {
+      "id": "h5",
       "label": "Deepest well (strongest bond)",
-      "x": 0.271,
-      "y": 0.92
+      "x": 0.188,
+      "y": 0.531
     }
   ]
 }
