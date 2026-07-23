@@ -1,1 +1,86 @@
-{"row":1606,"hotspots":[{"id":"reac","label":"Reactants","x":0.15,"y":0.619},{"id":"ts","label":"Transition state (\u2021)","x":0.5,"y":0.12},{"id":"prod","label":"Products","x":0.85,"y":0.75},{"id":"peak","label":"Maximum energy point","x":0.5,"y":0.35}]}
+{
+ "row": 1606,
+ "hotspots": [
+  {
+   "id": "reac",
+   "label": "Reactants",
+   "x": 0.15,
+   "y": 0.619
+  },
+  {
+   "id": "ts",
+   "label": "Transition state (\u2021)",
+   "x": 0.5,
+   "y": 0.12
+  },
+  {
+   "id": "prod",
+   "label": "Products",
+   "x": 0.85,
+   "y": 0.75
+  },
+  {
+   "id": "peak",
+   "label": "Maximum energy point",
+   "x": 0.5,
+   "y": 0.35
+  },
+  {
+   "id": "b2_1",
+   "label": "Activation energy Ea (height from reactants to peak)",
+   "x": 0.354,
+   "y": 0.5
+  },
+  {
+   "id": "b2_2",
+   "label": "Transition state position on the curve",
+   "x": 0.5,
+   "y": 0.35
+  },
+  {
+   "id": "b2_3",
+   "label": "Enthalpy change \u0394H (products \u2013 reactants)",
+   "x": 0.208,
+   "y": 0.713
+  },
+  {
+   "id": "b2_1",
+   "label": "Activation energy Ea (height from reactants to peak)",
+   "x": 0.354,
+   "y": 0.5
+  },
+  {
+   "id": "b2_2",
+   "label": "Transition state position on the curve",
+   "x": 0.688,
+   "y": 0.35
+  },
+  {
+   "id": "b2_3",
+   "label": "Enthalpy change \u0394H (products \u2013 reactants)",
+   "x": 0.292,
+   "y": 0.715
+  }
+ ],
+ "options": [
+  "Reactants",
+  "Transition state (\u2021)",
+  "Products",
+  "Maximum energy point",
+  "Intermediate",
+  "Activated complex",
+  "Equilibrium state",
+  "Activation energy Ea (height from reactants to peak)",
+  "Height = energy released by the reaction",
+  "Height tells you if reaction is exothermic or endothermic",
+  "The taller the peak, the faster the reaction always goes",
+  "Transition state position on the curve",
+  "Transition state is where the curve starts to level off",
+  "Transition state occurs at the endpoint of the curve",
+  "Transition state is the same as the product energy level",
+  "Enthalpy change \u0394H (products \u2013 reactants)",
+  "\u0394H is the height from reactants to the peak",
+  "\u0394H is determined by how high the peak rises",
+  "\u0394H and Ea are the same value on a reaction coordinate curve"
+ ]
+}
