@@ -1,200 +1,258 @@
 # Labeler Opportunity Research
 
-## A. Conversions (Rows with different tools that would be better as labelers)
+## Evidence Block
 
-### Row 876 (Chem): Heating curve diagram
-**Why convert:** Currently a sorter between 'Temperature changing' vs 'Phase change (flat)'. A heating curve labeler lets students directly point to regions where KE vs PE is changing on a visual graph, testing their ability to interpret the flat vs sloped regions directly.
-- **Diagram:** Heating curve diagram
-- **Hotspots (5):** Solid warming (KE↑), Melting plateau (PE↑), Liquid warming (KE↑), Boiling plateau (PE↑), Gas warming (KE↑)
-- **Distractors:** Condensing plateau (PE↓), Cooling (KE↓)
-- **Misconception tested:** Tests confusion between temperature change (KE) and phase change (PE) on the curve.
+Based on the live microtask data (`microtask_byrow.json`):
+- Total items: 213 (All chemistry)
+- Sorter tasks: 129
+- Sequencer tasks: 36
+- Matcher tasks: 16
+- Labeler tasks: 32
 
-### Row 1003 (Chem): Equilibrium pressure-time graph
-**Why convert:** Currently a sorter. Being able to point directly to where 'curves flatten' (equilibrium reached) vs 'still changing' (not at equilibrium) provides a much better visual check of understanding when equilibrium is established.
-- **Diagram:** Equilibrium pressure-time graph
-- **Hotspots (4):** Reactant pressure falling, Product pressure rising, Equilibrium established, Initial state (t=0)
-- **Distractors:** Reaction stops, All pressures equal
-- **Misconception tested:** Tests the misconception that equilibrium means equal amounts, rather than constant amounts (flattened curves).
+Repository state:
+- ~65 SVG figures currently exist across `_diagrams/`.
+- No economics content is active in the live sheet.
 
-### Row 1427 (Chem): Electrochemical cell diagram
-**Why convert:** Currently a sorter for anode vs cathode roles. A labeler showing a galvanic cell allows students to map these roles directly to physical components (electrodes, salt bridge, electron flow) which is a crucial visual skill.
-- **Diagram:** Electrochemical cell diagram
-- **Hotspots (4):** Anode (Oxidation), Cathode (Reduction), Electron flow (wire), Salt bridge (ion flow)
-- **Distractors:** Proton flow, Battery
-- **Misconception tested:** Tests confusion over direction of electron flow and which electrode loses/gains mass.
+---
 
-### Row 1623 (Chem): Reaction coordinate / Energy profile
-**Why convert:** Currently a sorter. Identifying reactants, products, activation energy, and ΔH is fundamentally a visual task on an energy profile, making a labeler far superior.
-- **Diagram:** Reaction coordinate / Energy profile
-- **Hotspots (5):** Reactants, Products, Activation Energy (Ea), Enthalpy Change (ΔH), Transition State
-- **Distractors:** Catalyst, Kinetic Energy
-- **Misconception tested:** Tests ability to differentiate activation energy from overall enthalpy change.
+## Category A: Tool Conversion Proposals (Chemistry)
 
-### Row 637 (Chem): Beer-Lambert color wheel / spectrum
-**Why convert:** Currently a sorter. Labeling a visible spectrum or color wheel to identify absorbed vs transmitted complementary colors grounds the abstraction in a visual representation.
-- **Diagram:** Beer-Lambert color wheel / spectrum
-- **Hotspots (4):** Absorbed Color, Transmitted Color, Incident Light, Detector
-- **Distractors:** Reflected Color, Refracted Light
-- **Misconception tested:** Tests the distinction between the color a solution appears and the color it absorbs (complementary).
+These rows currently use text-based sorting/sequencing but fundamentally test visual concepts that are better served by a diagram labeler.
 
-### Row 1588 (Chem): Integrated Rate Law Plots
-**Why convert:** Currently a sorter for Zero/First/Second order. Labeling the actual plots (e.g. ln[A] vs t) to identify which represents which reaction order makes it a direct graphical analysis task.
-- **Diagram:** Integrated Rate Law Plots (3 graphs)
-- **Hotspots (4):** Zero Order Plot, First Order Plot, Second Order Plot, Half-life
-- **Distractors:** Third Order, Equilibrium
-- **Misconception tested:** Tests ability to visually identify which integrated rate law plot yields a straight line for different orders.
+1. **Row 1037: Identify Equilibrium from a Table**
+   - **Current Tool:** Sorter ("At equilibrium" vs "Not at equilibrium")
+   - **Why Labeler:** Seeing a concentration-time table and pointing to the row where values stabilize tests the skill more directly than matching text descriptions.
+   - **Figure:** A data table showing Time vs. [Reactant] and [Product] with 4-5 rows.
+   - **Hotspots:** Initial state (t=0 row), Reaching equilibrium (values changing row), At equilibrium (first row where values stabilize), Equilibrium maintained (subsequent flat rows).
+   - **Distractors:** Reversal point, Equivalence point, Maximum rate.
+   - **Misconception:** Students often confuse "concentrations equal" with "concentrations constant".
 
-## B. New Labeler Opportunities (Gaps & Existing Visuals)
+2. **Row 1588: Integrated Rate Law Graphs**
+   - **Current Tool:** Sorter (Zero order, First order, Second order)
+   - **Why Labeler:** Students need to visually identify the linear plot for each order rather than reading text descriptions like "linear ln[A] vs t".
+   - **Figure:** Three side-by-side graphs: [A] vs t, ln[A] vs t, and 1/[A] vs t (showing straight lines).
+   - **Hotspots:** Zero Order (on [A] vs t), First Order (on ln[A] vs t), Second Order (on 1/[A] vs t).
+   - **Distractors:** Equilibrium, Catalyst added, Third Order, Inverse Order.
+   - **Misconception:** Forgetting which axis transformation yields a straight line for which order.
 
-These are proposed based on AP Chemistry gaps and AP Economics visuals already in `_diagrams/econ/` which have no labelers.
+3. **Row 1623: Exo vs Endo Potential Energy Diagrams**
+   - **Current Tool:** Sorter (Exothermic vs Endothermic)
+   - **Why Labeler:** Reading "Products lower on E diagram" is less effective than clicking the actual regions on a potential energy diagram.
+   - **Figure:** Two potential energy profiles, one exothermic (products lower), one endothermic (products higher).
+   - **Hotspots:** Exothermic profile, Endothermic profile, Activation Energy (Ea), Enthalpy change (ΔH).
+   - **Distractors:** Kinetic energy, Temperature, Intermediate, Catalyst.
+   - **Misconception:** Reversing the definitions of exo/endo on a graph and misidentifying activation energy vs enthalpy.
 
-### Econ Gap (TBD): Supply and Demand Equilibrium
-- **Diagram:** sd_equilibrium.svg (from `_diagrams/econ/`)
-- **Hotspots (6):** Equilibrium Price, Equilibrium Quantity, Supply Curve, Demand Curve, Shortage region, Surplus region
-- **Distractors:** Price Ceiling, Marginal Cost
-- **Misconception tested:** Tests ability to find market-clearing price/quantity and identify disequilibrium states.
+4. **Row 876: Heating Curves (Phases vs Temperature Change)**
+   - **Current Tool:** Sorter (Temperature changing vs Phase change)
+   - **Why Labeler:** Clicking on the sloped and flat regions of a heating curve is the standard way this is tested.
+   - **Figure:** A standard heating curve (Temp vs Heat added) from solid to gas.
+   - **Hotspots:** Solid heating (first slope), Melting (first plateau), Liquid heating (second slope), Boiling (second plateau).
+   - **Distractors:** Sublimation, Deposition, Activation energy, Supercooling.
+   - **Misconception:** Thinking temperature increases during a phase change.
 
-### Econ Gap (TBD): Consumer and Producer Surplus
-- **Diagram:** consumer_surplus.svg (from `_diagrams/econ/`)
-- **Hotspots (5):** Consumer Surplus, Producer Surplus, Equilibrium point, Willingness to pay, Cost to produce
-- **Distractors:** Deadweight Loss, Tax Revenue
-- **Misconception tested:** Tests visual identification of surplus areas, often confused with each other or profit.
+5. **Row 995: Concentration-Time Curves (Equilibrium)**
+   - **Current Tool:** Sorter (At equilibrium vs Not at equilibrium)
+   - **Why Labeler:** Identifying the exact point on a graph where curves go flat is a direct visual skill.
+   - **Figure:** Concentration vs Time graph showing reactants decreasing and products increasing until they flatten out.
+   - **Hotspots:** Kinetic region (curves changing), Equilibrium established (point of flattening), Reactant line, Product line.
+   - **Distractors:** Equivalence point, Reaction stops, Q > K, Rate = 0.
+   - **Misconception:** Thinking equilibrium means the reactant and product lines must cross or be equal.
 
-### Econ Gap (TBD): Market for Loanable Funds
-- **Diagram:** loanable_funds.svg (from `_diagrams/econ/`)
-- **Hotspots (5):** Real Interest Rate, Quantity of Loanable Funds, Supply (Savings), Demand (Borrowing), Equilibrium point
-- **Distractors:** Nominal Interest Rate, Money Supply
-- **Misconception tested:** Tests distinction between real and nominal interest rates and identification of savers vs borrowers.
+6. **Row 1403: Standard Cell Potential (E°cell)**
+   - **Current Tool:** Sorter (E° > 0 occurs vs E° < 0 no rxn)
+   - **Why Labeler:** Labeling a standard reduction potential table (like a miniature one) to show which combination is spontaneous.
+   - **Figure:** A miniature table with two half-reactions and their E° values.
+   - **Hotspots:** Cathode half-reaction (higher E°), Anode half-reaction (lower E°), Spontaneous cell E° calculation formula.
+   - **Distractors:** Non-spontaneous, Electrolytic, Equilibrium.
+   - **Misconception:** Misidentifying which species is reduced/oxidized based on E° values.
 
-### Econ Gap (TBD): Aggregate Demand / Aggregate Supply
-- **Diagram:** ad_as.svg (from `_diagrams/econ/`)
-- **Hotspots (6):** Price Level, Real GDP, Aggregate Demand, Short-Run Aggregate Supply, Long-Run Aggregate Supply (Potential GDP), Macroeconomic Equilibrium
-- **Distractors:** Microeconomic Supply, Inflation Rate
-- **Misconception tested:** Tests understanding of macro equilibrium versus potential output (recessionary/inflationary gaps).
+7. **Row 1444: Galvanic vs Electrolytic Cells**
+   - **Current Tool:** Sorter (Galvanic vs Electrolytic)
+   - **Why Labeler:** Pointing to the key differences (battery vs voltmeter) on a diagram is more effective.
+   - **Figure:** Two cell diagrams side-by-side, one galvanic (with voltmeter/load), one electrolytic (with power source).
+   - **Hotspots:** Galvanic Cell (ΔG < 0), Electrolytic Cell (ΔG > 0), Power Source (driving non-spontaneous rxn), Voltmeter.
+   - **Distractors:** Salt bridge, Anode, Cathode, Equivalence point.
+   - **Misconception:** Failing to distinguish between cells that generate voltage vs those that require it.
 
-### Econ Gap (TBD): Production Possibilities Curve
-- **Diagram:** ppc_points.svg (from `_diagrams/econ/`)
-- **Hotspots (5):** Efficient/Attainable, Inefficient (unemployment), Unattainable (currently), Good X, Good Y
-- **Distractors:** Equilibrium, Opportunity Cost
-- **Misconception tested:** Tests understanding that points inside the curve are inefficient, not impossible.
+8. **Row 9: Scientific Method Steps**
+   - **Current Tool:** Sequencer (Make observation, form hypothesis, etc.)
+   - **Why Labeler:** A flowchart diagram is a great way to visualize this cyclic process.
+   - **Figure:** A flowchart of the scientific method with blank boxes.
+   - **Hotspots:** Observation, Hypothesis, Experiment, Data Analysis, Conclusion.
+   - **Distractors:** Publication, Theory, Law, Variable.
+   - **Misconception:** Thinking the scientific method is a strictly linear process.
 
-### Econ Gap (TBD): Per-Unit Tax on a Good
-- **Diagram:** per_unit_tax.svg (from `_diagrams/econ/`)
-- **Hotspots (6):** Consumer Tax Burden, Producer Tax Burden, Deadweight Loss, Tax Revenue, New Price Paid by Buyers, New Price Received by Sellers
-- **Distractors:** Total Surplus, Subsidy Amount
-- **Misconception tested:** Tests breakdown of tax incidence and identification of efficiency loss (DWL).
+9. **Row 105: Ionic vs Covalent Compounds (Particulate)**
+   - **Current Tool:** Sorter (Ionic vs Covalent)
+   - **Why Labeler:** Particle diagrams showing a lattice vs distinct molecules are classic AP Chem visuals.
+   - **Figure:** Two particle diagrams: a 3D alternating charge lattice (ionic) and discrete groups of nonmetal atoms (covalent).
+   - **Hotspots:** Ionic lattice (continuous network), Covalent molecules (discrete units), Cation, Anion.
+   - **Distractors:** Metallic sea of electrons, Network covalent, Alloy.
+   - **Misconception:** Confusing continuous ionic lattices with discrete covalent molecules.
 
-### Econ Gap (TBD): Price Ceiling & Floor
-- **Diagram:** price_ceiling.svg (from `_diagrams/econ/`)
-- **Hotspots (5):** Binding Price Ceiling, Binding Price Floor, Shortage, Surplus, Equilibrium Price
-- **Distractors:** Quota, Tariff
-- **Misconception tested:** Tests the counterintuitive fact that a binding ceiling must be BELOW equilibrium, and a floor ABOVE.
+10. **Row 912: Acids and Bases**
+    - **Current Tool:** Sorter (Acid vs Base)
+    - **Why Labeler:** Can use a particulate diagram showing proton transfer.
+    - **Figure:** A reaction diagram showing HA + B -> A- + HB+.
+    - **Hotspots:** Acid (proton donor), Base (proton acceptor), Conjugate Base, Conjugate Acid.
+    - **Distractors:** Spectator ion, Catalyst, Precipitate, Hydronium.
+    - **Misconception:** Confusing the roles of Bronsted-Lowry acids and bases.
 
-### Econ Gap (TBD): Money Market
-- **Diagram:** money_market.svg (from `_diagrams/econ/`)
-- **Hotspots (4):** Nominal Interest Rate, Quantity of Money, Money Supply (vertical), Money Demand
-- **Distractors:** Real Interest Rate, Loanable Funds Supply
-- **Misconception tested:** Tests differentiation between the money market (nominal rates, central bank supply) and loanable funds.
+---
 
-### Econ Gap (TBD): Circular Flow Model
-- **Diagram:** circular_flow.svg (from `_diagrams/econ/`)
-- **Hotspots (6):** Households, Firms, Product Market, Resource/Factor Market, Money Flow, Goods/Services Flow
-- **Distractors:** Government, Foreign Sector
-- **Misconception tested:** Tests distinction between the flow of real resources vs the flow of money.
+## Category B: Diagram Gaps (No Labeler Yet)
 
-### Econ Gap (TBD): Phillips Curve (SRPC & LRPC)
-- **Diagram:** phillips_curve.svg (from `_diagrams/econ/`)
-- **Hotspots (4):** Inflation Rate, Unemployment Rate, Short-Run Phillips Curve, Long-Run Phillips Curve (NRU)
-- **Distractors:** Real GDP, Price Level
-- **Misconception tested:** Tests the tradeoff between inflation and unemployment in the short run vs long run.
+### Chemistry
 
-### Econ Gap (TBD): Firm Cost Curves
-- **Diagram:** cost_curves.svg (from `_diagrams/econ/`)
-- **Hotspots (5):** Marginal Cost (MC), Average Total Cost (ATC), Average Variable Cost (AVC), Minimum ATC (Efficient Scale), Shutdown Point
-- **Distractors:** Average Fixed Cost, Marginal Revenue
-- **Misconception tested:** Tests identification of cost curves and key intersections (MC cuts ATC at its minimum).
+11. **Row TBD: Born-Haber Cycle**
+    - **Figure:** A step-by-step energy diagram for forming an ionic solid (e.g., NaCl) from its elements.
+    - **Hotspots:** Sublimation of metal, Ionization energy of metal, Bond dissociation of nonmetal, Electron affinity of nonmetal, Lattice energy.
+    - **Distractors:** Hydration energy, Activation energy, Enthalpy of solution, Equilibrium.
+    - **Misconception:** Confusing the signs and definitions of the individual steps (e.g., lattice energy vs enthalpy of formation).
 
-### Econ Gap (TBD): Monopoly Profit Maximization
-- **Diagram:** monopoly.svg (from `_diagrams/econ/`)
-- **Hotspots (7):** Demand (D), Marginal Revenue (MR), Marginal Cost (MC), Profit-Maximizing Quantity, Profit-Maximizing Price, Profit Area, Deadweight Loss
-- **Distractors:** Allocatively Efficient Price, Productively Efficient Price
-- **Misconception tested:** Tests the MR=MC rule and the fact that a monopolist charges the price on the demand curve, not the MR curve.
+12. **Row TBD: Mass Spectrometry**
+    - **Figure:** A bar graph showing relative abundance vs m/z for an element with isotopes (e.g., Cl or Mg).
+    - **Hotspots:** Most abundant isotope, Least abundant isotope, Average atomic mass estimate, m/z axis (mass).
+    - **Distractors:** Atomic number axis, Number of protons, Ionization energy, Binding energy.
+    - **Misconception:** Confusing individual isotope masses with the weighted average atomic mass.
 
-### Chem Gap (TBD): Titration Curve (Strong/Strong)
-- **Diagram:** Titration Curve (Strong/Strong) visual
-- **Hotspots (4):** Initial pH (Acid), Equivalence Point (pH 7), Excess Base, Volume of titrant
-- **Distractors:** Half-equivalence point, pKa
-- **Misconception tested:** Tests identification of key features on a strong acid-base titration curve.
+13. **Row TBD: Photoelectron Spectroscopy (PES)**
+    - **Figure:** A PES spectrum (Relative number of electrons vs Binding Energy) for an element like Oxygen or Magnesium.
+    - **Hotspots:** 1s peak (highest binding E), Valence shell peaks (lowest binding E), Core electrons, Axis indicating Binding Energy.
+    - **Distractors:** Kinetic energy, Number of protons, Ionization energy, Wavelength.
+    - **Misconception:** Reading the binding energy axis backwards (highest energy is usually on the left, closest to nucleus).
 
-### Chem Gap (TBD): Titration Curve (Weak/Strong)
-- **Diagram:** Titration Curve (Weak/Strong) visual
-- **Hotspots (5):** Initial pH (Weak Acid), Buffer Region, Half-equivalence point (pH=pKa), Equivalence Point (pH>7), Excess Base
-- **Distractors:** pH 7 equivalence, Strong Acid Region
-- **Misconception tested:** Tests understanding that weak acid equivalence point is basic, and identifies the pKa region.
+14. **Row TBD: VSEPR Geometries**
+    - **Figure:** 3D representations of common molecular geometries (Linear, Bent, Trigonal Planar, Tetrahedral).
+    - **Hotspots:** Linear (180°), Bent (<120° or <109.5°), Trigonal Planar (120°), Tetrahedral (109.5°).
+    - **Distractors:** Trigonal Bipyramidal, Octahedral, Square Planar, T-shaped.
+    - **Misconception:** Forgetting the impact of lone pairs on bond angles (e.g., Bent vs Linear).
 
-### Chem Gap (TBD): Maxwell-Boltzmann Distribution
-- **Diagram:** Maxwell-Boltzmann Distribution visual
-- **Hotspots (5):** Lower Temperature Curve, Higher Temperature Curve, Activation Energy (Ea), Most Probable Speed, Fraction of molecules with E > Ea
-- **Distractors:** Average Speed, Number of Molecules
-- **Misconception tested:** Tests the counter-intuitive flattening and shifting right of the curve at higher temperatures.
+15. **Row TBD: Paper Chromatography**
+    - **Figure:** A piece of chromatography paper dipped in solvent, with distinct spots separated vertically.
+    - **Hotspots:** Solvent front, Origin line, Most polar spot (if polar stationary phase), Least polar spot.
+    - **Distractors:** Mobile phase, Stationary phase, Equivalence point, Catalyst.
+    - **Misconception:** Misinterpreting Rf values and how intermolecular forces determine separation.
 
-### Chem Gap (TBD): Mass Spectrometry
-- **Diagram:** Mass Spectrometry visual
-- **Hotspots (5):** Base Peak (100%), Molecular Ion Peak (M+), Isotope Peak (M+1 / M+2), Fragment Ion, m/z axis
-- **Distractors:** Retention Time, Absorbance
-- **Misconception tested:** Tests identification of the molecular mass vs fragments and common isotopes (like Cl/Br).
+16. **Row TBD: Hybridization**
+    - **Figure:** A central atom showing sp, sp2, and sp3 hybridized orbitals in distinct molecules (e.g., ethyne, ethene, ethane).
+    - **Hotspots:** sp hybridization (linear), sp2 hybridization (trigonal planar), sp3 hybridization (tetrahedral), unhybridized p-orbital (pi bond).
+    - **Distractors:** sp3d, sp3d2, sigma bond, lone pair.
+    - **Misconception:** Failing to associate steric number with hybridization state.
 
-### Chem Gap (TBD): Photoelectron Spectroscopy (PES)
-- **Diagram:** Photoelectron Spectroscopy (PES) visual
-- **Hotspots (6):** 1s peak, 2s peak, 2p peak, Valence electrons, Core electrons, Binding Energy axis
-- **Distractors:** Ionization Energy, Wavelength
-- **Misconception tested:** Tests mapping of peaks to subshells and understanding that higher binding energy means closer to nucleus.
+17. **Row TBD: Intermolecular Forces (Particulate)**
+    - **Figure:** Diagram showing molecules interacting (e.g., water molecules H-bonding, nonpolar molecules with LDFs).
+    - **Hotspots:** Hydrogen bond (dashed line between molecules), Covalent bond (solid line within molecule), Dipole-dipole interaction, London dispersion forces.
+    - **Distractors:** Ionic bond, Metallic bond, Network covalent, Ion-dipole.
+    - **Misconception:** Confusing intramolecular bonds with intermolecular forces.
 
-### Chem Gap (TBD): Phase Diagram
-- **Diagram:** Phase Diagram visual
-- **Hotspots (7):** Solid Region, Liquid Region, Gas Region, Triple Point, Critical Point, Normal Boiling Point, Normal Melting Point
-- **Distractors:** Supercritical Fluid, Plasma
-- **Misconception tested:** Tests interpretation of P/T conditions for phases and phase transitions.
+18. **Row TBD: Atomic Emission Spectra**
+    - **Figure:** Energy level diagram of a hydrogen atom showing electron transitions.
+    - **Hotspots:** Absorption (arrow pointing up), Emission (arrow pointing down), Highest energy photon (longest arrow), Lowest energy photon (shortest arrow).
+    - **Distractors:** Ionization, Ground state, Excited state, Wavelength.
+    - **Misconception:** Associating longer transitions with longer wavelengths (instead of higher energy/shorter wavelength).
 
-### Chem Gap (TBD): VSEPR Geometries (Tetrahedral family)
-- **Diagram:** VSEPR Geometries (Tetrahedral family) visual
-- **Hotspots (5):** Tetrahedral (109.5°), Trigonal Pyramidal (<109.5°), Bent (<<109.5°), Lone Pair, Bonding Pair
-- **Distractors:** Trigonal Planar, Square Planar
-- **Misconception tested:** Tests the effect of lone pairs on bond angles (repulsion).
+19. **Row TBD: Vapor Pressure Curves**
+    - **Figure:** Graph of Vapor Pressure vs Temperature for various liquids.
+    - **Hotspots:** Normal boiling point (at 1 atm), Most volatile liquid (steepest curve/lowest BP), Strongest IMFs (highest BP).
+    - **Distractors:** Melting point, Critical point, Triple point, Sublimation.
+    - **Misconception:** Failing to relate vapor pressure to intermolecular force strength.
 
-### Chem Gap (TBD): Atomic Emission Spectra
-- **Diagram:** Atomic Emission Spectra visual
-- **Hotspots (5):** Emission Lines, Absorption Lines, Continuous Spectrum, Ground State, Excited State
-- **Distractors:** IR spectrum, NMR peaks
-- **Misconception tested:** Tests understanding that distinct lines correspond to specific energy level transitions.
+20. **Row TBD: Reaction Mechanisms**
+    - **Figure:** A multi-step reaction profile (Energy vs Reaction Coordinate) with two humps.
+    - **Hotspots:** Rate-determining step (highest peak), Intermediate (valley), Reactants, Products.
+    - **Distractors:** Catalyst, Transition state, Activation energy, Enthalpy.
+    - **Misconception:** Identifying the overall highest point as the slow step, rather than the step with the largest activation energy.
 
-### Chem Gap (TBD): Real vs Ideal Gas (PV/RT vs P)
-- **Diagram:** Real vs Ideal Gas (PV/RT vs P) visual
-- **Hotspots (5):** Ideal Gas (Line at 1.0), Real Gas (Deviates up - volume), Real Gas (Deviates down - attractions), High Pressure Region, Low Temp Region
-- **Distractors:** Constant Volume, Constant Moles
-- **Misconception tested:** Tests conditions where real gases deviate from ideality (high P, low T).
+### Economics
 
-### Chem Gap (TBD): Vapor Pressure vs Temperature
-- **Diagram:** Vapor Pressure vs Temperature visual
-- **Hotspots (4):** Volatile Liquid (high VP), Non-volatile Liquid, Normal Boiling Point (at 1 atm), Atmospheric Pressure
-- **Distractors:** Critical Point, Melting Point
-- **Misconception tested:** Tests understanding that higher vapor pressure means weaker intermolecular forces.
+21. **Row TBD: Production Possibilities Curve (PPC)**
+    - **Figure:** A bowed-out PPC curve showing points inside, on, and outside the curve.
+    - **Hotspots:** Efficient point (on curve), Inefficient point (inside curve), Unattainable point (outside curve), Increasing opportunity cost (bowed shape).
+    - **Distractors:** Constant opportunity cost, Economic growth, Recession, Inflation.
+    - **Misconception:** Thinking points inside the curve are efficient or unattainable.
 
-### Chem Gap (TBD): Periodic Trends (Atomic Radius)
-- **Diagram:** Periodic Trends (Atomic Radius) visual
-- **Hotspots (4):** Increasing Radius (Down Group), Decreasing Radius (Across Period), Alkali Metals (Largest), Halogens (Smallest)
-- **Distractors:** Electronegativity, Ionization Energy
-- **Misconception tested:** Tests the visual pattern of atomic size and shielding vs effective nuclear charge.
+22. **Row TBD: Supply and Demand Market Equilibrium**
+    - **Figure:** Standard intersecting upward S and downward D curves.
+    - **Hotspots:** Equilibrium Price (Pe), Equilibrium Quantity (Qe), Supply curve, Demand curve.
+    - **Distractors:** Price ceiling, Price floor, Shortage, Surplus.
+    - **Misconception:** Confusing shifts in the curve with movements along the curve.
 
-### Chem Gap (TBD): Solubility Curve
-- **Diagram:** Solubility Curve visual
-- **Hotspots (5):** Saturated Solution (On line), Unsaturated (Below line), Supersaturated (Above line), Solid Solute (Curve up), Gas Solute (Curve down)
-- **Distractors:** Equilibrium, Melting point
-- **Misconception tested:** Tests interpretation of solubility dependence on temperature for solids vs gases.
+23. **Row TBD: Market Surplus and Shortage**
+    - **Figure:** S & D graph showing horizontal lines above (surplus) and below (shortage) equilibrium.
+    - **Hotspots:** Price Floor (above Pe), Price Ceiling (below Pe), Area of Surplus, Area of Shortage.
+    - **Distractors:** Consumer surplus, Producer surplus, Equilibrium, Deadweight loss.
+    - **Misconception:** Thinking price ceilings go above equilibrium (they are effective *below*).
 
-### Chem Gap (TBD): Galvanic vs Electrolytic Cell
-- **Diagram:** Galvanic vs Electrolytic Cell visual
-- **Hotspots (5):** Spontaneous Flow (Galvanic), Non-spontaneous Flow (Electrolytic), Power Source, Anode (Oxidation), Cathode (Reduction)
-- **Distractors:** Salt bridge, Voltmeter
-- **Misconception tested:** Tests the ability to visually distinguish between a cell generating current vs one requiring current.
+24. **Row TBD: Elastic vs Inelastic Demand Curves**
+    - **Figure:** Two demand curves side-by-side, one steep (inelastic) and one flat (elastic).
+    - **Hotspots:** Inelastic demand (steep), Elastic demand (flat), Perfectly elastic (horizontal), Perfectly inelastic (vertical).
+    - **Distractors:** Unit elastic, Supply, Revenue, Cost.
+    - **Misconception:** Confusing the slope of the curve with elasticity.
 
+25. **Row TBD: Perfect Competition Firm (Short Run)**
+    - **Figure:** Side-by-side Market graph and Firm graph (MR=D=AR=P line, MC curve, ATC curve).
+    - **Hotspots:** Profit-maximizing quantity (MC=MR), Break-even point (MC=ATC), Shutdown point (MC=AVC), Economic profit area.
+    - **Distractors:** Loss area, Monopoly, Oligopoly, Allocative efficiency.
+    - **Misconception:** Maximizing profit where revenue is highest rather than where MR = MC.
+
+26. **Row TBD: Monopoly Market Structure**
+    - **Figure:** Downward sloping Demand, steeper MR, U-shaped ATC, swoosh MC.
+    - **Hotspots:** Profit-maximizing Q (MR=MC), Profit-maximizing P (up to Demand), Deadweight loss area, Economic profit area.
+    - **Distractors:** Allocative efficiency, Productive efficiency, Perfect competition, Shutdown point.
+    - **Misconception:** Setting price where MR=MC rather than going up to the demand curve.
+
+27. **Row TBD: Aggregate Demand / Aggregate Supply (AD/AS)**
+    - **Figure:** Macroeconomic model with AD, SRAS, and LRAS curves.
+    - **Hotspots:** Full employment output (LRAS), Recessionary gap (equilibrium left of LRAS), Inflationary gap (equilibrium right of LRAS), Price Level axis.
+    - **Distractors:** Real GDP, Micro supply/demand, Interest rate, Money supply.
+    - **Misconception:** Confusing the macro AD/AS axes (Price Level, Real GDP) with micro axes (Price, Quantity).
+
+28. **Row TBD: Money Market Graph**
+    - **Figure:** Vertical Money Supply (MS) curve and downward sloping Money Demand (MD) curve.
+    - **Hotspots:** Nominal Interest Rate axis, Quantity of Money axis, Equilibrium interest rate, Shift in MS (expansionary policy).
+    - **Distractors:** Real interest rate, Investment, Aggregate demand, Price level.
+    - **Misconception:** Confusing the Money Market (nominal rates, Fed policy) with Loanable Funds (real rates, savings/borrowing).
+
+29. **Row TBD: The Business Cycle**
+    - **Figure:** A wavy line oscillating around a straight long-term growth trend line.
+    - **Hotspots:** Peak, Trough, Expansion/Recovery, Contraction/Recession.
+    - **Distractors:** Inflation, Unemployment, Stagflation, Deficit.
+    - **Misconception:** Thinking the trend line represents actual GDP rather than potential GDP.
+
+30. **Row TBD: Phillips Curve (Short Run and Long Run)**
+    - **Figure:** Downward sloping SRPC and vertical LRPC.
+    - **Hotspots:** Natural Rate of Unemployment (LRPC), High inflation / low unemployment point, Stagflation shift (SRPC shifts right), Expected inflation rate.
+    - **Distractors:** Deflation, Economic growth, Aggregate demand, Aggregate supply.
+    - **Misconception:** Failing to relate shifts in SRPC to shifts in SRAS.
+
+---
+
+## Category C: Table Tasks ("Predict the Direction of Change")
+
+These grid-based labelers require determining increases/decreases/no change for multiple variables under a specific scenario, effectively testing holistic understanding.
+
+31. **Row TBD: Le Chatelier's Principle (Multiple Scenarios)**
+    - **Figure:** A table with scenarios as rows (e.g., Increase Temp, Decrease Vol, Add Reactant) and columns for [Reactant], [Product], and K.
+    - **Hotspots:** Every cell is a hotspot to predict how that variable changes (Increases/Decreases/No Change).
+    - **Distractors:** Shifts left, Shifts right, Equilibrium.
+    - **Misconception:** Thinking that adding a solid shifts equilibrium or that K changes with pressure/concentration.
+
+32. **Row TBD: Buffer Solution Additions**
+    - **Figure:** A table showing a buffer system. Rows: Add strong acid, Add strong base, Dilute with water. Columns: pH, [HA], [A-].
+    - **Hotspots:** Cells predict changes in pH (slight decrease/slight increase/no change) and species concentrations.
+    - **Distractors:** Drastic change, Neutralizes, Shifts left.
+    - **Misconception:** Assuming pH doesn't change at all when acid/base is added to a buffer.
+
+33. **Row TBD: Macroeconomic Fiscal Policy Effects**
+    - **Figure:** A table for scenarios: Increase Govt Spending, Decrease Taxes. Columns: Aggregate Demand, Price Level, Real GDP, Unemployment.
+    - **Hotspots:** Predict Increases/Decreases/No Change for each macroeconomic indicator.
+    - **Distractors:** Shifts left, Shifts right, Inelastic.
+    - **Misconception:** Confusing the direction of unemployment relative to Real GDP changes.
+
+34. **Row TBD: Market Determinants (Shifts in S & D)**
+    - **Figure:** Table with scenarios (e.g., Input price rises, Tech improves, Consumer income falls). Columns: Supply curve, Demand curve, Equilibrium Price, Eq. Quantity.
+    - **Hotspots:** Predict Shifts (Left/Right/None) and resulting Price/Quantity changes.
+    - **Distractors:** Moves along curve, Elastic, Inelastic.
+    - **Misconception:** Shifting both curves when a scenario only explicitly affects one determinant.
