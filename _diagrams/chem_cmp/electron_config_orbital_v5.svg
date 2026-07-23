@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="white" />
+  
+  <!-- Energy Axis -->
+  <line x1="50" y1="280" x2="50" y2="40" stroke="#333" stroke-width="2" />
+  <polyline points="45,50 50,40 55,50" fill="none" stroke="#333" stroke-width="2" />
+  <text x="35" y="160" font-family="sans-serif" font-size="16" fill="#333" text-anchor="middle" transform="rotate(-90 35,160)">Energy</text>
+  
+  <!-- Core -->
+  <text x="100" y="240" font-family="sans-serif" font-size="20" fill="#333" text-anchor="middle">[Ar]</text>
+  
+  
+  <rect x="140" y="210" width="40" height="40" fill="none" stroke="#333" stroke-width="2" />
+  
+  <polyline points="147,220 152,215 152,245" fill="none" stroke="#333" stroke-width="2" />
+  
+  <polyline points="173,240 168,245 168,215" fill="none" stroke="#333" stroke-width="2" />
+
+  
+  <polyline points="220,120 220,110 420,110 420,120" fill="none" stroke="#333" stroke-width="2" />
+  <line x1="320" y1="110" x2="320" y2="100" stroke="#333" stroke-width="2" />
+  
+  
+  <rect x="220" y="130" width="40" height="40" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="227,140 232,135 232,165" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="253,160 248,165 248,135" fill="none" stroke="#333" stroke-width="2" />
+  <rect x="260" y="130" width="40" height="40" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="267,140 272,135 272,165" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="293,160 288,165 288,135" fill="none" stroke="#333" stroke-width="2" />
+  <rect x="300" y="130" width="40" height="40" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="307,140 312,135 312,165" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="333,160 328,165 328,135" fill="none" stroke="#333" stroke-width="2" />
+  <rect x="340" y="130" width="40" height="40" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="347,140 352,135 352,165" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="373,160 368,165 368,135" fill="none" stroke="#333" stroke-width="2" />
+  <rect x="380" y="130" width="40" height="40" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="387,140 392,135 392,165" fill="none" stroke="#333" stroke-width="2" />
+  <polyline points="413,160 408,165 408,135" fill="none" stroke="#333" stroke-width="2" />
+</svg>
