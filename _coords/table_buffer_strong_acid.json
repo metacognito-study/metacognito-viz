@@ -1,60 +1,41 @@
 {
-  "slug": "table_buffer_strong_acid",
-  "prompt": "Predict the direction of change for each parameter.",
+  "slug": "buffer_strong_acid",
+  "prompt": "Predict the direction of change for each quantity",
   "options": [
-    "Increases (\u2191)",
-    "Decreases (\u2193)",
-    "No change (\u2194)"
+    "Increases (↑)",
+    "Decreases (↓)",
+    "No change (↔)"
   ],
   "hotspots": [
     {
-      "id": "r1c0",
-      "label": "Answer for Moles A\u207b",
-      "x": 0.203,
-      "y": 0.406,
-      "answer": "Decreases (\u2193)"
+      "id": "h1",
+      "label": "Decreases (↓)",
+      "x": 0.300,
+      "y": 0.550
     },
     {
-      "id": "r1c1",
-      "label": "Answer for Moles HA",
-      "x": 0.401,
-      "y": 0.406,
-      "answer": "Increases (\u2191)"
+      "id": "h2",
+      "label": "Increases (↑)",
+      "x": 0.450,
+      "y": 0.550
     },
     {
-      "id": "r1c2",
-      "label": "Answer for Ratio [A\u207b]/[HA]",
-      "x": 0.599,
-      "y": 0.406,
-      "answer": "Decreases (\u2193)"
+      "id": "h3",
+      "label": "Decreases (↓)",
+      "x": 0.600,
+      "y": 0.550
     },
     {
-      "id": "r1c3",
-      "label": "Answer for pH",
-      "x": 0.797,
-      "y": 0.406,
-      "answer": "Decreases (\u2193)"
+      "id": "h4",
+      "label": "Decreases (↓)",
+      "x": 0.750,
+      "y": 0.550
     },
     {
-      "id": "r2c0",
-      "label": "Answer for Overall capacity",
-      "x": 0.271,
-      "y": 0.75,
-      "answer": "No change (\u2194)"
-    },
-    {
-      "id": "r2c1",
-      "label": "Answer for Capacity against acid",
-      "x": 0.5,
-      "y": 0.75,
-      "answer": "Decreases (\u2193)"
-    },
-    {
-      "id": "r2c2",
-      "label": "Answer for Capacity against base",
-      "x": 0.729,
-      "y": 0.75,
-      "answer": "Increases (\u2191)"
+      "id": "h5",
+      "label": "Decreases (↓)",
+      "x": 0.900,
+      "y": 0.550
     }
   ]
 }
