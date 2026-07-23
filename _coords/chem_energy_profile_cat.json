@@ -1,38 +1,40 @@
 {
   "slug": "energy_profile_cat",
-  "prompt": "Label the paths and energies on the profile",
+  "prompt": "Label the catalysed and uncatalysed reaction pathways",
   "options": [
-    "Uncatalyzed path",
-    "Catalyzed path",
-    "Lower Ea (catalyzed)",
-    "\u0394H (enthalpy change)",
-    "Higher \u0394H",
-    "Reactants"
+    "Uncatalysed pathway",
+    "Catalysed pathway",
+    "Lower activation energy",
+    "Enthalpy change (ΔH)",
+    "Higher activation energy",
+    "Transition state",
+    "Reactants",
+    "Products"
   ],
   "hotspots": [
     {
-      "id": "h0",
-      "label": "Uncatalyzed path",
-      "x": 0.417,
-      "y": 0.25
-    },
-    {
       "id": "h1",
-      "label": "Catalyzed path",
-      "x": 0.521,
-      "y": 0.438
+      "label": "Uncatalysed pathway",
+      "x": 0.498,
+      "y": 0.125
     },
     {
       "id": "h2",
-      "label": "Lower Ea (catalyzed)",
-      "x": 0.333,
-      "y": 0.438
+      "label": "Catalysed pathway",
+      "x": 0.667,
+      "y": 0.522
     },
     {
       "id": "h3",
-      "label": "\u0394H (enthalpy change)",
-      "x": 0.625,
-      "y": 0.703
+      "label": "Lower activation energy",
+      "x": 0.500,
+      "y": 0.391
+    },
+    {
+      "id": "h4",
+      "label": "Enthalpy change (ΔH)",
+      "x": 0.833,
+      "y": 0.625
     }
   ]
 }
