@@ -1,0 +1,41 @@
+{
+  "slug": "buffer_overdilution",
+  "prompt": "Predict the direction of change for each quantity",
+  "options": [
+    "Increases (↑)",
+    "Decreases (↓)",
+    "No change (↔)"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "No change (↔)",
+      "x": 0.300,
+      "y": 0.550
+    },
+    {
+      "id": "h2",
+      "label": "No change (↔)",
+      "x": 0.450,
+      "y": 0.550
+    },
+    {
+      "id": "h3",
+      "label": "No change (↔)",
+      "x": 0.600,
+      "y": 0.550
+    },
+    {
+      "id": "h4",
+      "label": "No change (↔)",
+      "x": 0.750,
+      "y": 0.550
+    },
+    {
+      "id": "h5",
+      "label": "Decreases (↓)",
+      "x": 0.900,
+      "y": 0.550
+    }
+  ]
+}

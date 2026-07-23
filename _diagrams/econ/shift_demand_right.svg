@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+    <rect width="480" height="320" fill="#ffffff" />
+    
+    <!-- Axes -->
+    <!-- Price axis -->
+    <line x1="40" y1="280" x2="40" y2="40" stroke="#333333" stroke-width="2.5" />
+    <!-- Quantity axis -->
+    <line x1="40" y1="280" x2="440" y2="280" stroke="#333333" stroke-width="2.5" />
+    
+    <!-- Supply curve (S) -->
+    <line x1="80" y1="240" x2="400" y2="80" stroke="#333333" stroke-width="2.5" />
+    
+    <!-- Demand curve 1 (D1) -->
+    <line x1="80" y1="80" x2="380" y2="230" stroke="#333333" stroke-width="2.5" />
+    
+    <!-- Demand curve 2 (D2) -->
+    <line x1="160" y1="80" x2="440" y2="220" stroke="#333333" stroke-width="2.5" stroke-dasharray="5,5" />
+    
+    <!-- Direction arrow (Shift right) -->
+    <g fill="none" stroke="#333333" stroke-width="2">
+        <line x1="220" y1="150" x2="260" y2="150" />
+        <polygon points="260,150 250,145 250,155" fill="#333333" />
+    </g>
+</svg>

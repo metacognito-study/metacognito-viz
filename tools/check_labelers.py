@@ -200,6 +200,9 @@ def main():
         if row_num.startswith('econ_'):
             cand = os.path.join('_diagrams','econ', row_num[5:] + '.svg')
             svg_files = [cand] if os.path.exists(cand) else []
+        elif row_num.startswith('table_'):
+            cand = os.path.join('_diagrams','tables', row_num[6:] + '.svg')
+            svg_files = [cand] if os.path.exists(cand) else []
         else:
             svg_files = glob.glob(f'_diagrams/**/row_{row_num}.svg', recursive=True) + glob.glob(f'_diagrams/**/{row_num}.svg', recursive=True)
         if not svg_files:

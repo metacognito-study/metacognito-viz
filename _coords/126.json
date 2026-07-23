@@ -1,0 +1,1 @@
+{"row": 126, "hotspots": [{"id": "elem", "label": "Pure element", "x": 0.133, "y": 0.288}, {"id": "comp", "label": "Pure compound", "x": 0.377, "y": 0.288}, {"id": "homo", "label": "Homogeneous mixture", "x": 0.621, "y": 0.288}, {"id": "hete", "label": "Heterogeneous mixture", "x": 0.865, "y": 0.288}]}
