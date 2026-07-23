@@ -1,0 +1,23 @@
+<svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg">
+    <rect width="480" height="320" fill="#ffffff"/>
+    
+    <!-- Axes -->
+    <!-- X axis (Internuclear Distance) -->
+    <line x1="40" y1="290" x2="440" y2="290" stroke="#333" stroke-width="2"/>
+    <text x="240" y="315" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333">Internuclear Distance</text>
+    
+    <!-- Y axis (Potential Energy) -->
+    <line x1="40" y1="290" x2="40" y2="30" stroke="#333" stroke-width="2"/>
+    <g transform="translate(15, 160) rotate(-90)">
+        <text x="0" y="0" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333">Potential Energy</text>
+    </g>
+
+    <!-- Zero Energy Line -->
+    <line x1="40" y1="100" x2="440" y2="100" stroke="#999" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="35" y="104" font-family="sans-serif" font-size="12" text-anchor="end" fill="#666">0</text>
+
+    <!-- Curves -->
+    <path d="M 130,60.4 L 135,139.4 L 140,192.7 L 145,226.9 L 150,247.1 L 155,257.2 L 160,260.0 L 165,257.8 L 170,252.2 L 175,244.4 L 180,235.2 L 185,225.4 L 190,215.5 L 195,205.6 L 200,196.1 L 205,187.0 L 210,178.5 L 215,170.7 L 220,163.4 L 225,156.8 L 230,150.8 L 235,145.3 L 240,140.4 L 245,135.9 L 250,132.0 L 255,128.4 L 260,125.2 L 265,122.3 L 270,119.8 L 275,117.5 L 280,115.5 L 285,113.8 L 290,112.2 L 295,110.8 L 300,109.5 L 305,108.4 L 310,107.4 L 315,106.6 L 320,105.8 L 325,105.1 L 330,104.5 L 335,104.0 L 340,103.5 L 345,103.1 L 350,102.8 L 355,102.4 L 360,102.1 L 365,101.9 L 370,101.7 L 375,101.5 L 380,101.3 L 385,101.2 L 390,101.0 L 395,100.9 L 400,100.8 L 405,100.7 L 410,100.6 L 415,100.5 L 420,100.5 L 425,100.4 L 430,100.4 L 435,100.3 L 440,100.3" fill="none" stroke="#0072B2" stroke-width="2.5"/>
+    <path d="M 265,23.5 L 270,80.2 L 275,119.7 L 280,146.3 L 285,163.4 L 290,173.5 L 295,178.6 L 300,180.0 L 305,178.9 L 310,176.1 L 315,172.2 L 320,167.6 L 325,162.7 L 330,157.7 L 335,152.8 L 340,148.0 L 345,143.5 L 350,139.3 L 355,135.3 L 360,131.7 L 365,128.4 L 370,125.4 L 375,122.7 L 380,120.2 L 385,118.0 L 390,116.0 L 395,114.2 L 400,112.6 L 405,111.2 L 410,109.9 L 415,108.8 L 420,107.8 L 425,106.9 L 430,106.1 L 435,105.4 L 440,104.8" fill="none" stroke="#D55E00" stroke-width="2.5"/>
+
+</svg>

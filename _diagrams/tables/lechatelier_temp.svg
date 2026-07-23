@@ -1,36 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
-    <rect x="0" y="0" width="480" height="320" fill="#ffffff"/>
+    <rect width="480" height="320" fill="#ffffff" />
     
-    <text x="240" y="35" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#000">Exothermic Equilibrium</text>
+    <text x="240" y="45" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#333333">Exothermic Equilibrium</text>
 
-    <line x1="10" y1="60" x2="470" y2="60" stroke="#000" stroke-width="2"/>
-    <line x1="10" y1="120" x2="470" y2="120" stroke="#000" stroke-width="2"/>
-    <line x1="10" y1="200" x2="470" y2="200" stroke="#000" stroke-width="2"/>
+    <!-- Horizontal lines -->
+    <line x1="15" y1="70" x2="463" y2="70" stroke="#333333" stroke-width="2" />
+    <line x1="15" y1="130" x2="463" y2="130" stroke="#333333" stroke-width="2" />
+    <line x1="15" y1="250" x2="463" y2="250" stroke="#333333" stroke-width="2" />
+    
+    <!-- Vertical lines -->
+    <line x1="15" y1="70" x2="15" y2="250" stroke="#333333" stroke-width="2" />
+    <line x1="135" y1="70" x2="135" y2="250" stroke="#333333" stroke-width="2" />
+    <line x1="217" y1="70" x2="217" y2="250" stroke="#333333" stroke-width="2" />
+    <line x1="299" y1="70" x2="299" y2="250" stroke="#333333" stroke-width="2" />
+    <line x1="381" y1="70" x2="381" y2="250" stroke="#333333" stroke-width="2" />
+    <line x1="463" y1="70" x2="463" y2="250" stroke="#333333" stroke-width="2" />
 
-    <line x1="10" y1="60" x2="10" y2="200" stroke="#000" stroke-width="2"/>
-    <line x1="120" y1="60" x2="120" y2="200" stroke="#000" stroke-width="2"/>
-    <line x1="210" y1="60" x2="210" y2="200" stroke="#000" stroke-width="2"/>
-    <line x1="300" y1="60" x2="300" y2="200" stroke="#000" stroke-width="2"/>
-    <line x1="380" y1="60" x2="380" y2="200" stroke="#000" stroke-width="2"/>
-    <line x1="470" y1="60" x2="470" y2="200" stroke="#000" stroke-width="2"/>
+    <!-- Column Headers -->
+    <text x="176" y="95" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Shift</text>
+    <text x="176" y="115" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">direction</text>
+    
+    <text x="258" y="95" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Moles</text>
+    <text x="258" y="115" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">product</text>
 
-    <text x="165" y="85" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">Shift</text>
-    <text x="165" y="105" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">direction</text>
+    <text x="340" y="95" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Value</text>
+    <text x="340" y="115" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">of K</text>
 
-    <text x="255" y="85" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">Moles</text>
-    <text x="255" y="105" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">product</text>
+    <text x="422" y="95" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Rate of</text>
+    <text x="422" y="115" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">reaction</text>
 
-    <text x="340" y="85" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">Value</text>
-    <text x="340" y="105" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">of K</text>
+    <!-- Row Header -->
+    <text x="75" y="185" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Temperature</text>
+    <text x="75" y="205" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">increased</text>
 
-    <text x="425" y="85" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">Rate of</text>
-    <text x="425" y="105" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">reaction</text>
-
-    <text x="65" y="150" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#000">Temperature</text>
-    <text x="65" y="170" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#000">increased</text>
-
-    <line x1="160" y1="160" x2="170" y2="160" stroke="#ccc" stroke-width="2"/>
-    <line x1="250" y1="160" x2="260" y2="160" stroke="#ccc" stroke-width="2"/>
-    <line x1="335" y1="160" x2="345" y2="160" stroke="#ccc" stroke-width="2"/>
-    <line x1="420" y1="160" x2="430" y2="160" stroke="#ccc" stroke-width="2"/>
+    <!-- Target indicators for empty cells (for hotspots/ink threshold) -->
+    <line x1="156" y1="190" x2="196" y2="190" stroke="#cccccc" stroke-width="2" stroke-dasharray="4,4" />
+    <line x1="238" y1="190" x2="278" y2="190" stroke="#cccccc" stroke-width="2" stroke-dasharray="4,4" />
+    <line x1="320" y1="190" x2="360" y2="190" stroke="#cccccc" stroke-width="2" stroke-dasharray="4,4" />
+    <line x1="402" y1="190" x2="442" y2="190" stroke="#cccccc" stroke-width="2" stroke-dasharray="4,4" />
 </svg>

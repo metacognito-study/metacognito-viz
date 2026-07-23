@@ -2,10 +2,10 @@
   "slug": "mb_two_temps",
   "prompt": "Label the two temperature curves and the activation-energy region",
   "options": [
-    "Lower temperature (T\u2081)",
-    "Higher temperature (T\u2082)",
+    "Lower temperature (T₁)",
+    "Higher temperature (T₂)",
     "Activation energy (Ea)",
-    "Molecules with E \u2265 Ea",
+    "Molecules with E ≥ Ea",
     "Average kinetic energy",
     "Most probable speed",
     "Catalysed pathway",
@@ -13,28 +13,28 @@
   ],
   "hotspots": [
     {
-      "id": "h0",
-      "label": "Lower temperature (T\u2081)",
-      "x": 0.208,
-      "y": 0.236
-    },
-    {
       "id": "h1",
-      "label": "Higher temperature (T\u2082)",
-      "x": 0.458,
-      "y": 0.606
+      "label": "Lower temperature (T₁)",
+      "x": 0.25,
+      "y": 0.684
     },
     {
       "id": "h2",
-      "label": "Activation energy (Ea)",
-      "x": 0.639,
-      "y": 0.469
+      "label": "Higher temperature (T₂)",
+      "x": 0.5,
+      "y": 0.77
     },
     {
       "id": "h3",
-      "label": "Molecules with E \u2265 Ea",
-      "x": 0.729,
-      "y": 0.828
+      "label": "Activation energy (Ea)",
+      "x": 0.812,
+      "y": 0.375
+    },
+    {
+      "id": "h4",
+      "label": "Molecules with E ≥ Ea",
+      "x": 0.875,
+      "y": 0.781
     }
   ]
 }

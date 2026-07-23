@@ -16,32 +16,32 @@
     {
       "id": "h1",
       "label": "Single bond",
-      "x": 0.792,
-      "y": 0.227
+      "x": 0.917,
+      "y": 0.318
     },
     {
       "id": "h2",
       "label": "Double bond",
-      "x": 0.625,
-      "y": 0.233
+      "x": 0.75,
+      "y": 0.318
     },
     {
       "id": "h3",
       "label": "Triple bond",
-      "x": 0.458,
-      "y": 0.228
+      "x": 0.583,
+      "y": 0.317
     },
     {
       "id": "h4",
       "label": "Shortest bond length",
-      "x": 0.25,
-      "y": 0.875
+      "x": 0.292,
+      "y": 0.281
     },
     {
       "id": "h5",
       "label": "Deepest well (strongest bond)",
-      "x": 0.188,
-      "y": 0.531
+      "x": 0.167,
+      "y": 0.875
     }
   ]
 }

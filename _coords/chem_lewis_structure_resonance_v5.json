@@ -1,0 +1,40 @@
+{
+  "slug": "lewis_structure_resonance_v5",
+  "prompt": "Label the resonance structures and the bond-order feature they show",
+  "options": [
+    "Resonance structure A",
+    "Resonance structure B",
+    "Double bond in this structure",
+    "Single bond in this structure",
+    "The only correct structure",
+    "Tautomer",
+    "Isomer",
+    "Ionic bond"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Resonance structure A",
+      "x": 0.250,
+      "y": 0.734
+    },
+    {
+      "id": "h2",
+      "label": "Resonance structure B",
+      "x": 0.750,
+      "y": 0.734
+    },
+    {
+      "id": "h3",
+      "label": "Double bond in this structure",
+      "x": 0.177,
+      "y": 0.422
+    },
+    {
+      "id": "h4",
+      "label": "Single bond in this structure",
+      "x": 0.677,
+      "y": 0.422
+    }
+  ]
+}

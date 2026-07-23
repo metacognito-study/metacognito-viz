@@ -1,24 +1,40 @@
 {
   "slug": "morse_two_species",
-  "prompt": "Label the Morse curves based on bond properties",
+  "prompt": "Label the bond length and bond strength on two potential-energy curves",
   "options": [
-    "Shorter, stronger bond",
-    "Longer, weaker bond",
-    "Shorter, weaker bond",
-    "Longer, stronger bond"
+    "Shorter bond length",
+    "Longer bond length",
+    "Stronger bond (deeper well)",
+    "Weaker bond (shallower well)",
+    "Higher activation energy",
+    "Endothermic",
+    "Exothermic",
+    "Bond order zero"
   ],
   "hotspots": [
     {
-      "id": "h0",
-      "label": "Shorter, stronger bond",
-      "x": 0.283,
-      "y": 0.875
+      "id": "h1",
+      "label": "Shorter bond length",
+      "x": 0.281,
+      "y": 0.436
     },
     {
-      "id": "h1",
-      "label": "Longer, weaker bond",
-      "x": 0.433,
-      "y": 0.775
+      "id": "h2",
+      "label": "Stronger bond (deeper well)",
+      "x": 0.333,
+      "y": 0.812
+    },
+    {
+      "id": "h3",
+      "label": "Longer bond length",
+      "x": 0.573,
+      "y": 0.374
+    },
+    {
+      "id": "h4",
+      "label": "Weaker bond (shallower well)",
+      "x": 0.625,
+      "y": 0.562
     }
   ]
 }
