@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+    <rect width="480" height="320" fill="#ffffff" />
+    
+    <!-- Table Borders -->
+    <rect x="10" y="50" width="460" height="220" fill="none" stroke="#333" stroke-width="2" />
+    
+    <!-- Horizontal Lines -->
+    <line x1="10" y1="150" x2="470" y2="150" stroke="#333" stroke-width="2" />
+    
+    <!-- Vertical Lines -->
+    <line x1="130" y1="50" x2="130" y2="270" stroke="#333" stroke-width="2" />
+    <line x1="198" y1="50" x2="198" y2="270" stroke="#333" stroke-width="2" />
+    <line x1="266" y1="50" x2="266" y2="270" stroke="#333" stroke-width="2" />
+    <line x1="334" y1="50" x2="334" y2="270" stroke="#333" stroke-width="2" />
+    <line x1="402" y1="50" x2="402" y2="270" stroke="#333" stroke-width="2" />
+    
+    <!-- Row Header -->
+    <text x="70" y="195" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">Conjugate base</text>
+    <text x="70" y="215" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">salt is 10%</text>
+    <text x="70" y="235" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">inert impurities</text>
+    
+    <!-- Column Headers -->
+    <text x="164" y="105" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">Moles</text>
+    <text x="164" y="125" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">A-</text>
+    
+    <text x="232" y="105" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">Moles</text>
+    <text x="232" y="125" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">HA</text>
+    
+    <text x="300" y="105" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">Ratio</text>
+    <text x="300" y="125" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">[A-]/[HA]</text>
+    
+    <text x="368" y="115" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">pH</text>
+    
+    <text x="436" y="95" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">Capacity</text>
+    <text x="436" y="115" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">vs</text>
+    <text x="436" y="135" font-family="sans-serif" font-size="14" fill="#333" text-anchor="middle">acid</text>
+    
+</svg>
