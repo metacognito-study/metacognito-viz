@@ -1,1 +1,39 @@
-{"row":187,"hotspots":[{"id":"h3po4","label":"Acid (starts with H)","x":0.138,"y":0.641},{"id":"kcl","label":"Not an acid (no acidic H)","x":0.379,"y":0.641},{"id":"h5io6","label":"Acid (starts with H)","x":0.621,"y":0.641},{"id":"naoh","label":"Not an acid (base/hydroxide)","x":0.863,"y":0.641}]}
+{
+  "row": 187,
+  "hotspots": [
+    {
+      "id": "h3po4",
+      "label": "Acid (starts with H)",
+      "x": 0.138,
+      "y": 0.641
+    },
+    {
+      "id": "kcl",
+      "label": "Not an acid (no acidic H)",
+      "x": 0.379,
+      "y": 0.641
+    },
+    {
+      "id": "h5io6",
+      "label": "Acid (starts with H)",
+      "x": 0.621,
+      "y": 0.641
+    },
+    {
+      "id": "naoh",
+      "label": "Not an acid (base/hydroxide)",
+      "x": 0.863,
+      "y": 0.641
+    }
+  ],
+  "slug": "ch02/row_187",
+  "prompt": "Label each formula: is it an acid or not an acid?",
+  "options": [
+    "Acid (starts with H)",
+    "Not an acid (no acidic H)",
+    "Not an acid (base/hydroxide)",
+    "any H means acid",
+    "formula-position rule only",
+    "hydroxide confusion"
+  ]
+}
