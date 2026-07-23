@@ -1,31 +1,40 @@
 {
   "slug": "rate_orders",
-  "prompt": "Label the concentration-time curves by reaction order",
+  "prompt": "Label each concentration-time curve with its reaction order",
   "options": [
-    "Zero-order (linear)",
-    "First-order (exponential decay)",
-    "Second-order (drops fast, levels off)",
-    "Third-order",
-    "Equilibrium"
+    "Zero order",
+    "First order",
+    "Second order",
+    "Constant half-life",
+    "Third order",
+    "Rate constant",
+    "Equilibrium",
+    "Activation energy"
   ],
   "hotspots": [
     {
-      "id": "h0",
-      "label": "Zero-order (linear)",
-      "x": 0.5,
-      "y": 0.562
-    },
-    {
       "id": "h1",
-      "label": "First-order (exponential decay)",
-      "x": 0.375,
-      "y": 0.734
+      "label": "Zero order",
+      "x": 0.33,
+      "y": 0.484
     },
     {
       "id": "h2",
-      "label": "Second-order (drops fast, levels off)",
-      "x": 0.167,
-      "y": 0.625
+      "label": "First order",
+      "x": 0.625,
+      "y": 0.617
+    },
+    {
+      "id": "h3",
+      "label": "Second order",
+      "x": 0.833,
+      "y": 0.569
+    },
+    {
+      "id": "h4",
+      "label": "Constant half-life",
+      "x": 0.573,
+      "y": 0.891
     }
   ]
 }
