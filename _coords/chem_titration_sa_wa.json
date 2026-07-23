@@ -1,0 +1,38 @@
+{
+  "slug": "titration_sa_wa",
+  "prompt": "Label the titration curves",
+  "options": [
+    "Strong Acid Analyte",
+    "Weak Acid Analyte",
+    "Buffer Region",
+    "Equivalence Point (WA)",
+    "Strong Base Analyte",
+    "Half-equivalence Point"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "Strong Acid Analyte",
+      "x": 0.125,
+      "y": 0.815
+    },
+    {
+      "id": "h1",
+      "label": "Weak Acid Analyte",
+      "x": 0.271,
+      "y": 0.629
+    },
+    {
+      "id": "h2",
+      "label": "Buffer Region",
+      "x": 0.417,
+      "y": 0.56
+    },
+    {
+      "id": "h3",
+      "label": "Equivalence Point (WA)",
+      "x": 0.5,
+      "y": 0.398
+    }
+  ]
+}

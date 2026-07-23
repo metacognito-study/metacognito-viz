@@ -1,0 +1,38 @@
+{
+  "slug": "mb_two_temps",
+  "prompt": "Label the Maxwell-Boltzmann distributions and activation energy",
+  "options": [
+    "T\u2081 (lower)",
+    "T\u2082 (higher)",
+    "Activation Energy (Ea)",
+    "Molecules able to react at T\u2082",
+    "T\u2083 (intermediate)",
+    "Molecules unable to react"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "T\u2081 (lower)",
+      "x": 0.208,
+      "y": 0.3
+    },
+    {
+      "id": "h1",
+      "label": "T\u2082 (higher)",
+      "x": 0.269,
+      "y": 0.487
+    },
+    {
+      "id": "h2",
+      "label": "Activation Energy (Ea)",
+      "x": 0.521,
+      "y": 0.312
+    },
+    {
+      "id": "h3",
+      "label": "Molecules able to react at T\u2082",
+      "x": 0.625,
+      "y": 0.812
+    }
+  ]
+}

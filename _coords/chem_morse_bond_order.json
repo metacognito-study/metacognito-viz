@@ -1,0 +1,45 @@
+{
+  "slug": "morse_bond_order",
+  "prompt": "Label the Morse curves for different bond orders",
+  "options": [
+    "Single bond",
+    "Double bond",
+    "Triple bond",
+    "Shortest bond length",
+    "Deepest well (strongest bond)",
+    "Quadruple bond",
+    "Longest bond length"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "Single bond",
+      "x": 0.396,
+      "y": 0.75
+    },
+    {
+      "id": "h1",
+      "label": "Double bond",
+      "x": 0.25,
+      "y": 0.312
+    },
+    {
+      "id": "h2",
+      "label": "Triple bond",
+      "x": 0.729,
+      "y": 0.672
+    },
+    {
+      "id": "h3",
+      "label": "Shortest bond length",
+      "x": 0.208,
+      "y": 0.625
+    },
+    {
+      "id": "h4",
+      "label": "Deepest well (strongest bond)",
+      "x": 0.271,
+      "y": 0.92
+    }
+  ]
+}
