@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+    <rect width="480" height="320" fill="#ffffff" />
+    
+    <!-- Axes -->
+    <line x1="80" y1="280" x2="420" y2="280" stroke="#333" stroke-width="2" />
+    <line x1="80" y1="280" x2="80" y2="20" stroke="#333" stroke-width="2" />
+    
+    <!-- Axis Labels -->
+    <text x="250" y="310" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333">Volume of NaOH added (mL)</text>
+    <text x="40" y="150" font-family="sans-serif" font-size="14" text-anchor="middle" transform="rotate(-90 40,150)" fill="#333">pH</text>
+    
+    <!-- Tick marks -->
+    <g stroke="#333" stroke-width="1">
+        <!-- x ticks -->
+        <line x1="180" y1="280" x2="180" y2="285" />
+        <text x="180" y="298" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#333">25</text>
+        <line x1="280" y1="280" x2="280" y2="285" />
+        <text x="280" y="298" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#333">50</text>
+        <line x1="380" y1="280" x2="380" y2="285" />
+        <text x="380" y="298" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#333">75</text>
+        
+        <!-- y ticks (pH 0, 7, 14) -->
+        <line x1="75" y1="280" x2="80" y2="280" />
+        <text x="70" y="284" font-family="sans-serif" font-size="12" text-anchor="end" fill="#333">0</text>
+        <line x1="75" y1="150" x2="80" y2="150" />
+        <text x="70" y="154" font-family="sans-serif" font-size="12" text-anchor="end" fill="#333">7</text>
+        <line x1="75" y1="20" x2="80" y2="20" />
+        <text x="70" y="24" font-family="sans-serif" font-size="12" text-anchor="end" fill="#333">14</text>
+    </g>
+
+    <!-- Curve -->
+    <path d="M 80.0,203.9 L 84.0,177.7 L 88.0,171.9 L 92.0,168.5 L 96.0,166.0 L 100.0,164.0 L 104.0,162.4 L 108.0,160.9 L 112.0,159.7 L 116.0,158.5 L 120.0,157.5 L 124.0,156.5 L 128.0,155.6 L 132.0,154.7 L 136.0,153.9 L 140.0,153.1 L 144.0,152.4 L 148.0,151.6 L 152.0,150.9 L 156.0,150.2 L 160.0,149.6 L 164.0,148.9 L 168.0,148.2 L 172.0,147.6 L 176.0,146.9 L 180.0,146.3 L 184.0,145.6 L 188.0,145.0 L 192.0,144.3 L 196.0,143.7 L 200.0,143.0 L 204.0,142.3 L 208.0,141.6 L 212.0,140.9 L 216.0,140.2 L 220.0,139.5 L 224.0,138.7 L 228.0,137.8 L 232.0,137.0 L 236.0,136.1 L 240.0,135.1 L 244.0,134.1 L 248.0,132.9 L 252.0,131.6 L 256.0,130.2 L 260.0,128.6 L 264.0,126.6 L 268.0,124.1 L 272.0,120.7 L 276.0,114.9 L 280.0,95.2 L 284.0,75.8 L 288.0,70.3 L 292.0,67.1 L 296.0,64.8 L 300.0,63.1 L 304.0,61.7 L 308.0,60.6 L 312.0,59.6 L 316.0,58.7 L 320.0,57.9 L 324.0,57.2 L 328.0,56.6 L 332.0,56.0 L 336.0,55.5 L 340.0,55.0 L 344.0,54.5 L 348.0,54.1 L 352.0,53.7 L 356.0,53.4 L 360.0,53.0 L 364.0,52.7 L 368.0,52.4 L 372.0,52.1 L 376.0,51.8 L 380.0,51.6 L 384.0,51.3 L 388.0,51.1 L 392.0,50.8 L 396.0,50.6 L 400.0,50.4" fill="none" stroke="#007bff" stroke-width="2.5" />
+    
+    <!-- Points -->
+    <circle cx="180.0" cy="146.3" r="4" fill="#d9534f" />
+    <circle cx="272.0" cy="120.7" r="4" fill="#d9534f" />
+    
+    <!-- Bracket for buffer region -->
+    <path d="M 100 210 L 100 220 L 260 220 L 260 210" fill="none" stroke="#555" stroke-width="2" />
+    <line x1="180.0" y1="220" x2="180.0" y2="230" stroke="#555" stroke-width="2" />
+    <circle cx="180.0" cy="230.0" r="4" fill="#555" />
+    
+</svg>
