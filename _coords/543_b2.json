@@ -1,0 +1,58 @@
+{
+  "slug": "543_b2",
+  "prompt": "A solid substance is heated continuously. The graph shows temperature vs. time. Label the regions where energy is used for temperature increase vs. phase change, and identify what happens during the flat plateaus.",
+  "options": [
+    "Solid heating (ΔT increases, PE constant)",
+    "Energy is being wasted here",
+    "No phase change, so no energy input",
+    "Temperature determines energy, not time",
+    "Melting plateau (T constant, energy → breaking bonds)",
+    "No energy is absorbed during flat sections",
+    "Flat means temperature isn't changing, so done heating",
+    "Heat only matters when temperature rises",
+    "Liquid heating (ΔT increases, PE increases slightly)",
+    "Liquid doesn't need energy to heat",
+    "Once melted, temperature automatically rises",
+    "This region is the same as the solid heating region",
+    "Boiling plateau (T constant, energy → overcoming IMF)",
+    "At boiling point, heating stops",
+    "The flat section means the substance is done changing",
+    "Boiling and melting plateaus are identical",
+    "Gas heating (ΔT increases, PE increases)",
+    "Gas doesn't require continued heating",
+    "Temperature can't rise above boiling point",
+    "Heating a gas uses no energy"
+  ],
+  "hotspots": [
+    {
+      "id": "hs1",
+      "label": "Solid heating (ΔT increases, PE constant)",
+      "x": 0.188,
+      "y": 0.719
+    },
+    {
+      "id": "hs2",
+      "label": "Melting plateau (T constant, energy → breaking bonds)",
+      "x": 0.333,
+      "y": 0.625
+    },
+    {
+      "id": "hs3",
+      "label": "Liquid heating (ΔT increases, PE increases slightly)",
+      "x": 0.5,
+      "y": 0.438
+    },
+    {
+      "id": "hs4",
+      "label": "Boiling plateau (T constant, energy → overcoming IMF)",
+      "x": 0.688,
+      "y": 0.25
+    },
+    {
+      "id": "hs5",
+      "label": "Gas heating (ΔT increases, PE increases)",
+      "x": 0.833,
+      "y": 0.188
+    }
+  ]
+}
