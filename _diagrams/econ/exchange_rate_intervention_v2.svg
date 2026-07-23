@@ -1,0 +1,52 @@
+<svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="480" height="320" fill="white" />
+  
+  <!-- Axes -->
+  <line x1="60" y1="40" x2="60" y2="280" stroke="#333" stroke-width="2" />
+  <line x1="60" y1="280" x2="440" y2="280" stroke="#333" stroke-width="2" />
+  
+  <!-- Axis Labels -->
+  <text x="250" y="310" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333">Quantity of Foreign Currency</text>
+  <text x="-160" y="30" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333" transform="rotate(-90)">Exchange Rate</text>
+  
+  <!-- Demand Curve D0 -->
+  <line x1="120" y1="40" x2="360" y2="280" stroke="#0052cc" stroke-width="2.5" />
+  <text x="365" y="285" font-family="sans-serif" font-size="16" fill="#0052cc">D</text>
+  
+  <!-- Supply Curve S0 -->
+  <line x1="120" y1="280" x2="360" y2="40" stroke="#d93f00" stroke-width="2.5" />
+  <text x="365" y="45" font-family="sans-serif" font-size="16" fill="#d93f00">S</text>
+
+  <!-- Eq Dashed Line (from axis to intersection) -->
+  <line x1="60" y1="160" x2="240" y2="160" stroke="#666" stroke-width="1.5" stroke-dasharray="4,4" />
+  <line x1="55" y1="160" x2="65" y2="160" stroke="#333" stroke-width="2" />
+
+  <!-- Exchange Line (above eq for overvalued domestic currency / undervalued foreign currency) -->
+  <line x1="60" y1="100" x2="300" y2="100" stroke="#00875a" stroke-width="2" />
+  <line x1="55" y1="100" x2="65" y2="100" stroke="#333" stroke-width="2" />
+  
+  <!-- Dashed vertical lines to show Qd and Qs at Fixed Rate -->
+  <line x1="180" y1="100" x2="180" y2="280" stroke="#666" stroke-width="1.5" stroke-dasharray="3,3" />
+  <line x1="300" y1="100" x2="300" y2="280" stroke="#666" stroke-width="1.5" stroke-dasharray="3,3" />
+  <text x="180" y="295" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#333">Qd</text>
+  <text x="300" y="295" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#333">Qs</text>
+
+  <!-- Surplus Arrow (between Qd and Qs at Fixed Rate) -->
+  <line x1="180" y1="85" x2="300" y2="85" stroke="#333" stroke-width="2" />
+  <polygon points="180,85 188,80 188,90" fill="#333" />
+  <polygon points="300,85 292,80 292,90" fill="#333" />
+
+  <!-- Deficit Arrow (at y=220 below eq for distractor) -->
+  <line x1="180" y1="220" x2="300" y2="220" stroke="#333" stroke-width="2" />
+  <polygon points="180,220 188,215 188,225" fill="#333" />
+  <polygon points="300,220 292,215 292,225" fill="#333" />
+  
+  <!-- Action to defend: Central Bank buys foreign currency (sell foreign reserves) -> shifts Demand right -->
+  <!-- Demand Curve D1 (shifted right) -->
+  <line x1="240" y1="40" x2="480" y2="280" stroke="#0052cc" stroke-width="2.5" stroke-dasharray="5,5" />
+  <text x="460" y="285" font-family="sans-serif" font-size="16" fill="#0052cc">D'</text>
+
+  <!-- Shift arrow for D -> D' -->
+  <line x1="280" y1="200" x2="360" y2="200" stroke="#333" stroke-width="2" />
+  <polygon points="360,200 350,195 350,205" fill="#333" />
+</svg>

@@ -1,0 +1,48 @@
+{
+  "slug": "exchange_rate_intervention_v2",
+  "prompt": "Tap the label that shows the central bank's action to defend a fixed exchange rate above equilibrium.",
+  "options": [
+    "fixed exchange rate",
+    "equilibrium rate",
+    "excess supply",
+    "excess demand",
+    "sell foreign reserves",
+    "appreciation",
+    "depreciation",
+    "revaluation",
+    "devaluation",
+    "capital flight"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "fixed exchange rate",
+      "x": 0.250,
+      "y": 0.312
+    },
+    {
+      "id": "h2",
+      "label": "equilibrium rate",
+      "x": 0.250,
+      "y": 0.500
+    },
+    {
+      "id": "h3",
+      "label": "excess supply",
+      "x": 0.500,
+      "y": 0.266
+    },
+    {
+      "id": "h4",
+      "label": "excess demand",
+      "x": 0.500,
+      "y": 0.688
+    },
+    {
+      "id": "h5",
+      "label": "sell foreign reserves",
+      "x": 0.667,
+      "y": 0.625
+    }
+  ]
+}
