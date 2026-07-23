@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect x="0" y="0" width="480" height="320" fill="white" />
+  
+  <!-- Axes -->
+  <polyline points="60,40 60,256 420,256" stroke="#333" stroke-width="2.5" fill="none" />
+  
+  <!-- PPC 1 (Original) -->
+  <path d="M 60,96 Q 300,96 300,256" stroke="#333" stroke-width="2.5" fill="none" />
+  
+  <!-- PPC 2 (Growth) -->
+  <path d="M 60,40 Q 400,40 400,256" stroke="#333" stroke-width="2.5" fill="none" />
+
+  <!-- Shift arrow -->
+  <line x1="297" y1="190" x2="380" y2="190" stroke="#333" stroke-width="2.5" />
+  <polygon points="380,190 370,185 370,195" fill="#333" />
+</svg>

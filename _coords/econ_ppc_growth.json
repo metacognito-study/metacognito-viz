@@ -1,0 +1,48 @@
+{
+  "slug": "ppc_growth",
+  "prompt": "Label the axes, the two production possibilities curves, and the direction of the shift",
+  "options": [
+    "Good X",
+    "Good Y",
+    "PPC₁",
+    "PPC₂",
+    "Outward shift (economic growth)",
+    "Inward shift (loss of resources)",
+    "Price",
+    "Quantity",
+    "Efficient point",
+    "Unattainable point"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Good Y",
+      "x": 0.125,
+      "y": 0.500
+    },
+    {
+      "id": "h2",
+      "label": "Good X",
+      "x": 0.333,
+      "y": 0.800
+    },
+    {
+      "id": "h3",
+      "label": "PPC₁",
+      "x": 0.500,
+      "y": 0.425
+    },
+    {
+      "id": "h4",
+      "label": "PPC₂",
+      "x": 0.656,
+      "y": 0.294
+    },
+    {
+      "id": "h5",
+      "label": "Outward shift (economic growth)",
+      "x": 0.704,
+      "y": 0.594
+    }
+  ]
+}
