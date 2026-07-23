@@ -1,0 +1,46 @@
+{
+  "slug": "ppc_growth",
+  "prompt": "Label the axes, the production possibilities curves, and the direction of the shift.",
+  "options": [
+    "Consumer goods",
+    "Capital goods",
+    "PPC\u2081",
+    "PPC\u2082",
+    "Shift right (increase)",
+    "Shift left (decrease)",
+    "Economic growth",
+    "Opportunity cost"
+  ],
+  "hotspots": [
+    {
+      "id": "h_y",
+      "label": "Capital goods",
+      "x": 0.083,
+      "y": 0.469
+    },
+    {
+      "id": "h_x",
+      "label": "Consumer goods",
+      "x": 0.729,
+      "y": 0.875
+    },
+    {
+      "id": "h_c1",
+      "label": "PPC\u2081",
+      "x": 0.458,
+      "y": 0.875
+    },
+    {
+      "id": "h_c2",
+      "label": "PPC\u2082",
+      "x": 0.083,
+      "y": 0.156
+    },
+    {
+      "id": "h_dir",
+      "label": "Shift right (increase)",
+      "x": 0.458,
+      "y": 0.562
+    }
+  ]
+}

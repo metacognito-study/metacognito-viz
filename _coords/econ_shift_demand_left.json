@@ -1,0 +1,49 @@
+{
+  "slug": "shift_demand_left",
+  "prompt": "Label the axes, the demand curves, and the direction of the shift.",
+  "options": [
+    "Quantity demanded",
+    "Equilibrium",
+    "Price level",
+    "Average price",
+    "Cost",
+    "Quantity",
+    "Price",
+    "D\u2081",
+    "D\u2082",
+    "Shift right (increase)",
+    "Shift left (decrease)"
+  ],
+  "hotspots": [
+    {
+      "id": "h_y",
+      "label": "Price",
+      "x": 0.083,
+      "y": 0.469
+    },
+    {
+      "id": "h_x",
+      "label": "Quantity",
+      "x": 0.521,
+      "y": 0.875
+    },
+    {
+      "id": "h_c1",
+      "label": "D\u2081",
+      "x": 0.375,
+      "y": 0.156
+    },
+    {
+      "id": "h_c2",
+      "label": "D\u2082",
+      "x": 0.667,
+      "y": 0.781
+    },
+    {
+      "id": "h_dir",
+      "label": "Shift left (decrease)",
+      "x": 0.521,
+      "y": 0.469
+    }
+  ]
+}

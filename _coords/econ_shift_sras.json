@@ -1,0 +1,47 @@
+{
+  "slug": "shift_sras",
+  "prompt": "Label the axes, the short-run aggregate supply curves, and the direction of the shift.",
+  "options": [
+    "Real GDP",
+    "Price level",
+    "Aggregate demand",
+    "SRAS\u2081",
+    "SRAS\u2082",
+    "Shift right (increase)",
+    "Shift left (decrease)",
+    "Inflation",
+    "Unemployment"
+  ],
+  "hotspots": [
+    {
+      "id": "h_y",
+      "label": "Price level",
+      "x": 0.083,
+      "y": 0.469
+    },
+    {
+      "id": "h_x",
+      "label": "Real GDP",
+      "x": 0.521,
+      "y": 0.875
+    },
+    {
+      "id": "h_c1",
+      "label": "SRAS\u2081",
+      "x": 0.375,
+      "y": 0.781
+    },
+    {
+      "id": "h_c2",
+      "label": "SRAS\u2082",
+      "x": 0.667,
+      "y": 0.156
+    },
+    {
+      "id": "h_dir",
+      "label": "Shift left (decrease)",
+      "x": 0.521,
+      "y": 0.469
+    }
+  ]
+}
