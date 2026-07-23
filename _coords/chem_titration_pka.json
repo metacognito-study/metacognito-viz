@@ -2,23 +2,39 @@
   "slug": "titration_pka",
   "prompt": "Place the pKa values at the correct half-equivalence points",
   "options": [
-    "pKa = 4.5",
-    "pKa = 9.0",
-    "Equivalence Point 1",
-    "Equivalence Point 2"
+    "pKa = 3.2 (stronger acid)",
+    "pKa = 5.8 (weaker acid)",
+    "Stronger acid curve",
+    "Weaker acid curve",
+    "Equivalence point",
+    "Initial pH",
+    "pKb",
+    "pH = 7"
   ],
   "hotspots": [
     {
-      "id": "h0",
-      "label": "pKa = 4.5",
-      "x": 0.25,
-      "y": 0.661
+      "id": "h1",
+      "label": "pKa = 3.2 (stronger acid)",
+      "x": 0.292,
+      "y": 0.688
     },
     {
-      "id": "h1",
-      "label": "pKa = 9.0",
-      "x": 0.583,
-      "y": 0.403
+      "id": "h2",
+      "label": "pKa = 5.8 (weaker acid)",
+      "x": 0.292,
+      "y": 0.469
+    },
+    {
+      "id": "h3",
+      "label": "Stronger acid curve",
+      "x": 0.458,
+      "y": 0.642
+    },
+    {
+      "id": "h4",
+      "label": "Weaker acid curve",
+      "x": 0.458,
+      "y": 0.446
     }
   ]
 }
