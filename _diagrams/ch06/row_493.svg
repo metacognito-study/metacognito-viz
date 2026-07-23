@@ -6,27 +6,27 @@
   
   <!-- Left Equation Card -->
   <rect x="30" y="35" width="195" height="75" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1"/>
-  <text x="127.5" y="62" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">CaCO₃(s) + 178 kJ</text>
-  <text x="127.5" y="82" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">→ CaO(s) + CO₂(g)</text>
+  <text x="127.5" y="60" font-family="sans-serif" font-size="15" font-weight="bold" fill="#0f172a" text-anchor="middle">CaCO₃(s) + 178 kJ</text>
+  <text x="127.5" y="85" font-family="sans-serif" font-size="15" font-weight="bold" fill="#0f172a" text-anchor="middle">→ CaO(s) + CO₂(g)</text>
 
   <!-- Left Energy Diagram -->
   <g transform="translate(35, 130)">
-    <line x1="25" y1="140" x2="180" y2="140" stroke="#475569" stroke-width="1.5"/>
-    <line x1="25" y1="140" x2="25" y2="20" stroke="#475569" stroke-width="1.5"/>
-    <path d="M22,25 L25,18 L28,25" fill="none" stroke="#475569" stroke-width="1.5"/>
-    <text x="15" y="15" font-family="sans-serif" font-size="10" fill="#475569">E</text>
+    <line x1="25" y1="140" x2="180" y2="140" stroke="#475569" stroke-width="2"/>
+    <line x1="25" y1="140" x2="25" y2="20" stroke="#475569" stroke-width="2"/>
+    <path d="M20,30 L25,20 L30,30" fill="none" stroke="#475569" stroke-width="2"/>
+    <text x="15" y="15" font-family="sans-serif" font-size="14" fill="#475569">E</text>
     
     <!-- Energy Levels -->
-    <line x1="35" y1="120" x2="85" y2="120" stroke="#2563eb" stroke-width="3"/>
-    <line x1="120" y1="40" x2="170" y2="40" stroke="#2563eb" stroke-width="3"/>
+    <line x1="35" y1="120" x2="85" y2="120" stroke="#2563eb" stroke-width="4"/>
+    <line x1="120" y1="40" x2="170" y2="40" stroke="#2563eb" stroke-width="4"/>
     
     <!-- Transition Curve & Arrow -->
-    <path d="M85,120 C95,120 100,30 120,40" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <path d="M85,120 C95,120 100,30 120,40" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4"/>
     
     <!-- Energy Input Arrow -->
-    <line x1="102.5" y1="115" x2="102.5" y2="45" stroke="#dc2626" stroke-width="2.5"/>
+    <line x1="102.5" y1="115" x2="102.5" y2="45" stroke="#dc2626" stroke-width="3"/>
     <path d="M97.5,52 L102.5,42 L107.5,52" fill="#dc2626"/>
-    <text x="102.5" y="85" font-family="sans-serif" font-size="12" font-weight="bold" fill="#dc2626" text-anchor="middle">+q</text>
+    <text x="110" y="85" font-family="sans-serif" font-size="16" font-weight="bold" fill="#dc2626" text-anchor="start">+q</text>
   </g>
 
   <!-- Right Panel: Reaction B -->
@@ -34,26 +34,26 @@
   
   <!-- Right Equation Card -->
   <rect x="255" y="35" width="195" height="75" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1"/>
-  <text x="352.5" y="62" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">2H₂(g) + O₂(g) →</text>
-  <text x="352.5" y="82" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">2H₂O(l) + 572 kJ</text>
+  <text x="352.5" y="60" font-family="sans-serif" font-size="15" font-weight="bold" fill="#0f172a" text-anchor="middle">2H₂(g) + O₂(g) →</text>
+  <text x="352.5" y="85" font-family="sans-serif" font-size="15" font-weight="bold" fill="#0f172a" text-anchor="middle">2H₂O(l) + 572 kJ</text>
 
   <!-- Right Energy Diagram -->
   <g transform="translate(260, 130)">
-    <line x1="25" y1="140" x2="180" y2="140" stroke="#475569" stroke-width="1.5"/>
-    <line x1="25" y1="140" x2="25" y2="20" stroke="#475569" stroke-width="1.5"/>
-    <path d="M22,25 L25,18 L28,25" fill="none" stroke="#475569" stroke-width="1.5"/>
-    <text x="15" y="15" font-family="sans-serif" font-size="10" fill="#475569">E</text>
+    <line x1="25" y1="140" x2="180" y2="140" stroke="#475569" stroke-width="2"/>
+    <line x1="25" y1="140" x2="25" y2="20" stroke="#475569" stroke-width="2"/>
+    <path d="M20,30 L25,20 L30,30" fill="none" stroke="#475569" stroke-width="2"/>
+    <text x="15" y="15" font-family="sans-serif" font-size="14" fill="#475569">E</text>
     
     <!-- Energy Levels -->
-    <line x1="35" y1="40" x2="85" y2="40" stroke="#2563eb" stroke-width="3"/>
-    <line x1="120" y1="120" x2="170" y2="120" stroke="#2563eb" stroke-width="3"/>
+    <line x1="35" y1="40" x2="85" y2="40" stroke="#2563eb" stroke-width="4"/>
+    <line x1="120" y1="120" x2="170" y2="120" stroke="#2563eb" stroke-width="4"/>
     
     <!-- Transition Curve & Arrow -->
-    <path d="M85,40 C95,40 100,110 120,120" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <path d="M85,40 C95,40 100,110 120,120" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4"/>
     
     <!-- Energy Output Arrow -->
-    <line x1="102.5" y1="45" x2="102.5" y2="115" stroke="#dc2626" stroke-width="2.5"/>
+    <line x1="102.5" y1="45" x2="102.5" y2="115" stroke="#dc2626" stroke-width="3"/>
     <path d="M97.5,108 L102.5,118 L107.5,108" fill="#dc2626"/>
-    <text x="102.5" y="85" font-family="sans-serif" font-size="12" font-weight="bold" fill="#dc2626" text-anchor="middle">-q</text>
+    <text x="110" y="85" font-family="sans-serif" font-size="16" font-weight="bold" fill="#dc2626" text-anchor="start">-q</text>
   </g>
 </svg>
