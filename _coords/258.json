@@ -1,1 +1,60 @@
-{"row":258,"hotspots":[{"id":"stoich","label":"Stoichiometric point","x":0.531,"y":0.288},{"id":"lim","label":"Limiting reagent consumed","x":0.339,"y":0.534},{"id":"exc","label":"Excess reagent remains","x":0.724,"y":0.288},{"id":"prod","label":"Maximum product formed","x":0.146,"y":0.288}]}
+{
+  "slug": "ch03_row_258",
+  "prompt": "Label the key regions and point on this moles-added vs product-formed graph",
+  "options": [
+    "Stoichiometric point",
+    "Limiting reagent consumed",
+    "Excess reagent remains",
+    "Maximum product formed",
+    "Half-equivalence point",
+    "Endpoint",
+    "Inflection point",
+    "Axis midpoint",
+    "Onset-of-product confusion",
+    "Rate-versus-amount"
+  ],
+  "hotspots": [
+    {
+      "id": "stoich",
+      "label": "Stoichiometric point",
+      "x": 0.531,
+      "y": 0.288
+    },
+    {
+      "id": "lim",
+      "label": "Limiting reagent consumed",
+      "x": 0.273,
+      "y": 0.619
+    },
+    {
+      "id": "exc",
+      "label": "Excess reagent remains",
+      "x": 0.724,
+      "y": 0.288
+    },
+    {
+      "id": "prod",
+      "label": "Maximum product formed",
+      "x": 0.146,
+      "y": 0.288
+    },
+    {
+      "id": "axis_mid",
+      "label": "Axis midpoint",
+      "x": 0.531,
+      "y": 0.781
+    },
+    {
+      "id": "onset",
+      "label": "Onset-of-product confusion",
+      "x": 0.146,
+      "y": 0.781
+    },
+    {
+      "id": "rate",
+      "label": "Rate-versus-amount",
+      "x": 0.400,
+      "y": 0.456
+    }
+  ]
+}
