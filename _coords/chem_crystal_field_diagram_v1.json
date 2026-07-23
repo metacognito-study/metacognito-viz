@@ -1,0 +1,27 @@
+{
+  "slug": "crystal_field_diagram_v1",
+  "prompt": "Tap the label that shows the correct d-orbital splitting pattern for the given complex geometry.",
+  "options": [
+    "t2g", "eg", "e", "t2", "Δ_oct", "Δ_tet", "σ*", "π*", "nonbonding", "antibonding", "ligand field stabilization"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "eg",
+      "x": 0.719,
+      "y": 0.288
+    },
+    {
+      "id": "h2",
+      "label": "t2g",
+      "x": 0.719,
+      "y": 0.719
+    },
+    {
+      "id": "h3",
+      "label": "Δ_oct",
+      "x": 0.917,
+      "y": 0.461
+    }
+  ]
+}
