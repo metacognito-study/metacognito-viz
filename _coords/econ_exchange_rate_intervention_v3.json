@@ -1,0 +1,54 @@
+{
+  "slug": "exchange_rate_intervention_v3",
+  "prompt": "Label the currency market axes, the intervention action, and its effect on the exchange rate",
+  "options": [
+    "Exchange rate",
+    "Quantity of currency",
+    "Supply of currency",
+    "Demand for currency",
+    "Central bank buys foreign currency",
+    "Central bank sells foreign currency",
+    "Fixed rate target",
+    "Floating rate",
+    "Trade balance",
+    "Interest rate"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Exchange rate",
+      "x": 0.125,
+      "y": 0.625
+    },
+    {
+      "id": "h2",
+      "label": "Quantity of currency",
+      "x": 0.792,
+      "y": 0.844
+    },
+    {
+      "id": "h3",
+      "label": "Demand for currency",
+      "x": 0.229,
+      "y": 0.234
+    },
+    {
+      "id": "h4",
+      "label": "Supply of currency",
+      "x": 0.656,
+      "y": 0.225
+    },
+    {
+      "id": "h5",
+      "label": "Central bank sells foreign currency",
+      "x": 0.365,
+      "y": 0.656
+    },
+    {
+      "id": "h6",
+      "label": "Fixed rate target",
+      "x": 0.896,
+      "y": 0.531
+    }
+  ]
+}

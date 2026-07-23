@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+    <!-- Background -->
+    <rect width="480" height="320" fill="#ffffff" />
+
+    <!-- Axes -->
+    <line x1="60" y1="30" x2="60" y2="270" stroke="#333333" stroke-width="2.5" />
+    <line x1="60" y1="270" x2="420" y2="270" stroke="#333333" stroke-width="2.5" />
+
+    <!-- Demand Curve -->
+    <line x1="90" y1="60" x2="330" y2="240" stroke="#1f77b4" stroke-width="2.5" />
+    <text x="110" y="75" font-family="sans-serif" font-size="16" fill="#1f77b4" font-weight="bold" text-anchor="middle">D</text>
+
+    <!-- Supply Curve (Initial) -->
+    <line x1="90" y1="240" x2="330" y2="60" stroke="#d62728" stroke-width="2.5" />
+    <text x="315" y="72" font-family="sans-serif" font-size="16" fill="#d62728" font-weight="bold" text-anchor="middle">S1</text>
+    
+    <!-- Intervention -> S shifts right -->
+    <!-- New Supply Curve (shifted right) -->
+    <line x1="170" y1="240" x2="410" y2="60" stroke="#d62728" stroke-width="2.5" />
+    <text x="395" y="72" font-family="sans-serif" font-size="16" fill="#d62728" font-weight="bold" text-anchor="middle">S2</text>
+
+    <!-- Target Line (Horizontal at y=180) -->
+    <line x1="60" y1="180" x2="430" y2="180" stroke="#2ca02c" stroke-width="2.5" stroke-dasharray="5,5" />
+    <text x="430" y="170" font-family="sans-serif" font-size="16" fill="#2ca02c" font-weight="bold" text-anchor="middle">Target</text>
+
+    <!-- Intervention Arrow (placed lower down between S1 and S2) -->
+    <!-- S1 at y=210 is x = 130 -->
+    <!-- S2 at y=210 is x = 210 -->
+    <line x1="150" y1="210" x2="200" y2="210" stroke="#000000" stroke-width="2" />
+    <polygon points="200,210 193,206 193,214" fill="#000000" />
+    
+</svg>
