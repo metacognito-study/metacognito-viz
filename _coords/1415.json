@@ -4,26 +4,26 @@
     {
       "id": "anode",
       "label": "Anode (Zn, oxidation)",
-      "x": 0.18,
-      "y": 0.55
+      "x": 0.115,
+      "y": 0.516
     },
     {
       "id": "cath",
       "label": "Cathode (Cu, reduction)",
-      "x": 0.82,
-      "y": 0.55
+      "x": 0.885,
+      "y": 0.516
     },
     {
       "id": "sb",
       "label": "Salt bridge (ion flow)",
-      "x": 0.5,
-      "y": 0.32
+      "x": 0.500,
+      "y": 0.250
     },
     {
       "id": "wire",
-      "label": "External circuit (e\u207b flow)",
-      "x": 0.5,
-      "y": 0.12
+      "label": "External circuit (e⁻ flow)",
+      "x": 0.292,
+      "y": 0.125
     }
   ]
 }
