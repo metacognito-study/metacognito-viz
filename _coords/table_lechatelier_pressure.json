@@ -1,53 +1,37 @@
 {
-  "slug": "table_lechatelier_pressure",
-  "prompt": "Predict the direction of change for each parameter.",
+  "slug": "lechatelier_pressure",
+  "prompt": "Predict the direction of shift for each quantity",
   "options": [
-    "Increases (\u2191)",
-    "Decreases (\u2193)",
-    "No change (\u2194)"
+    "Increases (↑)",
+    "Decreases (↓)",
+    "No change (↔)",
+    "Shifts toward products",
+    "Shifts toward reactants"
   ],
   "hotspots": [
     {
-      "id": "r1c0",
-      "label": "Answer for Value of K",
-      "x": 0.302,
-      "y": 0.406,
-      "answer": "No change (\u2194)"
+      "id": "h1",
+      "label": "Increases (↑)",
+      "x": 0.413,
+      "y": 0.675
     },
     {
-      "id": "r1c1",
-      "label": "Answer for Total Pressure",
-      "x": 0.5,
-      "y": 0.406,
-      "answer": "Increases (\u2191)"
+      "id": "h2",
+      "label": "Shifts toward products",
+      "x": 0.571,
+      "y": 0.675
     },
     {
-      "id": "r1c2",
-      "label": "Answer for Rate (forward)",
-      "x": 0.698,
-      "y": 0.406,
-      "answer": "Increases (\u2191)"
-    },
-    {
-      "id": "r2c0",
-      "label": "Answer for Rate (reverse)",
-      "x": 0.271,
-      "y": 0.75,
-      "answer": "Increases (\u2191)"
-    },
-    {
-      "id": "r2c1",
-      "label": "Answer for Moles Products",
-      "x": 0.5,
-      "y": 0.75,
-      "answer": "Increases (\u2191)"
-    },
-    {
-      "id": "r2c2",
-      "label": "Answer for Moles Reactants",
+      "id": "h3",
+      "label": "Increases (↑)",
       "x": 0.729,
-      "y": 0.75,
-      "answer": "Decreases (\u2193)"
+      "y": 0.675
+    },
+    {
+      "id": "h4",
+      "label": "No change (↔)",
+      "x": 0.888,
+      "y": 0.675
     }
   ]
 }

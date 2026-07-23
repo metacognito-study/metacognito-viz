@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="#ffffff" />
+  
+  <text x="240" y="70" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle" fill="#333333">N2(g) + 3H2(g) ⇌ 2NH3(g)</text>
+
+  <!-- Horizontal lines -->
+  <line x1="16" y1="120" x2="464" y2="120" stroke="#333333" stroke-width="2" />
+  <line x1="16" y1="180" x2="464" y2="180" stroke="#333333" stroke-width="2" />
+  <line x1="16" y1="252" x2="464" y2="252" stroke="#333333" stroke-width="2" />
+  
+  <!-- Vertical lines -->
+  <line x1="16" y1="120" x2="16" y2="252" stroke="#333333" stroke-width="2" />
+  <line x1="160" y1="120" x2="160" y2="252" stroke="#333333" stroke-width="2" />
+  <line x1="236" y1="120" x2="236" y2="252" stroke="#333333" stroke-width="2" />
+  <line x1="312" y1="120" x2="312" y2="252" stroke="#333333" stroke-width="2" />
+  <line x1="388" y1="120" x2="388" y2="252" stroke="#333333" stroke-width="2" />
+  <line x1="464" y1="120" x2="464" y2="252" stroke="#333333" stroke-width="2" />
+
+  <!-- Headers (Row 1) -->
+  <text x="198" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Total</text>
+  <text x="198" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">pressure</text>
+
+  <text x="274" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Shift</text>
+  <text x="274" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">direction</text>
+
+  <text x="350" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Moles</text>
+  <text x="350" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">NH3</text>
+
+  <text x="426" y="145" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">Value</text>
+  <text x="426" y="165" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333333">of K</text>
+
+  <!-- Row condition (Row 2, Column 1) -->
+  <text x="88" y="211" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333333">Container volume</text>
+  <text x="88" y="231" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#333333">decreased</text>
+
+</svg>
