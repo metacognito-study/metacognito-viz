@@ -1,0 +1,48 @@
+{
+  "slug": "shift_supply_right",
+  "prompt": "Label the axes, the two supply curves, and the direction of the shift",
+  "options": [
+    "Price",
+    "Quantity",
+    "S₁",
+    "S₂",
+    "Shift right (increase in supply)",
+    "Shift left (decrease in supply)",
+    "Quantity supplied",
+    "Equilibrium",
+    "Cost",
+    "Price level"
+  ],
+  "hotspots": [
+    {
+      "id": "h_price",
+      "label": "Price",
+      "x": 0.083,
+      "y": 0.312
+    },
+    {
+      "id": "h_quant",
+      "label": "Quantity",
+      "x": 0.750,
+      "y": 0.875
+    },
+    {
+      "id": "h_s1",
+      "label": "S₁",
+      "x": 0.708,
+      "y": 0.281
+    },
+    {
+      "id": "h_s2",
+      "label": "S₂",
+      "x": 0.500,
+      "y": 0.625
+    },
+    {
+      "id": "h_shift",
+      "label": "Shift right (increase in supply)",
+      "x": 0.333,
+      "y": 0.656
+    }
+  ]
+}
