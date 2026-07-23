@@ -1,1 +1,41 @@
-{"row":189,"hotspots":[{"id":"hcn","label":"Binary acid (H + nonmetal only)","x":0.092,"y":0.261},{"id":"hi","label":"Binary acid (H + nonmetal only)","x":0.092,"y":0.739},{"id":"h2so4","label":"Oxyacid (contains oxygen)","x":0.577,"y":0.261},{"id":"hno3","label":"Oxyacid (contains oxygen)","x":0.577,"y":0.739}]}
+{
+  "row": 189,
+  "slug": "row_189",
+  "prompt": "Label each formula: binary acid or oxyacid?",
+  "options": [
+    "Binary acid (H + nonmetal only)",
+    "Oxyacid (contains oxygen)",
+    "Strong base",
+    "Neutral salt",
+    "Hydrate",
+    "any H-acid",
+    "oxygen-free mislabel",
+    "diatomic confusion"
+  ],
+  "hotspots": [
+    {
+      "id": "hcn",
+      "label": "Binary acid (H + nonmetal only)",
+      "x": 0.092,
+      "y": 0.261
+    },
+    {
+      "id": "hi",
+      "label": "Binary acid (H + nonmetal only)",
+      "x": 0.092,
+      "y": 0.739
+    },
+    {
+      "id": "h2so4",
+      "label": "Oxyacid (contains oxygen)",
+      "x": 0.577,
+      "y": 0.261
+    },
+    {
+      "id": "hno3",
+      "label": "Oxyacid (contains oxygen)",
+      "x": 0.577,
+      "y": 0.739
+    }
+  ]
+}
