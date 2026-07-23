@@ -13,26 +13,26 @@
     {
       "id": "h1",
       "label": "Supply of loanable funds",
-      "x": 0.8,
-      "y": 0.2
+      "x": 0.833,
+      "y": 0.221
     },
     {
       "id": "h2",
       "label": "Demand for loanable funds",
-      "x": 0.8,
-      "y": 0.8
+      "x": 0.833,
+      "y": 0.717
     },
     {
       "id": "h3",
       "label": "Real interest rate",
-      "x": 0.15,
-      "y": 0.5
+      "x": 0.167,
+      "y": 0.469
     },
     {
       "id": "h4",
       "label": "Quantity of loanable funds",
-      "x": 0.5,
-      "y": 0.88
+      "x": 0.521,
+      "y": 0.812
     }
   ]
 }

@@ -13,26 +13,26 @@
     {
       "id": "h1",
       "label": "Consumer surplus area",
-      "x": 0.25,
-      "y": 0.3
+      "x": 0.333,
+      "y": 0.281
     },
     {
       "id": "h2",
       "label": "Producer surplus area",
-      "x": 0.25,
-      "y": 0.65
+      "x": 0.333,
+      "y": 0.656
     },
     {
       "id": "h3",
       "label": "Equilibrium price",
-      "x": 0.1,
-      "y": 0.5
+      "x": 0.167,
+      "y": 0.469
     },
     {
       "id": "h4",
       "label": "Equilibrium quantity",
-      "x": 0.5,
-      "y": 0.88
+      "x": 0.521,
+      "y": 0.812
     }
   ]
 }

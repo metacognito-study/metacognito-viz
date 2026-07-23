@@ -1,11 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
   <rect width="480" height="320" fill="white"/>
 
-  <polyline points="80,40 80,260 400,260" fill="none" stroke="#333" stroke-width="2"/>
-  <line x1="80" y1="60" x2="380" y2="240" stroke="#0055cc" stroke-width="2.5"/>
-  <line x1="80" y1="240" x2="380" y2="60" stroke="#cc0000" stroke-width="2.5"/>
-  <line x1="80" y1="150" x2="230" y2="150" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
-  <line x1="230" y1="150" x2="230" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
-  <circle cx="230" cy="150" r="4" fill="#333"/>
-
+  <polyline points="80,20 80,260 440,260" fill="none" stroke="#333" stroke-width="2"/>
+  <line x1="80" y1="60" x2="420" y2="240" stroke="#0055cc" stroke-width="2.5"/>
+  <line x1="80" y1="240" x2="420" y2="60" stroke="#cc0000" stroke-width="2.5"/>
+  <line x1="80" y1="150" x2="250" y2="150" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="250" y1="150" x2="250" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <circle cx="250" cy="150" r="4" fill="#333"/>
 </svg>

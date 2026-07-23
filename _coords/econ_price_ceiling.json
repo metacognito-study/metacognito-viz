@@ -13,26 +13,26 @@
     {
       "id": "h1",
       "label": "Price ceiling",
-      "x": 0.8,
-      "y": 0.65
+      "x": 0.833,
+      "y": 0.625
     },
     {
       "id": "h2",
       "label": "Quantity supplied",
-      "x": 0.35,
-      "y": 0.88
+      "x": 0.36,
+      "y": 0.812
     },
     {
       "id": "h3",
       "label": "Quantity demanded",
-      "x": 0.65,
-      "y": 0.88
+      "x": 0.682,
+      "y": 0.812
     },
     {
       "id": "h4",
       "label": "Shortage",
-      "x": 0.5,
-      "y": 0.7
+      "x": 0.521,
+      "y": 0.688
     }
   ]
 }

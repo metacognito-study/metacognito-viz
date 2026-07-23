@@ -2,35 +2,29 @@
   <rect width="480" height="320" fill="white"/>
 
   <!-- Axes -->
-  <polyline points="80,40 80,260 400,260" fill="none" stroke="#333" stroke-width="2"/>
+  <polyline points="80,20 80,260 440,260" fill="none" stroke="#333" stroke-width="2"/>
   <!-- DWL Fill -->
-  <polygon points="200,105 260,150 200,195" fill="#cccccc" opacity="0.6"/>
+  <polygon points="200,115 260,150 200,185" fill="#cccccc" opacity="0.6"/>
   <!-- Demand -->
-  <line x1="80" y1="15" x2="380" y2="240" stroke="#0055cc" stroke-width="2.5"/>
+  <line x1="80" y1="45" x2="420" y2="243.3" stroke="#0055cc" stroke-width="2.5"/>
   <!-- Supply -->
-  <line x1="80" y1="285" x2="380" y2="60" stroke="#cc0000" stroke-width="2.5"/>
+  <line x1="80" y1="255" x2="420" y2="56.7" stroke="#cc0000" stroke-width="2.5"/>
 
-  <!-- Pre-tax Eq -->
-  <!-- 80,15 to 380,240 is y = 0.75x - 45 (Demand) -->
-  <!-- 80,285 to 380,60 is y = -0.75x + 345 (Supply) -->
-  <!-- Eq: 0.75x - 45 = -0.75x + 345 => 1.5x = 390 => x = 260 -->
-  <!-- Eq y: 0.75(260) - 45 = 150 -->
+  <!-- Pre-tax Eq (260, 150) -->
   <circle cx="260" cy="150" r="4" fill="#333"/>
   <line x1="260" y1="150" x2="260" y2="260" stroke="#333" stroke-width="1" stroke-dasharray="2,2"/>
   <line x1="80" y1="150" x2="260" y2="150" stroke="#333" stroke-width="1" stroke-dasharray="2,2"/>
 
-  <!-- Post-tax Eq -->
-  <!-- Let tax wedge be at x=200 -->
-  <!-- D at 200: 0.75(200) - 45 = 105 -->
-  <!-- S at 200: -0.75(200) + 345 = 195 -->
-  <!-- Tax wedge line -->
-  <line x1="200" y1="105" x2="200" y2="195" stroke="#333" stroke-width="2.5"/>
+  <!-- Post-tax Eq at x=200 -->
+  <!-- D at 200: 45 + (200-80)* (243.3-45)/340 = 45 + 120 * 198.3 / 340 = 45 + 70 = 115 -->
+  <!-- S at 200: 255 - (200-80)* (255-56.7)/340 = 255 - 120 * 198.3 / 340 = 255 - 70 = 185 -->
+  <line x1="200" y1="115" x2="200" y2="185" stroke="#333" stroke-width="2.5"/>
 
   <!-- Price buyers pay -->
-  <line x1="80" y1="105" x2="200" y2="105" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="80" y1="115" x2="200" y2="115" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
   <!-- Price sellers receive -->
-  <line x1="80" y1="195" x2="200" y2="195" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="80" y1="185" x2="200" y2="185" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
   <!-- New qty -->
-  <line x1="200" y1="195" x2="200" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="200" y1="185" x2="200" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
 
 </svg>

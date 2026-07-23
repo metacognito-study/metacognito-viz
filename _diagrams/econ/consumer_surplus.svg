@@ -2,17 +2,17 @@
   <rect width="480" height="320" fill="white"/>
 
   <!-- Axes -->
-  <polyline points="80,40 80,260 400,260" fill="none" stroke="#333" stroke-width="2"/>
+  <polyline points="80,20 80,260 440,260" fill="none" stroke="#333" stroke-width="2"/>
   <!-- CS Fill -->
-  <polygon points="80,150 240,150 80,50" fill="#aaccff" opacity="0.6"/>
+  <polygon points="80,150 250,150 80,40" fill="#aaccff" opacity="0.6"/>
   <!-- PS Fill -->
-  <polygon points="80,150 240,150 80,250" fill="#ffccaa" opacity="0.6"/>
+  <polygon points="80,150 250,150 80,260" fill="#ffccaa" opacity="0.6"/>
   <!-- Demand -->
-  <line x1="80" y1="50" x2="380" y2="237.5" stroke="#0055cc" stroke-width="2.5"/>
+  <line x1="80" y1="40" x2="420" y2="260" stroke="#0055cc" stroke-width="2.5"/>
   <!-- Supply -->
-  <line x1="80" y1="250" x2="380" y2="62.5" stroke="#cc0000" stroke-width="2.5"/>
+  <line x1="80" y1="260" x2="420" y2="40" stroke="#cc0000" stroke-width="2.5"/>
   <!-- Equilibrium dashed lines -->
-  <line x1="80" y1="150" x2="240" y2="150" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
-  <line x1="240" y1="150" x2="240" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="80" y1="150" x2="250" y2="150" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <line x1="250" y1="150" x2="250" y2="260" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
 
 </svg>

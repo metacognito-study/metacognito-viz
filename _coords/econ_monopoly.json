@@ -1,38 +1,38 @@
 {
- "slug": "monopoly",
- "prompt": "Label the curves and key points for a monopoly.",
- "options": [
-  "Demand curve",
-  "Marginal revenue",
-  "Monopoly price",
-  "Monopoly quantity",
-  "Perfect competition price",
-  "Marginal product"
- ],
- "hotspots": [
-  {
-   "id": "h1",
-   "label": "Demand curve",
-   "x": 0.708,
-   "y": 0.563
-  },
-  {
-   "id": "h2",
-   "label": "Marginal revenue",
-   "x": 0.5,
-   "y": 0.65
-  },
-  {
-   "id": "h3",
-   "label": "Monopoly price",
-   "x": 0.15,
-   "y": 0.328
-  },
-  {
-   "id": "h4",
-   "label": "Monopoly quantity",
-   "x": 0.396,
-   "y": 0.88
-  }
- ]
+  "slug": "monopoly",
+  "prompt": "Label the curves and key points for a monopoly.",
+  "options": [
+    "Demand curve",
+    "Marginal revenue",
+    "Monopoly price",
+    "Monopoly quantity",
+    "Perfect competition price",
+    "Marginal product"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Demand curve",
+      "x": 0.708,
+      "y": 0.562
+    },
+    {
+      "id": "h2",
+      "label": "Marginal revenue",
+      "x": 0.396,
+      "y": 0.5
+    },
+    {
+      "id": "h3",
+      "label": "Monopoly price",
+      "x": 0.167,
+      "y": 0.359
+    },
+    {
+      "id": "h4",
+      "label": "Monopoly quantity",
+      "x": 0.438,
+      "y": 0.812
+    }
+  ]
 }

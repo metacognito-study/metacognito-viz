@@ -13,26 +13,26 @@
     {
       "id": "h1",
       "label": "Aggregate demand",
-      "x": 0.8,
-      "y": 0.75
+      "x": 0.833,
+      "y": 0.772
     },
     {
       "id": "h2",
       "label": "Short-run aggregate supply",
-      "x": 0.8,
-      "y": 0.25
+      "x": 0.833,
+      "y": 0.165
     },
     {
       "id": "h3",
       "label": "Long-run aggregate supply",
-      "x": 0.53,
-      "y": 0.15
+      "x": 0.521,
+      "y": 0.125
     },
     {
       "id": "h4",
       "label": "Equilibrium price level",
-      "x": 0.15,
-      "y": 0.5
+      "x": 0.167,
+      "y": 0.469
     }
   ]
 }
