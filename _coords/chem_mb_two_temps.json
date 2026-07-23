@@ -1,38 +1,40 @@
 {
   "slug": "mb_two_temps",
-  "prompt": "Label the Maxwell-Boltzmann distributions and activation energy",
+  "prompt": "Label the two temperature curves and the activation-energy region",
   "options": [
-    "T\u2081 (lower)",
-    "T\u2082 (higher)",
-    "Activation Energy (Ea)",
-    "Molecules able to react at T\u2082",
-    "T\u2083 (intermediate)",
-    "Molecules unable to react"
+    "Lower temperature (T\u2081)",
+    "Higher temperature (T\u2082)",
+    "Activation energy (Ea)",
+    "Molecules with E \u2265 Ea",
+    "Average kinetic energy",
+    "Most probable speed",
+    "Catalysed pathway",
+    "Enthalpy change"
   ],
   "hotspots": [
     {
       "id": "h0",
-      "label": "T\u2081 (lower)",
+      "label": "Lower temperature (T\u2081)",
       "x": 0.208,
-      "y": 0.3
+      "y": 0.236
     },
     {
       "id": "h1",
-      "label": "T\u2082 (higher)",
-      "x": 0.269,
-      "y": 0.487
+      "label": "Higher temperature (T\u2082)",
+      "x": 0.458,
+      "y": 0.606
     },
     {
       "id": "h2",
-      "label": "Activation Energy (Ea)",
-      "x": 0.521,
-      "y": 0.312
+      "label": "Activation energy (Ea)",
+      "x": 0.639,
+      "y": 0.469
     },
     {
       "id": "h3",
-      "label": "Molecules able to react at T\u2082",
-      "x": 0.625,
-      "y": 0.812
+      "label": "Molecules with E \u2265 Ea",
+      "x": 0.729,
+      "y": 0.828
     }
   ]
 }
