@@ -1,0 +1,31 @@
+{
+  "slug": "acid_strength_3",
+  "prompt": "Label the three acids by relative strength",
+  "options": [
+    "Strongest acid (lowest pKa)",
+    "Intermediate acid",
+    "Weakest acid (highest pKa)",
+    "Strong base",
+    "Neutral salt"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "Strongest acid (lowest pKa)",
+      "x": 0.167,
+      "y": 0.714
+    },
+    {
+      "id": "h1",
+      "label": "Intermediate acid",
+      "x": 0.333,
+      "y": 0.531
+    },
+    {
+      "id": "h2",
+      "label": "Weakest acid (highest pKa)",
+      "x": 0.5,
+      "y": 0.285
+    }
+  ]
+}

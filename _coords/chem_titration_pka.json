@@ -1,0 +1,24 @@
+{
+  "slug": "titration_pka",
+  "prompt": "Place the pKa values at the correct half-equivalence points",
+  "options": [
+    "pKa = 4.5",
+    "pKa = 9.0",
+    "Equivalence Point 1",
+    "Equivalence Point 2"
+  ],
+  "hotspots": [
+    {
+      "id": "h0",
+      "label": "pKa = 4.5",
+      "x": 0.25,
+      "y": 0.661
+    },
+    {
+      "id": "h1",
+      "label": "pKa = 9.0",
+      "x": 0.583,
+      "y": 0.403
+    }
+  ]
+}
