@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
+  <!-- White background rect as the first element -->
+  <rect x="0" y="0" width="480" height="320" fill="white" />
+  
+  <g id="panel1">
+    <!-- Beaker -->
+    <path d="M 40 80 Q 80 90 120 80 T 200 80 L 200 240 L 40 240 Z" fill="#e0f7fa" opacity="0.6"/>
+    <polyline points="40,40 40,240 200,240 200,40" stroke="#333" stroke-width="3" fill="none" />
+    <line x1="40" y1="80" x2="200" y2="80" stroke="#00acc1" stroke-width="2" stroke-dasharray="6,4" />
+    
+    <!-- Water molecules -->
+    <circle cx="60" cy="110" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="140" cy="100" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="180" cy="120" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="100" cy="140" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="160" cy="150" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="70" cy="170" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="130" cy="170" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="180" cy="190" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="60" cy="220" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="80" cy="200" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="180" cy="230" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="160" cy="210" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    
+    <!-- Solid Solute Particles (12) -->
+    <circle cx="90" cy="230" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="110" cy="230" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="130" cy="230" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="150" cy="230" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    
+    <circle cx="90" cy="214" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="110" cy="214" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="130" cy="214" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="150" cy="214" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    
+    <circle cx="90" cy="198" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="110" cy="198" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="130" cy="198" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="150" cy="198" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    
+    <!-- Label Box -->
+    <rect x="70" y="257" width="100" height="30" rx="4" stroke="#333" stroke-width="2" fill="#fff"/>
+    <text x="120" y="277" font-size="16" font-family="sans-serif" text-anchor="middle" fill="#333" dominant-baseline="middle">System A</text>
+  </g>
+  
+  <g id="panel2">
+    <!-- Beaker -->
+    <path d="M 280 80 Q 320 90 360 80 T 440 80 L 440 240 L 280 240 Z" fill="#e0f7fa" opacity="0.6"/>
+    <polyline points="280,40 280,240 440,240 440,40" stroke="#333" stroke-width="3" fill="none" />
+    <line x1="280" y1="80" x2="440" y2="80" stroke="#00acc1" stroke-width="2" stroke-dasharray="6,4" />
+    
+    <!-- Water molecules -->
+    <circle cx="290" cy="100" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="330" cy="90" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="380" cy="100" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="420" cy="90" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="340" cy="120" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="390" cy="120" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="310" cy="160" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="430" cy="150" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="330" cy="180" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="390" cy="170" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="290" cy="210" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+    <circle cx="430" cy="210" r="6" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.5"/>
+
+    <!-- Dispersed Solute Particles (12) -->
+    <circle cx="300" cy="110" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="360" cy="160" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/> <!-- HOTSPOT h3 -->
+    <circle cx="410" cy="110" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="320" cy="140" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="400" cy="150" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="300" cy="190" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="420" cy="190" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="340" cy="190" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="380" cy="190" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="310" cy="220" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="360" cy="220" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    <circle cx="410" cy="220" r="8" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/>
+    
+    <!-- Motion arrows -->
+    <!-- Particle at 360, 160 (h3) -->
+    <line x1="366" y1="154" x2="385" y2="135" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <polyline points="375,135 385,135 385,145" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- Particle at 320, 140 -->
+    <line x1="312" y1="140" x2="295" y2="140" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <polyline points="305,135 295,140 305,145" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- Particle at 360, 220 -->
+    <line x1="360" y1="212" x2="360" y2="195" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <polyline points="355,205 360,195 365,205" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- Particle at 400, 150 -->
+    <line x1="406" y1="156" x2="420" y2="170" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <polyline points="420,160 420,170 410,170" stroke="#b71c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- Label Box -->
+    <rect x="310" y="257" width="100" height="30" rx="4" stroke="#333" stroke-width="2" fill="#fff"/>
+    <text x="360" y="277" font-size="16" font-family="sans-serif" text-anchor="middle" fill="#333" dominant-baseline="middle">System B</text>
+  </g>
+</svg>
