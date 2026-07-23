@@ -1,0 +1,48 @@
+{
+  "slug": "ppc_biased_rotation",
+  "prompt": "Label the axes, the two production possibilities curves, and the direction of the rotation",
+  "options": [
+    "Good X",
+    "Good Y",
+    "PPC₁",
+    "PPC₂",
+    "Rotation outward on Good X only",
+    "Parallel outward shift",
+    "Inward shift",
+    "Efficient point",
+    "Price",
+    "Quantity"
+  ],
+  "hotspots": [
+    {
+      "id": "h1",
+      "label": "Good Y",
+      "x": 0.125,
+      "y": 0.469
+    },
+    {
+      "id": "h2",
+      "label": "Good X",
+      "x": 0.375,
+      "y": 0.812
+    },
+    {
+      "id": "h3",
+      "label": "PPC₁",
+      "x": 0.390,
+      "y": 0.415
+    },
+    {
+      "id": "h4",
+      "label": "PPC₂",
+      "x": 0.626,
+      "y": 0.415
+    },
+    {
+      "id": "h5",
+      "label": "Rotation outward on Good X only",
+      "x": 0.619,
+      "y": 0.719
+    }
+  ]
+}

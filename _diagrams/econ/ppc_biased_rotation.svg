@@ -1,0 +1,21 @@
+<svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg">
+    <rect width="480" height="320" fill="white"/>
+    
+    <!-- Axes -->
+    <line x1="60" y1="40" x2="60" y2="260" stroke="#333333" stroke-width="2.5"/>
+    <line x1="60" y1="260" x2="440" y2="260" stroke="#333333" stroke-width="2.5"/>
+    
+    <!-- Arrows on axes -->
+    <polygon points="60,30 55,40 65,40" fill="#333333"/>
+    <polygon points="450,260 440,255 440,265" fill="#333333"/>
+    
+    <!-- PPC1 -->
+    <path d="M 60 80 A 180 180 0 0 1 240 260" fill="none" stroke="#2c7bb6" stroke-width="2.5"/>
+    
+    <!-- PPC2 -->
+    <path d="M 60 80 A 340 180 0 0 1 400 260" fill="none" stroke="#d7191c" stroke-width="2.5" stroke-dasharray="6,4"/>
+    
+    <!-- Rotation arrow -->
+    <line x1="255" y1="230" x2="340" y2="230" stroke="#333333" stroke-width="2"/>
+    <polygon points="350,230 340,225 340,235" fill="#333333"/>
+</svg>
