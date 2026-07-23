@@ -1,0 +1,22 @@
+{
+  "slug": "buffer_capacity_curve_v2",
+  "prompt": "Tap the label showing the region of highest buffer capacity on this titration curve.",
+  "options": [
+    "buffer region",
+    "half-equivalence point",
+    "equivalence point",
+    "pre-equivalence",
+    "post-equivalence",
+    "excess base region",
+    "strong acid region",
+    "neutralization zone",
+    "endpoint"
+  ],
+  "hotspots": [
+    {"id": "h1", "label": "pre-equivalence", "x": 0.163, "y": 0.431},
+    {"id": "h2", "label": "buffer region", "x": 0.312, "y": 0.812},
+    {"id": "h3", "label": "half-equivalence point", "x": 0.312, "y": 0.379},
+    {"id": "h4", "label": "equivalence point", "x": 0.500, "y": 0.287},
+    {"id": "h5", "label": "post-equivalence", "x": 0.688, "y": 0.216}
+  ]
+}
