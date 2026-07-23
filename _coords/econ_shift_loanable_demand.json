@@ -1,0 +1,48 @@
+{
+  "slug": "shift_loanable_demand",
+  "prompt": "Label the axes, the two demand curves for loanable funds, and the direction of the shift",
+  "options": [
+    "Real interest rate",
+    "Quantity of loanable funds",
+    "D\u2081",
+    "D\u2082",
+    "Shift right (more borrowing)",
+    "Shift left (less borrowing)",
+    "Nominal interest rate",
+    "Money supply",
+    "Savings",
+    "Investment"
+  ],
+  "hotspots": [
+    {
+      "id": "h_yaxis",
+      "label": "Real interest rate",
+      "x": 0.125,
+      "y": 0.5
+    },
+    {
+      "id": "h_xaxis",
+      "label": "Quantity of loanable funds",
+      "x": 0.833,
+      "y": 0.875
+    },
+    {
+      "id": "h_d1",
+      "label": "D\u2081",
+      "x": 0.604,
+      "y": 0.781
+    },
+    {
+      "id": "h_d2",
+      "label": "D\u2082",
+      "x": 0.604,
+      "y": 0.594
+    },
+    {
+      "id": "h_arrow",
+      "label": "Shift right (more borrowing)",
+      "x": 0.312,
+      "y": 0.25
+    }
+  ]
+}
