@@ -4,9 +4,9 @@
   <g stroke="#1f2937" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
 
     <g>
-      <rect x="210" y="76" width="60" height="16" fill="#bfdbfe" stroke="none"/>
-      <polyline points="210,58 210,92 270,92 270,58"/>
-      <line x1="204" y1="62" x2="276" y2="62"/>
+      <rect x="210" y="52" width="60" height="40" fill="#bfdbfe" stroke="none"/>
+      <polyline points="210,12 210,92 270,92 270,12"/>
+      <line x1="204" y1="12" x2="276" y2="12"/>
     </g>
 
     <rect x="165" y="92" width="150" height="8" fill="#e5e7eb"/>

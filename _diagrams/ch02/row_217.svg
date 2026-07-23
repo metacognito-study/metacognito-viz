@@ -8,7 +8,7 @@
   </g>
 
   <g>
-    <rect x="80" y="64" width="32" height="14" rx="3" fill="#9aa7b4"/>
+    <rect x="80" y="44" width="32" height="34" rx="10" fill="#9aa7b4"/>
     <rect x="85" y="78" width="22" height="20" fill="#eef3f7" stroke="#7d8b99" stroke-width="1.5"/>
     <polygon points="85,98 107,98 134,126 58,126" fill="#f4f8fb" stroke="#7d8b99" stroke-width="1.5"/>
     <rect x="58" y="126" width="76" height="122" rx="6" fill="#f4f8fb" stroke="#7d8b99" stroke-width="1.5"/>
@@ -19,7 +19,7 @@
   </g>
 
   <g>
-    <rect x="224" y="64" width="32" height="14" rx="3" fill="#9aa7b4"/>
+    <rect x="224" y="44" width="32" height="34" rx="10" fill="#9aa7b4"/>
     <rect x="229" y="78" width="22" height="20" fill="#eef3f7" stroke="#7d8b99" stroke-width="1.5"/>
     <polygon points="229,98 251,98 278,126 202,126" fill="#f4f8fb" stroke="#7d8b99" stroke-width="1.5"/>
     <rect x="202" y="126" width="76" height="122" rx="6" fill="#f4f8fb" stroke="#7d8b99" stroke-width="1.5"/>
@@ -30,7 +30,7 @@
   </g>
 
   <g>
-    <rect x="368" y="64" width="32" height="14" rx="3" fill="#9aa7b4"/>
+    <rect x="368" y="44" width="32" height="34" rx="10" fill="#9aa7b4"/>
     <rect x="373" y="78" width="22" height="20" fill="#eef3f7" stroke="#7d8b99" stroke-width="1.5"/>
     <polygon points="373,98 395,98 422,126 346,126" fill="#f4f8fb" stroke="#7d8b99" stroke-width="1.5"/>
     <rect x="346" y="126" width="76" height="122" rx="6" fill="#f4f8fb" stroke="#7d8b99" stroke-width="1.5"/>
